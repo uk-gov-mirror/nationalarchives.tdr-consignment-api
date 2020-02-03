@@ -22,7 +22,7 @@ libraryDependencies ++= Seq(
   "de.heikoseeberger" %% "akka-http-circe" % "1.30.0",
   "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-http-xml"        % akkaHttpVersion,
-  "com.typesafe.akka" %% "akka-stream"          % "2.6.1",
+  "com.typesafe.akka" %% "akka-stream"          % "2.6.3",
 
   "io.circe" %% "circe-core" % "0.13.0-M2",
   "io.circe" %% "circe-parser" % "0.13.0-M2",
@@ -35,9 +35,16 @@ libraryDependencies ++= Seq(
   "ch.megard" %% "akka-http-cors" % "0.4.2",
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
+  // https://mvnrepository.com/artifact/org.keycloak/keycloak-adapter-core
+  "org.keycloak" % "keycloak-adapter-core" % "8.0.1",
+  "org.keycloak" % "keycloak-core" % "8.0.1",
+  "org.apache.httpcomponents" % "httpclient" % "4.5.11",
+  "org.jboss.logging" % "jboss-logging" % "3.4.1.Final",
   "org.scalatest" %% "scalatest" % "3.1.0" % Test,
   "org.mockito" %% "mockito-scala" % "1.6.3" % Test,
-  "org.mockito" %% "mockito-scala-scalatest" % "1.6.3" % Test
+  "org.mockito" %% "mockito-scala-scalatest" % "1.6.3" % Test,
+  "com.typesafe.akka" %% "akka-http-testkit" % "10.1.11" % Test,
+  "com.typesafe.akka" %% "akka-testkit" % "2.6.3" % Test
 )
 
 assemblyJarName in assembly := "consignmentapi.jar"
