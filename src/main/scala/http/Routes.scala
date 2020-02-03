@@ -12,15 +12,18 @@ import org.keycloak.representations.AccessToken
 import spray.json.JsValue
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 import Directives.onComplete
+import akka.actor.ActorSystem
 import org.apache.http.auth.InvalidCredentialsException
 
 //noinspection ScalaStyle
 object Routes {
 
-  import actorSystem.dispatcher
+  implicit val system: ActorSystem = ActorSystem("helloAkkaHttpServer")
+  implicit val executionContext: ExecutionContext = system.dispatcher
+
 
   val ttl: Int = 60 * 10
   val keycloakDeployment = TdrKeycloakDeployment("https://auth.tdr-integration.nationalarchives.gov.uk/auth", "tdr", ttl)
@@ -30,8 +33,8 @@ object Routes {
       bearerToken {
         case Some(token) =>
           onComplete(
-            Future.failed[String](new InvalidCredentialsException())
-//              Future.apply(AdapterTokenVerifier.verifyToken(token, keycloakDeployment))
+//            Future.failed[String](new InvalidCredentialsException())
+            Future.apply(AdapterTokenVerifier.verifyToken(token, keycloakDeployment))
 
           )
           {
