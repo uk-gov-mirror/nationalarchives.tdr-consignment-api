@@ -4,7 +4,7 @@ import java.sql.PreparedStatement
 
 import akka.http.scaladsl.model.ContentTypes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import db.repository.DbConnection
+import db.DbConnection
 import http.Routes.route
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
