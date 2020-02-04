@@ -1,62 +1,51 @@
 package http
 
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.model.headers.{Authorization, HttpChallenge, OAuth2BearerToken}
-import akka.http.scaladsl.server.AuthenticationFailedRejection.{CredentialsMissing, CredentialsRejected}
-import akka.http.scaladsl.server.Directives.{as, complete, entity, failWith, get, optionalHeaderValueByType, path, post, provide, reject}
-import akka.http.scaladsl.server.RouteConcatenation._
-import akka.http.scaladsl.server.{AuthenticationFailedRejection, Directive1, Directives, Route}
-import http.ApiServer.actorSystem
-import org.keycloak.adapters.rotation.AdapterTokenVerifier
-import org.keycloak.representations.AccessToken
-import spray.json.JsValue
+import akka.actor.ActorSystem
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.server.Directives.{as, authenticateOAuth2Async, complete, entity, get, path, post}
+import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.RouteConcatenation._
+import akka.http.scaladsl.server.directives.Credentials
+import com.typesafe.config._
+import org.keycloak.adapters.rotation.AdapterTokenVerifier
+import spray.json.JsValue
 
-import scala.concurrent.Future
-import scala.util.{Failure, Success}
-import Directives.onComplete
-import org.apache.http.auth.InvalidCredentialsException
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
-//noinspection ScalaStyle
+
 object Routes {
 
-  import actorSystem.dispatcher
+  implicit val system: ActorSystem = ActorSystem("helloAkkaHttpServer")
+  implicit val executionContext: ExecutionContext = system.dispatcher
+
 
   val ttl: Int = 60 * 10
-  val keycloakDeployment = TdrKeycloakDeployment("https://auth.tdr-integration.nationalarchives.gov.uk/auth", "tdr", ttl)
+  val url: String = ConfigFactory.load().getString("auth.url")
+  val keycloakDeployment = TdrKeycloakDeployment(url, "tdr", ttl)
+
+
+  def verifyToken(token: String): Boolean =
+    Try(Option(AdapterTokenVerifier.verifyToken(token, keycloakDeployment)).isDefined).getOrElse(false)
+
+  def tokenAuthenticator(credentials: Credentials): Future[Option[String]] = {
+    credentials match {
+      case Credentials.Provided(token) => Future {
+        Some(token).filter(verifyToken)
+      }
+      case _ => Future.successful(None)
+    }
+  }
 
   val route: Route =
     (post & path("graphql")) {
-      bearerToken {
-        case Some(token) =>
-          onComplete(
-            Future.failed[String](new InvalidCredentialsException())
-//              Future.apply(AdapterTokenVerifier.verifyToken(token, keycloakDeployment))
-
-          )
-          {
-            case Success(_) =>
-              entity(as[JsValue]) { requestJson =>
-                GraphQLServer.endpoint(requestJson)
-              }
-            case Failure(e) =>
-              println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGGGGGGGGGHHHHHHHHHHHHHHHHHH")
-              failWith(e)
-
-          }
-        case None => failWith(new InvalidCredentialsException())
+      authenticateOAuth2Async("tdr", tokenAuthenticator) { _ =>
+        entity(as[JsValue]) { requestJson =>
+          GraphQLServer.endpoint(requestJson)
+        }
       }
     } ~ (get & path("")) {
       complete(StatusCodes.OK)
     }
-
-  private def bearerToken: Directive1[Option[String]] = {
-    optionalHeaderValueByType(classOf[Authorization])
-      .map(
-        authHeader =>
-          authHeader.collect {
-            case Authorization(OAuth2BearerToken(token)) => token
-          }
-      )
-  }
 }
