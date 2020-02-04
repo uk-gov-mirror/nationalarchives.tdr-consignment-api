@@ -5,8 +5,6 @@ import org.keycloak.adapters.rotation.JWKPublicKeyLocator
 import org.keycloak.representations.adapters.config.AdapterConfig
 
 class TdrKeycloakDeployment extends KeycloakDeployment {
-
-
 }
 
 object TdrKeycloakDeployment {
