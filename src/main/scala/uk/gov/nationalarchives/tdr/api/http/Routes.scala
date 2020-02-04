@@ -1,4 +1,4 @@
-package http
+package uk.gov.nationalarchives.tdr.api.http
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
@@ -8,26 +8,37 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.RouteConcatenation._
 import akka.http.scaladsl.server.directives.Credentials
 import com.typesafe.config._
+import com.typesafe.scalalogging.Logger
+import http.GraphQLServer
 import org.keycloak.adapters.rotation.AdapterTokenVerifier
 import spray.json.JsValue
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 
 object Routes {
 
-  implicit val system: ActorSystem = ActorSystem("helloAkkaHttpServer")
+  implicit val system: ActorSystem = ActorSystem("consignmentApi")
   implicit val executionContext: ExecutionContext = system.dispatcher
 
-
-  val ttl: Int = 60 * 10
+  val logger = Logger("ApiServer")
+  val ttlSeconds: Int = 60 * 10
   val url: String = ConfigFactory.load().getString("auth.url")
-  val keycloakDeployment = TdrKeycloakDeployment(url, "tdr", ttl)
+  val keycloakDeployment = TdrKeycloakDeployment(url, "tdr", ttlSeconds)
 
 
-  def verifyToken(token: String): Boolean =
-    Try(Option(AdapterTokenVerifier.verifyToken(token, keycloakDeployment)).isDefined).getOrElse(false)
+  def verifyToken(token: String): Boolean = {
+    val tryVerify = Try {
+      AdapterTokenVerifier.verifyToken(token, keycloakDeployment)
+    }
+    tryVerify match {
+      case Success(_) => true
+      case Failure(e) =>
+        logger.warn(e.getMessage)
+        false
+    }
+  }
 
   def tokenAuthenticator(credentials: Credentials): Future[Option[String]] = {
     credentials match {
@@ -45,7 +56,7 @@ object Routes {
           GraphQLServer.endpoint(requestJson)
         }
       }
-    } ~ (get & path("")) {
+    } ~ (get & path("healthcheck")) {
       complete(StatusCodes.OK)
     }
 }

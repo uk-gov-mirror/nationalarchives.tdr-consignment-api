@@ -1,7 +1,7 @@
-package service
+package uk.gov.nationalarchives.tdr.api.service
 
-import db.repository.SeriesRepository
-import graphql.fields.SeriesFields.Series
+import uk.gov.nationalarchives.tdr.api.db.repository.SeriesRepository
+import uk.gov.nationalarchives.tdr.api.graphql.fields.SeriesFields.Series
 
 import scala.concurrent.{ExecutionContext, Future}
 

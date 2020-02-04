@@ -1,4 +1,4 @@
-package db
+package uk.gov.nationalarchives.tdr.api.db
 
 import akka.stream.alpakka.slick.javadsl.SlickSession
 

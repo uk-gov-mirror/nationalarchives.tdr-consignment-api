@@ -1,15 +1,15 @@
-package routes
+package uk.gov.nationalarchives.tdr.api.routes
 
 import java.sql.PreparedStatement
 
 import akka.http.scaladsl.model.ContentTypes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import db.DbConnection
-import http.Routes.route
+import uk.gov.nationalarchives.tdr.api.db.DbConnection
+import uk.gov.nationalarchives.tdr.api.http.Routes.route
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import utils.TestUtils.validToken
+import uk.gov.nationalarchives.tdr.api.utils.TestUtils.validToken
 
 class SeriesRouteSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest with BeforeAndAfterEach  {
 
@@ -17,14 +17,14 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest 
     DbConnection.db.source.createConnection().prepareStatement("delete from consignmentapi.Series").executeUpdate()
   }
 
-  "The api " should "return an empty series list" in {
+  "The api" should "return an empty series list" in {
     val query: String = """{"query":"{getSeries{seriesid}}"}"""
     Post("/graphql").withEntity(ContentTypes.`application/json`, query) ~> addCredentials(validToken) ~> route ~> check {
       responseAs[String] shouldEqual """{"data":{"getSeries":[]}}"""
     }
   }
 
-  "The api " should "return the expected data" in {
+  "The api" should "return the expected data" in {
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement("insert into consignmentapi.Series (SeriesId) VALUES (1)")
     ps.executeUpdate()
     val query: String = """{"query":"{getSeries{seriesid}}"}"""
@@ -33,7 +33,7 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest 
     }
   }
 
-  "The api " should "return all requested fields" in {
+  "The api" should "return all requested fields" in {
     val sql = "insert into consignmentapi.Series (SeriesId, BodyId, Name, Code, Description) VALUES (1,1,'Name','Code','Description')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.executeUpdate()

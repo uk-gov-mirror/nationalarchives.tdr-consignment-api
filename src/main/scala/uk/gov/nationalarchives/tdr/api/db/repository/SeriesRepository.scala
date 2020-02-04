@@ -1,4 +1,4 @@
-package db.repository
+package uk.gov.nationalarchives.tdr.api.db.repository
 
 import slick.jdbc.MySQLProfile.api._
 import uk.gov.nationalarchives.Tables._

@@ -1,4 +1,4 @@
-package graphql
+package uk.gov.nationalarchives.tdr.api.graphql
 
 
 import sangria.execution.deferred.{Deferred, UnsupportedDeferError}

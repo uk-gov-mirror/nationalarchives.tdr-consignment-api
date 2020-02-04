@@ -1,4 +1,4 @@
-package http
+package uk.gov.nationalarchives.tdr.api.http
 
 import org.keycloak.adapters.{HttpClientBuilder, KeycloakDeployment}
 import org.keycloak.adapters.rotation.JWKPublicKeyLocator
@@ -12,7 +12,6 @@ object TdrKeycloakDeployment {
     val keycloakDeployment = new TdrKeycloakDeployment()
     keycloakDeployment.setClient(new HttpClientBuilder().build())
 
-    val ttl = 60 * 10
     keycloakDeployment.setPublicKeyCacheTtl(ttl)
 
     val adaptorConfig = new AdapterConfig()

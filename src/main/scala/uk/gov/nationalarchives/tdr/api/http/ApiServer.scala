@@ -1,10 +1,10 @@
-package http
+package uk.gov.nationalarchives.tdr.api.http
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.stream.Materializer
 import com.typesafe.scalalogging.Logger
-import http.Routes.route
+import uk.gov.nationalarchives.tdr.api.http.Routes.route
 
 import scala.concurrent.Await
 import scala.language.postfixOps

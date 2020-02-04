@@ -1,19 +1,19 @@
-package routes
+package uk.gov.nationalarchives.tdr.api.routes
 
 import akka.http.scaladsl.model.headers.HttpChallenge
 import akka.http.scaladsl.model.{ContentTypes, StatusCodes}
 import akka.http.scaladsl.server.AuthenticationFailedRejection
 import akka.http.scaladsl.server.AuthenticationFailedRejection.{CredentialsMissing, CredentialsRejected}
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import http.Routes.route
+import uk.gov.nationalarchives.tdr.api.http.Routes.route
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import utils.TestUtils.{validToken,invalidToken}
+import uk.gov.nationalarchives.tdr.api.utils.TestUtils.{validToken,invalidToken}
 
 class RouteAuthenticationSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest {
 
-  "The api " should "return ok" in {
-    Get("/") ~> route ~> check {
+  "The api" should "return ok" in {
+    Get("/healthcheck") ~> route ~> check {
       responseAs[String] shouldEqual "OK"
     }
   }

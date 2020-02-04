@@ -1,6 +1,6 @@
-package graphql
+package uk.gov.nationalarchives.tdr.api.graphql
 
-import graphql.fields.SeriesFields
+import uk.gov.nationalarchives.tdr.api.graphql.fields.SeriesFields
 import sangria.schema.{ObjectType, Schema}
 
 object GraphQlTypes {

@@ -1,4 +1,4 @@
-package utils
+package uk.gov.nationalarchives.tdr.api.utils
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import com.tngtech.keycloakmock.api.KeycloakVerificationMock
