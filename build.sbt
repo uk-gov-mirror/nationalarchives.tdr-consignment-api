@@ -40,12 +40,18 @@ libraryDependencies ++= Seq(
   "org.keycloak" % "keycloak-core" % "8.0.1",
   "org.apache.httpcomponents" % "httpclient" % "4.5.11",
   "org.jboss.logging" % "jboss-logging" % "3.4.1.Final",
+  "com.lightbend.akka" %% "akka-stream-alpakka-slick" % "1.1.2",
   "org.scalatest" %% "scalatest" % "3.1.0" % Test,
   "org.mockito" %% "mockito-scala" % "1.6.3" % Test,
   "org.mockito" %% "mockito-scala-scalatest" % "1.6.3" % Test,
   "com.typesafe.akka" %% "akka-http-testkit" % "10.1.11" % Test,
-  "com.typesafe.akka" %% "akka-testkit" % "2.6.3" % Test
+  "com.typesafe.akka" %% "akka-testkit" % "2.6.3" % Test,
+  "com.tngtech.keycloakmock" % "mock" % "0.2.0" % Test,
+  "com.h2database" % "h2" % "1.4.200" % Test
 )
+
+javaOptions in Test += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf"
+fork in Test := true
 
 assemblyJarName in assembly := "consignmentapi.jar"
 
