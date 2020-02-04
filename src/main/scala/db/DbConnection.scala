@@ -1,4 +1,4 @@
-package db.repository
+package db
 
 import akka.stream.alpakka.slick.javadsl.SlickSession
 
