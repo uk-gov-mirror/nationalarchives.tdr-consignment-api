@@ -6,8 +6,7 @@ import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import db.DbConnection
-import db.repository.SeriesRepository
+import db.repository.{DbConnection, SeriesRepository}
 import graphql.{ConsignmentApiContext, GraphQlTypes}
 import sangria.ast.Document
 import sangria.execution._
