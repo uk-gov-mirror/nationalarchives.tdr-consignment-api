@@ -10,7 +10,7 @@ pipeline {
         }
         steps {
             checkout scm
-            sh 'sbt -no-colors test scalastyle'
+            sh 'sbt -no-colors test scalastyle test:scalastyle'
         }
     }
   }

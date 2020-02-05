@@ -1,6 +1,6 @@
-package graphql.fields
+package uk.gov.nationalarchives.tdr.api.graphql.fields
 
-import graphql.ConsignmentApiContext
+import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import sangria.macros.derive._
 import sangria.schema.{Field, ListType, ObjectType, fields}
 

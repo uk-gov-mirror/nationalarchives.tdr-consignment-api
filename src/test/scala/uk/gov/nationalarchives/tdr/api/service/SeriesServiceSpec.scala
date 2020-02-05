@@ -1,12 +1,12 @@
-package service
+package uk.gov.nationalarchives.tdr.api.service
 
-import db.repository.SeriesRepository
-import graphql.fields.SeriesFields
 import org.mockito.MockitoSugar
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.SeriesRow
-import utils.TestUtils._
+import uk.gov.nationalarchives.tdr.api.db.repository.SeriesRepository
+import uk.gov.nationalarchives.tdr.api.graphql.fields.SeriesFields
+import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 import scala.concurrent.{ExecutionContext, Future}
 
