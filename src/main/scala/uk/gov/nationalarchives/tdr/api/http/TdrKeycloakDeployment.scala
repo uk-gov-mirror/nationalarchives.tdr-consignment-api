@@ -8,11 +8,11 @@ class TdrKeycloakDeployment extends KeycloakDeployment {
 }
 
 object TdrKeycloakDeployment {
-  def apply(authServer: String, realm: String, ttl: Int): TdrKeycloakDeployment = {
+  def apply(authServer: String, realm: String, ttlSeconds: Int): TdrKeycloakDeployment = {
     val keycloakDeployment = new TdrKeycloakDeployment()
     keycloakDeployment.setClient(new HttpClientBuilder().build())
 
-    keycloakDeployment.setPublicKeyCacheTtl(ttl)
+    keycloakDeployment.setPublicKeyCacheTtl(ttlSeconds)
 
     val adaptorConfig = new AdapterConfig()
     adaptorConfig.setAuthServerUrl(authServer)
