@@ -21,7 +21,7 @@ class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     when(repoMock.getSeries()).thenReturn(mockResponse)
 
     val seriesService: SeriesService = new SeriesService(repoMock)
-    val seriesResponse: Seq[SeriesFields.Series] = seriesService.getSeries().await()
+    val seriesResponse: Seq[SeriesFields.Series] = seriesService.getSeries(Option.empty).await()
 
     verify(repoMock, times(1)).getSeries()
     seriesResponse.length should equal(1)
