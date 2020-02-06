@@ -17,8 +17,6 @@ object ApiServer extends App {
   implicit val actorSystem: ActorSystem = ActorSystem("graphql-server")
   implicit val materializer: Materializer = Materializer(actorSystem)
 
-  import actorSystem.dispatcher
-
   import scala.concurrent.duration._
 
   scala.sys.addShutdownHook(() -> shutdown())
