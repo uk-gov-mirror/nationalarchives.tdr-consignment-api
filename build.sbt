@@ -28,7 +28,7 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-parser" % "0.13.0-M2",
   "io.circe" %% "circe-optics" % "0.12.0",
   "io.circe" %% "circe-generic" % "0.13.0-M2",
-  "uk.gov.nationalarchives" %% "consignment-api-db" % "0.0.2",
+  "uk.gov.nationalarchives" %% "consignment-api-db" % "0.0.3",
   "mysql" % "mysql-connector-java" % "6.0.6",
   "com.typesafe.slick" %% "slick" % "3.3.2",
   "com.typesafe.slick" %% "slick-hikaricp" % "3.3.2",
