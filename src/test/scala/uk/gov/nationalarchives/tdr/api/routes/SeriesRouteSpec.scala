@@ -16,7 +16,7 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest 
   override def beforeEach(): Unit = {
     DbConnection.db.source.createConnection().prepareStatement("delete from consignmentapi.Series").executeUpdate()
   }
-  
+
   "The api" should "return an empty series list" in {
     val query: String = """{"query":"{getSeries(body: \"Body\"){seriesid}}"}"""
     Post("/graphql").withEntity(ContentTypes.`application/json`, query) ~> addCredentials(validUserToken("Body2")) ~> route ~> check {
