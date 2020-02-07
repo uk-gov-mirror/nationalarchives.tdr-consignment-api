@@ -14,7 +14,7 @@ class SeriesService(seriesRepository: SeriesRepository)(implicit val executionCo
       seriesRepository.getSeries()
     }
     series.map(seriesRows =>
-      seriesRows.map(s => Series(s.seriesid,s.bodyid, s.name, s.code, s.description)
+      seriesRows.map(s => Series(s.seriesid.get,s.bodyid, s.name, s.code, s.description)
       ))
     }
 }
