@@ -15,10 +15,10 @@ object Tags {
       val token = ctx.ctx.accessToken
       def getProperty(name: String) = token.getOtherClaims.get(name).asInstanceOf[String]
 
-      val isUser = token.getResourceAccess("tdr").getRoles.contains("tdr_user")
+      val isAdmin = token.getResourceAccess("tdr").getRoles.contains("tdr_admin")
       val bodyArg: Option[String] = ctx.argOpt("body")
 
-      if(isUser) {
+      if(!isAdmin) {
         val bodyFromToken: String = getProperty("body")
         if(bodyFromToken != bodyArg.getOrElse("")) {
           val msg = s"Body for user ${getProperty("user_id")} was ${bodyArg.getOrElse("")} in the query and $bodyFromToken in the token"
