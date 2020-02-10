@@ -24,7 +24,24 @@ object TestUtils {
     mock
   }
 
-  def validToken: OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(aTokenConfig().build))
+  def validUserToken(body: String = "Body"): OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
+    aTokenConfig()
+      .withResourceRole("tdr", "tdr_user")
+      .withClaim("body", "Body")
+      .withClaim("user_id", "1")
+      .build)
+  )
+  def validUserTokenNoBody: OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
+    aTokenConfig()
+      .withResourceRole("tdr", "tdr_user")
+      .withClaim("user_id", "1")
+      .build)
+  )
+  def validAdminToken: OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
+    aTokenConfig()
+      .withResourceRole("tdr", "tdr_admin")
+      .build)
+  )
   def invalidToken: OAuth2BearerToken = OAuth2BearerToken(testMock.getAccessToken(aTokenConfig().build))
 
 }

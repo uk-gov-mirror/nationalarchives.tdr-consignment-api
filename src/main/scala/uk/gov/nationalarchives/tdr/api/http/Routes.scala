@@ -9,8 +9,8 @@ import akka.http.scaladsl.server.RouteConcatenation._
 import akka.http.scaladsl.server.directives.Credentials
 import com.typesafe.config._
 import com.typesafe.scalalogging.Logger
-import http.GraphQLServer
 import org.keycloak.adapters.rotation.AdapterTokenVerifier
+import org.keycloak.representations.AccessToken
 import spray.json.JsValue
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -23,27 +23,27 @@ object Routes {
   implicit val executionContext: ExecutionContext = system.dispatcher
 
   val logger = Logger("ApiServer")
-  val ttlSeconds: Int = 60 * 10
+  val ttlSeconds: Int = 10
   val url: String = ConfigFactory.load().getString("auth.url")
   val keycloakDeployment = TdrKeycloakDeployment(url, "tdr", ttlSeconds)
 
 
-  def verifyToken(token: String): Boolean = {
+  def verifyToken(token: String): Option[AccessToken] = {
     val tryVerify = Try {
       AdapterTokenVerifier.verifyToken(token, keycloakDeployment)
     }
     tryVerify match {
-      case Success(_) => true
+      case Success(token) => Some(token)
       case Failure(e) =>
         logger.warn(e.getMessage)
-        false
+        Option.empty
     }
   }
 
-  def tokenAuthenticator(credentials: Credentials): Future[Option[String]] = {
+  def tokenAuthenticator(credentials: Credentials): Future[Option[AccessToken]] = {
     credentials match {
       case Credentials.Provided(token) => Future {
-        Some(token).filter(verifyToken)
+        verifyToken(token)
       }
       case _ => Future.successful(None)
     }
@@ -51,9 +51,9 @@ object Routes {
 
   val route: Route =
     (post & path("graphql")) {
-      authenticateOAuth2Async("tdr", tokenAuthenticator) { _ =>
+      authenticateOAuth2Async("tdr", tokenAuthenticator) { accessToken =>
         entity(as[JsValue]) { requestJson =>
-          GraphQLServer.endpoint(requestJson)
+          GraphQLServer.endpoint(requestJson, accessToken)
         }
       }
     } ~ (get & path("healthcheck")) {
