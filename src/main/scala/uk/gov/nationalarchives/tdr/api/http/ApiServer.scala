@@ -11,7 +11,7 @@ import scala.language.postfixOps
 
 object ApiServer extends App {
 
-  val PORT = 8080
+  val PORT = 8081
   val logger = Logger("ApiServer")
 
   implicit val actorSystem: ActorSystem = ActorSystem("graphql-server")

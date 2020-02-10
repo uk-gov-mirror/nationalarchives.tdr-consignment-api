@@ -1,3 +1,6 @@
+import rocks.muki.graphql.schema.SchemaLoader
+import sbt.File
+
 name := "tdr-consignment-api"
 version := "0.1.0-SNAPSHOT"
 
@@ -9,6 +12,12 @@ scalacOptions ++= Seq("-deprecation", "-feature")
 resolvers ++= Seq(
   "Sonatype Releases" at "https://dl.bintray.com/mockito/maven/"
 )
+
+mainClass in (Compile, run) := Some("uk.gov.nationalarchives.tdr.api.http.ApiServer")
+
+enablePlugins(GraphQLSchemaPlugin)
+
+graphqlSchemaSnippet := "uk.gov.nationalarchives.tdr.api.graphql.GraphQlTypes.schema"
 
 lazy val akkaHttpVersion = "10.1.11"
 

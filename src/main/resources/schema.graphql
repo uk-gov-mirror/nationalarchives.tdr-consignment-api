@@ -1,0 +1,11 @@
+type Query {
+  getSeries(body: String): [Series!]!
+}
+
+type Series {
+  seriesid: Long!
+  bodyid: Long
+  name: String
+  code: String
+  description: String
+}
