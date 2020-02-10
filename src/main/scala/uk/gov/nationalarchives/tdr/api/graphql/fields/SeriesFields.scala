@@ -6,7 +6,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.Arguments.BodyArg
 import sangria.macros.derive._
 import sangria.schema.{Argument, Field, InputObjectType, ListType, ObjectType, fields}
-import uk.gov.nationalarchives.tdr.api.graphql.Tags.ValidateBody
+import uk.gov.nationalarchives.tdr.api.graphql.Tags.{ValidateBody, ValidateIsAdmin}
 
 object SeriesFields {
   case class Series(seriesid: Long, bodyid: Option[Long] = None, name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
@@ -29,6 +29,8 @@ object SeriesFields {
       "addSeries",
       SeriesType,
       arguments = List(SeriesInputArg),
-      resolve = ctx => ctx.ctx.seriesService.addSeries(ctx.arg(SeriesInputArg)))
+      resolve = ctx => ctx.ctx.seriesService.addSeries(ctx.arg(SeriesInputArg)),
+      tags=List(ValidateIsAdmin())
+    )
     )
 }

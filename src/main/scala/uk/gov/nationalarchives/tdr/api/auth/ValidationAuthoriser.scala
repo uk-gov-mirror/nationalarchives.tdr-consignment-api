@@ -7,6 +7,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.Tags._
 object ValidationAuthoriser extends Middleware[ConsignmentApiContext] with MiddlewareBeforeField[ConsignmentApiContext] {
 
   case class WrongBodyException(message: String) extends Exception(message)
+  case class AdminOnlyException(fieldName: String) extends Exception
 
   override type QueryVal = Unit
   override type FieldVal = Unit

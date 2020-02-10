@@ -128,4 +128,12 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest 
       responseAs[String] shouldEqual expectedResult
     }
   }
+
+  "The api" should "return an error if a user has role_user and inserts a Series" in {
+    val mutation: String = fromResource(addSeriesJsonFilePrefix + "mutation_alldata.json").mkString
+    val expectedResult: String = fromResource(addSeriesJsonFilePrefix + "data_error_incorrect_role.json").mkString
+    Post("/graphql").withEntity(ContentTypes.`application/json`, mutation) ~> addCredentials(validUserToken()) ~> route ~> check {
+      responseAs[String] shouldEqual expectedResult
+    }
+  }
 }

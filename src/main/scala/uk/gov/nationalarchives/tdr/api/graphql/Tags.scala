@@ -2,7 +2,7 @@ package uk.gov.nationalarchives.tdr.api.graphql
 
 import sangria.execution.{BeforeFieldResult, FieldTag}
 import sangria.schema.Context
-import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser.{WrongBodyException, continue}
+import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser.{AdminOnlyException, WrongBodyException, continue}
 
 object Tags {
 
@@ -27,6 +27,18 @@ object Tags {
         continue
       } else {
         continue
+      }
+    }
+  }
+
+  case class ValidateIsAdmin() extends ValidateTags {
+    override def validate(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
+      val token = ctx.ctx.accessToken
+      val isAdmin = token.getResourceAccess("tdr").getRoles.contains("tdr_admin")
+      if(isAdmin) {
+        continue
+      } else {
+        throw AdminOnlyException(ctx.field.name)
       }
     }
   }
