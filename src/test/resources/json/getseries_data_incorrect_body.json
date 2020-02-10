@@ -1,0 +1,1 @@
+{"data":null,"errors":[{"message":"Body for user 1 was Body2 in the query and Body in the token","path":["getSeries"],"locations":[{"column":2,"line":1}]}]}

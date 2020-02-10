@@ -64,7 +64,7 @@ class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     val seriesResponse: SeriesFields.Series = seriesService.addSeries(newSeriesInput).await()
 
     verify(repoMock, times(1)).addSeries(any())
-    seriesResponse.seriesid.get should equal(seriesId)
+    seriesResponse.seriesid should equal(seriesId)
     seriesResponse.bodyid.get should equal(bodyId)
     seriesResponse.code.get should equal(seriesCode)
     seriesResponse.name.get should equal(seriesName)
