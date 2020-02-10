@@ -1,19 +1,10 @@
 package uk.gov.nationalarchives.tdr.api.graphql.fields
 
-import cats.syntax.either._
-import io.circe.Decoder
 import io.circe.generic.auto._
-import sangria.ast.StringValue
 import sangria.macros.derive._
-import sangria.validation.ValueCoercionViolation
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Failure, Success, Try}
-
-import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
-import sangria.macros.derive._
-import sangria.schema.{Argument, Field, InputObjectType, ListType, ObjectType, fields}
 import sangria.marshalling.circe._
+import sangria.schema.{Argument, Field, InputObjectType, ListType, ObjectType, fields}
+import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 
 object SeriesFields {
   case class Series(bodyid: Option[Long] = None, name: Option[String] = None,
