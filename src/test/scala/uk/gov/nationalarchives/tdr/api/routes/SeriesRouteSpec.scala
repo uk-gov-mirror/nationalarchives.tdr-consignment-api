@@ -14,14 +14,17 @@ import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 class SeriesRouteSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest with BeforeAndAfterEach  {
 
+  private val getSeriesJsonFilePrefix: String = "json/getseries_"
+  private val addSeriesJsonFilePrefix: String = "json/addseries_"
+
   override def beforeEach(): Unit = {
     DbConnection.db.source.createConnection().prepareStatement("delete from consignmentapi.Series").executeUpdate()
   }
 
-  val getSeriesQuery: String = fromResource("json/getseries_query_somedata.json").mkString
+  val getSeriesQuery: String = fromResource(getSeriesJsonFilePrefix + "query_somedata.json").mkString
 
   "The api" should "return an empty series list" in {
-    val expectedResult: String = fromResource("json/getseries_data_empty.json").mkString
+    val expectedResult: String = fromResource(getSeriesJsonFilePrefix + "data_empty.json").mkString
 
     Post("/graphql").withEntity(ContentTypes.`application/json`, getSeriesQuery) ~> addCredentials(validUserToken("Body2")) ~> route ~> check {
       responseAs[String] shouldEqual expectedResult
@@ -33,7 +36,7 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest 
       .prepareStatement("insert into consignmentapi.Series (SeriesId, BodyId) VALUES (1, 1)")
     ps.executeUpdate()
 
-    val expectedResult: String = fromResource("json/getseries_data_some.json").mkString
+    val expectedResult: String = fromResource(getSeriesJsonFilePrefix + "data_some.json").mkString
 
     Post("/graphql").withEntity(ContentTypes.`application/json`, getSeriesQuery) ~> addCredentials(validUserToken()) ~> route ~> check {
       responseAs[String] shouldEqual expectedResult
@@ -45,8 +48,8 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest 
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.executeUpdate()
 
-    val query: String = fromResource("json/getseries_query_alldata.json").mkString
-    val expectedResult: String = fromResource("json/getseries_data_all.json").mkString
+    val query: String = fromResource(getSeriesJsonFilePrefix + "query_alldata.json").mkString
+    val expectedResult: String = fromResource(getSeriesJsonFilePrefix + "data_all.json").mkString
 
     Post("/graphql").withEntity(ContentTypes.`application/json`, query) ~> addCredentials(validUserToken()) ~> route ~> check {
       responseAs[String] shouldEqual expectedResult
@@ -54,8 +57,8 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest 
   }
 
   "The api" should "return an error if a user queries without a body argument" in {
-    val query: String = fromResource("json/getseries_query_no_body.json").mkString
-    val expectedResponse: String = fromResource("json/getseries_data_error_no_body.json").mkString
+    val query: String = fromResource(getSeriesJsonFilePrefix + "query_no_body.json").mkString
+    val expectedResponse: String = fromResource(getSeriesJsonFilePrefix + "data_error_no_body.json").mkString
 
     Post("/graphql").withEntity(ContentTypes.`application/json`, query) ~> addCredentials(validUserToken()) ~> route ~> check {
       responseAs[String] shouldEqual expectedResponse
@@ -63,8 +66,8 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest 
   }
 
   "The api" should "return an error if a user queries with a different body to their own" in {
-    val query: String = fromResource("json/getseries_query_incorrect_body.json").mkString
-    val expectedResponse: String = fromResource("json/getseries_data_incorrect_body.json").mkString
+    val query: String = fromResource(getSeriesJsonFilePrefix + "query_incorrect_body.json").mkString
+    val expectedResponse: String = fromResource(getSeriesJsonFilePrefix + "data_incorrect_body.json").mkString
 
     Post("/graphql").withEntity(ContentTypes.`application/json`, query) ~> addCredentials(validUserToken()) ~> route ~> check {
       responseAs[String] shouldEqual expectedResponse
@@ -72,8 +75,8 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest 
   }
 
   "The api" should "return an error if a user queries with the correct body but it is not set on their user" in {
-    val query: String = fromResource("json/getseries_query_incorrect_body.json").mkString
-    val expectedResponse: String = fromResource("json/getseries_data_error_incorrect_user.json").mkString
+    val query: String = fromResource(getSeriesJsonFilePrefix + "query_incorrect_body.json").mkString
+    val expectedResponse: String = fromResource(getSeriesJsonFilePrefix + "data_error_incorrect_user.json").mkString
 
     Post("/graphql").withEntity(ContentTypes.`application/json`, query) ~> addCredentials(validUserTokenNoBody) ~> route ~> check {
       responseAs[String] shouldEqual expectedResponse
@@ -85,8 +88,8 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest 
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.executeUpdate()
 
-    val query: String = fromResource("json/getseries_query_admin.json").mkString
-    val expectedResponse: String = fromResource("json/getseries_data_multipleseries.json").mkString
+    val query: String = fromResource(getSeriesJsonFilePrefix + "query_admin.json").mkString
+    val expectedResponse: String = fromResource(getSeriesJsonFilePrefix + "data_multipleseries.json").mkString
 
     Post("/graphql").withEntity(ContentTypes.`application/json`, query) ~> addCredentials(validAdminToken) ~> route ~> check {
       responseAs[String] shouldEqual expectedResponse
@@ -98,19 +101,18 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest 
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.executeUpdate()
 
-    val query: String = fromResource("json/getseries_query_somedata.json").mkString
-    val expectedResponse: String = fromResource("json/getseries_data_some.json").mkString
+    val query: String = fromResource(getSeriesJsonFilePrefix + "query_somedata.json").mkString
+    val expectedResponse: String = fromResource(getSeriesJsonFilePrefix + "data_some.json").mkString
 
     Post("/graphql").withEntity(ContentTypes.`application/json`, query) ~> addCredentials(validAdminToken) ~> route ~> check {
-      val response = """{"data":{"getSeries":[{"seriesid":1}]}}"""
       responseAs[String] shouldEqual expectedResponse
     }
   }
 
   "The api" should "return all requested fields from inserted Series object" in {
 
-    val mutation: String = fromResource("json/addseries_mutation_alldata.json").mkString
-    val expectedResult: String = fromResource("json/addseries_data_all.json").mkString
+    val mutation: String = fromResource(addSeriesJsonFilePrefix + "mutation_alldata.json").mkString
+    val expectedResult: String = fromResource(addSeriesJsonFilePrefix + "data_all.json").mkString
 
     Post("/graphql").withEntity(ContentTypes.`application/json`, mutation) ~> addCredentials(validAdminToken) ~> route ~> check {
       responseAs[String] shouldEqual expectedResult
@@ -119,8 +121,8 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest 
 
   "The api" should "return the expected data from inserted Series object" in {
 
-    val mutation: String = fromResource("json/addseries_mutation_somedata.json").mkString
-    val expectedResult: String = fromResource("json/addseries_data_some.json").mkString
+    val mutation: String = fromResource(addSeriesJsonFilePrefix + "mutation_somedata.json").mkString
+    val expectedResult: String = fromResource(addSeriesJsonFilePrefix + "data_some.json").mkString
 
     Post("/graphql").withEntity(ContentTypes.`application/json`, mutation) ~> addCredentials(validAdminToken) ~> route ~> check {
       responseAs[String] shouldEqual expectedResult

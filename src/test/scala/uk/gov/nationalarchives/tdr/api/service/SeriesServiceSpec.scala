@@ -41,8 +41,8 @@ class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
   }
 
   "addSeries" should "insert series and return inserted series object" in {
-    val seriesId: Long = 123456789
-    val bodyId: Long = 987654321
+    val seriesId: Int = 123456789
+    val bodyId: Int = 987654321
     val seriesDescription: String = "Series Description"
     val seriesName: String = "Series Name"
     val seriesCode: String = "Series Code"
@@ -64,11 +64,7 @@ class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     val seriesResponse: SeriesFields.Series = seriesService.addSeries(newSeriesInput).await()
 
     verify(repoMock, times(1)).addSeries(any())
-    seriesResponse.seriesid should equal(seriesId)
-    seriesResponse.bodyid.get should equal(bodyId)
-    seriesResponse.code.get should equal(seriesCode)
-    seriesResponse.name.get should equal(seriesName)
-    seriesResponse.description.get should equal(seriesDescription)
+    checkFields(seriesResponse, SeriesCheck(seriesId, bodyId, seriesName, seriesCode, seriesDescription))
   }
 
   case class SeriesCheck(seriesId: Int, bodyId: Int, name: String, code: String, description: String)
