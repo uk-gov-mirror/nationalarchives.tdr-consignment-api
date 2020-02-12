@@ -44,10 +44,6 @@ libraryDependencies ++= Seq(
   "ch.megard" %% "akka-http-cors" % "0.4.2",
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
-  // https://mvnrepository.com/artifact/org.keycloak/keycloak-adapter-core
-  "org.keycloak" % "keycloak-adapter-core" % "8.0.1",
-  "org.keycloak" % "keycloak-core" % "8.0.1",
-  "org.apache.httpcomponents" % "httpclient" % "4.5.11",
   "org.jboss.logging" % "jboss-logging" % "3.4.1.Final",
   "com.lightbend.akka" %% "akka-stream-alpakka-slick" % "1.1.2",
   "org.scalatest" %% "scalatest" % "3.1.0" % Test,
@@ -56,7 +52,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http-testkit" % "10.1.11" % Test,
   "com.typesafe.akka" %% "akka-testkit" % "2.6.3" % Test,
   "com.tngtech.keycloakmock" % "mock" % "0.2.0" % Test,
-  "com.h2database" % "h2" % "1.4.200" % Test
+  "com.h2database" % "h2" % "1.4.200" % Test,
+  "uk.gov.nationalarchives.tdr" %% "tdr-auth-utils" % "0.1.0-SNAPSHOT"
 )
 
 javaOptions in Test += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf"
