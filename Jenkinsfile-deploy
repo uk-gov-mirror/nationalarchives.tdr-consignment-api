@@ -20,7 +20,9 @@ pipeline {
         }
     }
     stage("Update generated code") {
-        build job: 'TDR Graphql Code Generation', parameters: [[$class: 'StringParameterValue', name: 'STAGE', value: params.STAGE]]
+        steps {
+            build job: 'TDR Graphql Code Generation', parameters: [[$class: 'StringParameterValue', name: 'STAGE', value: params.STAGE]]
+        }
     }
     stage("Docker") {
         agent {
