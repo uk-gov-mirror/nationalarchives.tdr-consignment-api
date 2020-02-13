@@ -13,10 +13,14 @@ pipeline {
             }
         }
         steps {
-            sh 'sbt -no-colors test scalastyle assembly'
+            sh 'sbt -no-colors graphqlSchemaGen scalastyle assembly'
             stash includes: "Dockerfile", name: "Dockerfile"
             stash includes: "target/scala-2.13/consignmentapi.jar", name: "tdr-consignment-api"
+            stash includes: "target/sbt-graphql/schema.graphql", name: "graphql-schema"
         }
+    }
+    stage("Update generated code") {
+        build job: 'TDR Graphql Code Generation', parameters: [[$class: 'StringParameterValue', name: 'STAGE', value: params.STAGE]]
     }
     stage("Docker") {
         agent {
