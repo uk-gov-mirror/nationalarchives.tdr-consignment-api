@@ -21,7 +21,8 @@ pipeline {
     }
     stage("Update generated code") {
         steps {
-            build job: 'TDR Graphql Code Generation', parameters: [[$class: 'StringParameterValue', name: 'STAGE', value: params.STAGE]]
+            schema = sh(script: "cat target/sbt-graphql/schema.graphql", returnStdout: true).trim()
+            build job: 'TDR Graphql Code Generation', parameters: [[$class: 'StringParameterValue', name: 'STAGE', value: params.STAGE], [$class: 'StringParameterValue', name: 'STAGE', value: schema]]
         }
     }
     stage("Docker") {
