@@ -4,34 +4,24 @@ pipeline {
   }
   parameters {
     choice(name: "STAGE", choices: ["intg", "staging", "prod"], description: "The stage you are building the api for")
+    string(name: "TO_DEPLOY", description: "The git tag, branch or commit reference to deploy, e.g. 'v123'")
   }
   stages {
-    stage("Build") {
-        agent {
-            ecs {
-                inheritFrom "transfer-frontend"
-            }
-        }
-        steps {
-            sh 'sbt -no-colors test scalastyle assembly'
-            stash includes: "Dockerfile", name: "Dockerfile"
-            stash includes: "target/scala-2.13/consignmentapi.jar", name: "tdr-consignment-api"
-        }
-    }
     stage("Docker") {
-        agent {
-            label "master"
+      agent {
+        label "master"
+      }
+      steps {
+        script {
+          docker.withRegistry('', 'docker') {
+            sh "docker pull nationalarchives/consignment-api:${params.TO_DEPLOY}"
+            sh "docker tag nationalarchives/consignment-api:${params.TO_DEPLOY} nationalarchives/consignment-api:${params.STAGE}"
+            sh "docker push nationalarchives/consignment-api:${params.STAGE}"
+
+            slackSend color: "good", message: "The Consignment API ${params.STAGE} tag has been upated to the ${params.TO_DEPLOY} version in Docker Hub", channel: "#tdr"
+          }
         }
-        steps {
-            unstash "tdr-consignment-api"
-            unstash "Dockerfile"
-            script {
-                docker.withRegistry('', 'docker') {
-                    docker.build("nationalarchives/consignment-api:${params.STAGE}").push()
-                    slackSend color: "good", message: "The api has been pushed to docker hub", channel: "#tdr"
-                }
-            }
-        }
+      }
     }
     stage("Update ECS container") {
         agent {
