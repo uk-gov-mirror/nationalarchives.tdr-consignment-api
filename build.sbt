@@ -67,3 +67,5 @@ assemblyMergeStrategy in assembly := {
     val oldStrategy = (assemblyMergeStrategy in assembly).value
     oldStrategy(x)
 }
+
+mainClass in assembly := Some("uk.gov.nationalarchives.tdr.api.http.ApiServer")
