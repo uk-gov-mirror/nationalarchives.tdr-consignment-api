@@ -15,7 +15,7 @@ import sangria.marshalling.sprayJson._
 import sangria.parser.QueryParser
 import uk.gov.nationalarchives.tdr.api.service.SeriesService
 import spray.json.{JsObject, JsString, JsValue}
-import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser.{RoleNotAssignedException, WrongBodyException}
+import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser.AuthorisationException
 import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -25,8 +25,7 @@ import scala.util.{Failure, Success}
 object GraphQLServer {
 
   val exceptionHandler = ExceptionHandler {
-    case (_, WrongBodyException(message)) => HandledException(message)
-    case (_, RoleNotAssignedException()) => HandledException("A role has not been assigned for this user")
+    case (_, AuthorisationException(message)) => HandledException(message)
   }
 
   def endpoint(requestJSON: JsValue, accessToken: AccessToken)(implicit ec: ExecutionContext): Route = {

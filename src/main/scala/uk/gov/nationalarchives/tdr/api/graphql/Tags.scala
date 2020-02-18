@@ -2,7 +2,7 @@ package uk.gov.nationalarchives.tdr.api.graphql
 
 import sangria.execution.{BeforeFieldResult, FieldTag}
 import sangria.schema.Context
-import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser.{RoleNotAssignedException, WrongBodyException, continue}
+import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser.{AuthorisationException, continue}
 
 object Tags {
 
@@ -19,7 +19,7 @@ object Tags {
 
       val isAdmin: Boolean = resourceAccess match {
         case Some(access) => access.getRoles.contains("tdr_admin")
-        case None => throw new RoleNotAssignedException
+        case None => throw AuthorisationException("A role has not been assigned for this user")
       }
 
       val bodyArg: Option[String] = ctx.argOpt("body")
@@ -28,7 +28,7 @@ object Tags {
         val bodyFromToken: String = getProperty("body")
         if(bodyFromToken != bodyArg.getOrElse("")) {
           val msg = s"Body for user ${getProperty("user_id")} was ${bodyArg.getOrElse("")} in the query and $bodyFromToken in the token"
-          throw WrongBodyException(msg)
+          throw AuthorisationException(msg)
         }
         continue
       } else {
