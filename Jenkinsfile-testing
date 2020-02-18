@@ -13,5 +13,61 @@ pipeline {
             sh 'sbt -no-colors test scalastyle test:scalastyle'
         }
     }
+    stage('Post-build') {
+      agent {
+        label "master"
+      }
+      when {
+        expression { env.BRANCH_NAME == "master"}
+      }
+      stages {
+        stage('Tag Release') {
+          steps {
+            sh "git tag ${versionTag}"
+            sshagent(['github-jenkins']) {
+              sh("git push origin ${versionTag}")
+            }
+          }
+        }
+        stage("Build Docker image") {
+          agent {
+            ecs {
+              inheritFrom "transfer-frontend"
+            }
+          }
+          steps {
+            sh 'sbt -no-colors test scalastyle assembly'
+            stash includes: "Dockerfile", name: "Dockerfile"
+            stash includes: "target/scala-2.13/consignmentapi.jar", name: "tdr-consignment-api"
+          }
+        }
+        stage("Push Docker image") {
+          agent {
+            label "master"
+          }
+          steps {
+            unstash "tdr-consignment-api"
+            unstash "Dockerfile"
+            script {
+              docker.withRegistry('', 'docker') {
+                docker.build("nationalarchives/consignment-api:${versionTag}").push()
+                slackSend color: "good", message: "Pushed version ${versionTag} of the Consignment API to Docker Hub", channel: "#tdr"
+              }
+            }
+          }
+        }
+        stage('Deploy to integration') {
+          steps {
+            build(
+                job: "TDR Consignment API Deploy",
+                parameters: [
+                    string(name: "STAGE", value: "intg"),
+                    string(name: "TO_DEPLOY", value: versionTag)
+                ],
+                wait: false)
+          }
+        }
+      }
+    }
   }
 }
