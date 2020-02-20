@@ -1,1 +1,1 @@
-{"query":"mutation {addConsignment(addConsignmentInput: {userid: 1}) {seriesid, userid}}"}
+{"query":"mutation {addConsignment(addConsignmentInput: {userid: 1}) {consignmentid, seriesid, userid}}"}
