@@ -6,6 +6,7 @@ import sangria.schema.{ObjectType, Schema}
 object GraphQlTypes {
 
   private val QueryType = ObjectType("Query", SeriesFields.queryFields)
+  private val MutationType = ObjectType("Mutation", SeriesFields.mutationFields)
 
-  val schema: Schema[ConsignmentApiContext, Unit] = Schema(QueryType)
+  val schema: Schema[ConsignmentApiContext, Unit] = Schema(QueryType, Some(MutationType))
 }

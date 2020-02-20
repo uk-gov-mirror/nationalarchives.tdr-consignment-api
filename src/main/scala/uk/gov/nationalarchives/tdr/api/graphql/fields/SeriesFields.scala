@@ -1,14 +1,21 @@
 package uk.gov.nationalarchives.tdr.api.graphql.fields
 
+import sangria.marshalling.circe._
+import io.circe.generic.auto._
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.Arguments.BodyArg
 import sangria.macros.derive._
-import sangria.schema.{Field, ListType, ObjectType, fields}
-import uk.gov.nationalarchives.tdr.api.graphql.Tags.ValidateBody
+import sangria.schema.{Argument, Field, InputObjectType, ListType, ObjectType, fields}
+import uk.gov.nationalarchives.tdr.api.graphql.Tags.{ValidateBody, ValidateIsAdmin}
 
 object SeriesFields {
   case class Series(seriesid: Long, bodyid: Option[Long] = None, name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
+  case class AddSeriesInput(bodyid: Option[Long] = None,
+                            name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
   implicit val SeriesType: ObjectType[Unit, Series] = deriveObjectType[Unit, Series]()
+  implicit val AddSeriesInputType: InputObjectType[AddSeriesInput] = deriveInputObjectType[AddSeriesInput]()
+
+  private val SeriesInputArg = Argument("addSeriesInput", AddSeriesInputType)
 
   val queryFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("getSeries", ListType(SeriesType),
@@ -16,4 +23,14 @@ object SeriesFields {
       resolve = ctx => ctx.ctx.seriesService.getSeries(ctx.arg(BodyArg)),
       tags=List(ValidateBody()))
   )
+
+  val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
+    Field(
+      "addSeries",
+      SeriesType,
+      arguments = List(SeriesInputArg),
+      resolve = ctx => ctx.ctx.seriesService.addSeries(ctx.arg(SeriesInputArg)),
+      tags=List(ValidateIsAdmin())
+    )
+    )
 }

@@ -1,0 +1,1 @@
+{"query":"{getSeries(body: \"Body\"){seriesid, bodyid, name, code, description}}"}
