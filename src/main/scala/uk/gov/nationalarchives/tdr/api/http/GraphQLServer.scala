@@ -10,7 +10,7 @@ import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentRepository, SeriesRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, GraphQlTypes}
 import sangria.ast.Document
-import sangria.execution.{QueryAnalysisError, _}
+import sangria.execution._
 import sangria.marshalling.sprayJson._
 import sangria.parser.QueryParser
 import uk.gov.nationalarchives.tdr.api.service.{ConsignmentService, SeriesService}
