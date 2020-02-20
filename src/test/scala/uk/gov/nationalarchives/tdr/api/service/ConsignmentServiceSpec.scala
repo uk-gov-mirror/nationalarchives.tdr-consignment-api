@@ -8,7 +8,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.ConsignmentRow
 import uk.gov.nationalarchives.tdr.api.db.repository.ConsignmentRepository
-import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.Consignment
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AddConsignmentInput, Consignment}
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 import org.mockito.ArgumentMatchers._
 
@@ -22,7 +22,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
     val mockResponse = Future.successful(ConsignmentRow(1L, 1L, Timestamp.from(Instant.now), Some(1)))
     when(consignmentRepositoryMock.addConsignment(any[ConsignmentRow])).thenReturn(mockResponse)
     val consignmentService = new ConsignmentService(consignmentRepositoryMock)
-    val result: Consignment = consignmentService.addConsignment(Consignment(Option.empty,1 ,1)).await()
+    val result: Consignment = consignmentService.addConsignment(AddConsignmentInput(1 ,1)).await()
     result.seriesid shouldBe 1
     result.userid shouldBe 1
     result.consignmentid shouldBe defined

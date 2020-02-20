@@ -17,6 +17,8 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with ScalatestRoute
 
   override def beforeEach(): Unit = {
     DbConnection.db.source.createConnection().prepareStatement("delete from consignmentapi.Consignment").executeUpdate()
+    val resetIdCount = "alter table consignmentapi.Consignment alter column ConsignmentId restart with 1"
+    DbConnection.db.source.createConnection().prepareStatement(resetIdCount).executeUpdate()
   }
 
   private def runTestMutation(mutation: String, expectedResult: String, token: OAuth2BearerToken = validUserToken()) = {
@@ -27,6 +29,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with ScalatestRoute
     val mutation: String = fromResource(prefix + mutationPath).mkString
     val expectedResult: String = fromResource(prefix + expectedResultPath).mkString
     Post("/graphql").withEntity(ContentTypes.`application/json`, mutation) ~> addCredentials(token) ~> route ~> check {
+      print(responseAs[String])
       responseAs[String] shouldEqual expectedResult
     }
   }
