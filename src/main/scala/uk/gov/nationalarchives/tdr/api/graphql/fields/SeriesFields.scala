@@ -3,9 +3,8 @@ package uk.gov.nationalarchives.tdr.api.graphql.fields
 import sangria.marshalling.circe._
 import io.circe.generic.auto._
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
-import uk.gov.nationalarchives.tdr.api.graphql.Arguments.BodyArg
 import sangria.macros.derive._
-import sangria.schema.{Argument, Field, InputObjectType, ListType, ObjectType, fields}
+import sangria.schema.{Argument, Field, InputObjectType, ListType, ObjectType, OptionInputType, StringType, fields}
 import uk.gov.nationalarchives.tdr.api.graphql.Tags.{ValidateBody, ValidateIsAdmin}
 
 object SeriesFields {
@@ -14,6 +13,8 @@ object SeriesFields {
 
   implicit val SeriesType: ObjectType[Unit, Series] = deriveObjectType[Unit, Series]()
   implicit val AddSeriesInputType: InputObjectType[AddSeriesInput] = deriveInputObjectType[AddSeriesInput]()
+
+  val BodyArg = Argument("body", OptionInputType(StringType))
 
   private val SeriesInputArg = Argument("addSeriesInput", AddSeriesInputType)
 
