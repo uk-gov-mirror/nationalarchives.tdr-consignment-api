@@ -47,7 +47,7 @@ class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     val seriesName: String = "Series Name"
     val seriesCode: String = "Series Code"
 
-    val mockSeriesRow = SeriesRow(Option.apply(bodyId), Option.apply(seriesCode), Option.apply(seriesName),
+    val mockSeriesRow = SeriesRow(bodyId, Option.apply(seriesCode), Option.apply(seriesName),
       Option.apply(seriesDescription), Option.apply(seriesId))
     val mockResponse: Future[SeriesRow] = Future.successful(mockSeriesRow)
 
@@ -55,7 +55,7 @@ class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     when(repoMock.addSeries(any)).thenReturn(mockResponse)
 
     val newSeriesInput = new AddSeriesInput(
-      Option.apply(bodyId),
+      bodyId,
       Option.apply(seriesCode),
       Option.apply(seriesName),
       Option.apply(seriesDescription))
@@ -71,15 +71,15 @@ class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
 
   private def checkFields(series: SeriesFields.Series, seriesCheck: SeriesCheck) = {
     series.seriesid should equal(seriesCheck.seriesId)
-    series.bodyid.get should equal(seriesCheck.bodyId)
+    series.bodyid should equal(seriesCheck.bodyId)
     series.name.get should equal(seriesCheck.name)
     series.code.get should equal(seriesCheck.code)
     series.description.get should equal(seriesCheck.description)
   }
 
   private def setupSeriesResponses = {
-    val seriesOne = SeriesRow(Option.apply(1), Option.apply("name1"), Option.apply("code1"), Option.apply("description1"), Some(1))
-    val seriesTwo = SeriesRow(Option.apply(2), Option.apply("name2"), Option.apply("code2"), Option.apply("description2"), Some(2))
+    val seriesOne = SeriesRow(1, Option.apply("name1"), Option.apply("code1"), Option.apply("description1"), Some(1))
+    val seriesTwo = SeriesRow(2, Option.apply("name2"), Option.apply("code2"), Option.apply("description2"), Some(2))
     val mockResponseAll: Future[Seq[SeriesRow]] = Future.successful(Seq(seriesOne, seriesTwo))
     val mockResponseOne: Future[Seq[SeriesRow]] = Future.successful(Seq(seriesOne))
 

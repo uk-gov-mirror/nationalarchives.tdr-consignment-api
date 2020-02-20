@@ -9,9 +9,9 @@ import sangria.schema.{Argument, Field, InputObjectType, ListType, ObjectType, f
 import uk.gov.nationalarchives.tdr.api.graphql.Tags.{ValidateBody, ValidateIsAdmin}
 
 object SeriesFields {
-  case class Series(seriesid: Long, bodyid: Option[Long] = None, name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
-  case class AddSeriesInput(bodyid: Option[Long] = None,
-                            name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
+  case class Series(seriesid: Long, bodyid: Long, name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
+  case class AddSeriesInput(bodyid: Long, name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
+
   implicit val SeriesType: ObjectType[Unit, Series] = deriveObjectType[Unit, Series]()
   implicit val AddSeriesInputType: InputObjectType[AddSeriesInput] = deriveInputObjectType[AddSeriesInput]()
 
