@@ -2,33 +2,45 @@ package uk.gov.nationalarchives.tdr.api.routes
 
 import java.sql.PreparedStatement
 
-import akka.http.scaladsl.model.ContentTypes
-import akka.http.scaladsl.testkit.ScalatestRouteTest
+import akka.http.scaladsl.model.headers.OAuth2BearerToken
+import io.circe.generic.extras.Configuration
+import io.circe.generic.extras.auto._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import scala.io.Source.fromResource
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.http.Routes.route
+import uk.gov.nationalarchives.tdr.api.utils.TestRequest
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
-class SeriesRouteSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest with BeforeAndAfterEach  {
+
+
+
+class SeriesRouteSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with TestRequest {
 
   private val getSeriesJsonFilePrefix: String = "json/getseries_"
   private val addSeriesJsonFilePrefix: String = "json/addseries_"
+
+  implicit val customConfig: Configuration = Configuration.default.withDefaults
+
+  case class GraphqlQueryData(data: Option[GetSeries], errors: List[GraphqlError] = Nil)
+  case class GraphqlMutationData(data: Option[AddSeries], errors: List[GraphqlError] = Nil)
+  case class Series(seriesid: Option[Long], bodyid: Option[Long], name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
+  case class GetSeries(getSeries: List[Series]) extends TestRequest
+  case class AddSeries(addSeries: Series)
+
+  val runTestQuery: (String, OAuth2BearerToken) => GraphqlQueryData = runTestRequest[GraphqlQueryData](getSeriesJsonFilePrefix)
+  val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData = runTestRequest[GraphqlMutationData](addSeriesJsonFilePrefix)
+  val expectedQueryResponse: String => GraphqlQueryData = getDataFromFile[GraphqlQueryData](getSeriesJsonFilePrefix)
+  val expectedMutationResponse: String => GraphqlMutationData = getDataFromFile[GraphqlMutationData](addSeriesJsonFilePrefix)
 
   override def beforeEach(): Unit = {
     DbConnection.db.source.createConnection().prepareStatement("delete from consignmentapi.Series").executeUpdate()
   }
 
-  val getSeriesQuery: String = fromResource(getSeriesJsonFilePrefix + "query_somedata.json").mkString
 
   "The api" should "return an empty series list" in {
-    val expectedResult: String = fromResource(getSeriesJsonFilePrefix + "data_empty.json").mkString
-
-    Post("/graphql").withEntity(ContentTypes.`application/json`, getSeriesQuery) ~> addCredentials(validUserToken("Body2")) ~> route ~> check {
-      responseAs[String] shouldEqual expectedResult
-    }
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_empty")
+    val response: GraphqlQueryData = runTestQuery("query_somedata", validUserToken())
   }
 
   "The api" should "return the expected data" in {
@@ -36,11 +48,9 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest 
       .prepareStatement("insert into consignmentapi.Series (SeriesId, BodyId) VALUES (1, 1)")
     ps.executeUpdate()
 
-    val expectedResult: String = fromResource(getSeriesJsonFilePrefix + "data_some.json").mkString
-
-    Post("/graphql").withEntity(ContentTypes.`application/json`, getSeriesQuery) ~> addCredentials(validUserToken()) ~> route ~> check {
-      responseAs[String] shouldEqual expectedResult
-    }
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_some")
+    val response: GraphqlQueryData = runTestQuery("query_somedata", validUserToken())
+    response.data should equal(expectedResponse.data)
   }
 
   "The api" should "return all requested fields" in {
@@ -48,39 +58,27 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest 
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.executeUpdate()
 
-    val query: String = fromResource(getSeriesJsonFilePrefix + "query_alldata.json").mkString
-    val expectedResult: String = fromResource(getSeriesJsonFilePrefix + "data_all.json").mkString
-
-    Post("/graphql").withEntity(ContentTypes.`application/json`, query) ~> addCredentials(validUserToken()) ~> route ~> check {
-      responseAs[String] shouldEqual expectedResult
-    }
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_all")
+    val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())
+    response.data should equal(expectedResponse.data)
   }
 
   "The api" should "return an error if a user queries without a body argument" in {
-    val query: String = fromResource(getSeriesJsonFilePrefix + "query_no_body.json").mkString
-    val expectedResponse: String = fromResource(getSeriesJsonFilePrefix + "data_error_no_body.json").mkString
-
-    Post("/graphql").withEntity(ContentTypes.`application/json`, query) ~> addCredentials(validUserToken()) ~> route ~> check {
-      responseAs[String] shouldEqual expectedResponse
-    }
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_error_no_body")
+    val response: GraphqlQueryData = runTestQuery("query_no_body", validUserToken())
+    response.errors should equal(expectedResponse.errors)
   }
 
   "The api" should "return an error if a user queries with a different body to their own" in {
-    val query: String = fromResource(getSeriesJsonFilePrefix + "query_incorrect_body.json").mkString
-    val expectedResponse: String = fromResource(getSeriesJsonFilePrefix + "data_incorrect_body.json").mkString
-
-    Post("/graphql").withEntity(ContentTypes.`application/json`, query) ~> addCredentials(validUserToken()) ~> route ~> check {
-      responseAs[String] shouldEqual expectedResponse
-    }
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_incorrect_body")
+    val response: GraphqlQueryData = runTestQuery("query_incorrect_body", validUserToken())
+    response.errors should equal(expectedResponse.errors)
   }
 
   "The api" should "return an error if a user queries with the correct body but it is not set on their user" in {
-    val query: String = fromResource(getSeriesJsonFilePrefix + "query_incorrect_body.json").mkString
-    val expectedResponse: String = fromResource(getSeriesJsonFilePrefix + "data_error_incorrect_user.json").mkString
-
-    Post("/graphql").withEntity(ContentTypes.`application/json`, query) ~> addCredentials(validUserTokenNoBody) ~> route ~> check {
-      responseAs[String] shouldEqual expectedResponse
-    }
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_error_incorrect_user")
+    val response: GraphqlQueryData = runTestQuery("query_incorrect_body", validUserTokenNoBody)
+    response.data should equal(expectedResponse.data)
   }
 
   "The api" should "return all series if an admin user queries without a body argument" in {
@@ -88,12 +86,9 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest 
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.executeUpdate()
 
-    val query: String = fromResource(getSeriesJsonFilePrefix + "query_admin.json").mkString
-    val expectedResponse: String = fromResource(getSeriesJsonFilePrefix + "data_multipleseries.json").mkString
-
-    Post("/graphql").withEntity(ContentTypes.`application/json`, query) ~> addCredentials(validAdminToken) ~> route ~> check {
-      responseAs[String] shouldEqual expectedResponse
-    }
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_multipleseries")
+    val response: GraphqlQueryData = runTestQuery("query_admin", validAdminToken)
+    response.data should equal(expectedResponse.data)
   }
 
   "The api" should "return the correct series if an admin queries with a body argument" in {
@@ -101,39 +96,26 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest 
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.executeUpdate()
 
-    val query: String = fromResource(getSeriesJsonFilePrefix + "query_somedata.json").mkString
-    val expectedResponse: String = fromResource(getSeriesJsonFilePrefix + "data_some.json").mkString
-
-    Post("/graphql").withEntity(ContentTypes.`application/json`, query) ~> addCredentials(validAdminToken) ~> route ~> check {
-      responseAs[String] shouldEqual expectedResponse
-    }
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_some")
+    val response: GraphqlQueryData = runTestQuery("query_somedata", validUserToken())
+    response.data should equal(expectedResponse.data)
   }
 
   "The api" should "return all requested fields from inserted Series object" in {
-
-    val mutation: String = fromResource(addSeriesJsonFilePrefix + "mutation_alldata.json").mkString
-    val expectedResult: String = fromResource(addSeriesJsonFilePrefix + "data_all.json").mkString
-
-    Post("/graphql").withEntity(ContentTypes.`application/json`, mutation) ~> addCredentials(validAdminToken) ~> route ~> check {
-      responseAs[String] shouldEqual expectedResult
-    }
+    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
+    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validAdminToken)
+    response.data should equal(expectedResponse.data)
   }
 
   "The api" should "return the expected data from inserted Series object" in {
-
-    val mutation: String = fromResource(addSeriesJsonFilePrefix + "mutation_somedata.json").mkString
-    val expectedResult: String = fromResource(addSeriesJsonFilePrefix + "data_some.json").mkString
-
-    Post("/graphql").withEntity(ContentTypes.`application/json`, mutation) ~> addCredentials(validAdminToken) ~> route ~> check {
-      responseAs[String] shouldEqual expectedResult
-    }
+    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_some")
+    val response: GraphqlMutationData = runTestMutation("mutation_somedata", validAdminToken)
+    response.data should equal(expectedResponse.data)
   }
 
   "The api" should "return an error if a user has role_user and inserts a Series" in {
-    val mutation: String = fromResource(addSeriesJsonFilePrefix + "mutation_alldata.json").mkString
-    val expectedResult: String = fromResource(addSeriesJsonFilePrefix + "data_error_incorrect_role.json").mkString
-    Post("/graphql").withEntity(ContentTypes.`application/json`, mutation) ~> addCredentials(validUserToken()) ~> route ~> check {
-      responseAs[String] shouldEqual expectedResult
-    }
+    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_error_incorrect_role")
+    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
+    response.data should equal(expectedResponse.data)
   }
 }

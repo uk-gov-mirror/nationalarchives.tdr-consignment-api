@@ -1,19 +1,19 @@
 package uk.gov.nationalarchives.tdr.api.routes
 
-import akka.http.scaladsl.model.ContentTypes
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
-import akka.http.scaladsl.testkit.ScalatestRouteTest
+import io.circe.generic.extras.Configuration
+import io.circe.generic.extras.auto._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
+import uk.gov.nationalarchives.tdr.api.utils.TestRequest
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
-import uk.gov.nationalarchives.tdr.api.http.Routes.route
 
-import scala.io.Source.fromResource
-
-class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest with BeforeAndAfterEach {
+class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach {
   private val addConsignmentJsonFilePrefix: String = "json/addconsignment_"
+
+  implicit val customConfig: Configuration = Configuration.default.withDefaults
 
   override def beforeEach(): Unit = {
     DbConnection.db.source.createConnection().prepareStatement("delete from consignmentapi.Consignment").executeUpdate()
@@ -21,36 +21,41 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with ScalatestRoute
     DbConnection.db.source.createConnection().prepareStatement(resetIdCount).executeUpdate()
   }
 
-  private def runTestMutation(mutation: String, expectedResult: String, token: OAuth2BearerToken = validUserToken()) = {
-    runTestRequest(addConsignmentJsonFilePrefix, mutation, expectedResult, token)
-  }
+  case class GraphqlError(message: String, locations: List[Locations])
+  case class GraphqlMutationData(data: Option[AddConsignment], errors: List[GraphqlError] = Nil)
+  case class Consignment(consignmentid: Option[Long] = None, userid: Option[Long] = None, seriesid: Option[Long] = None)
+  case class AddConsignment(addConsignment: Consignment) extends TestRequest
 
-  private def runTestRequest(prefix: String, mutationPath: String, expectedResultPath: String, token: OAuth2BearerToken = validUserToken()) = {
-    val mutation: String = fromResource(prefix + mutationPath).mkString
-    val expectedResult: String = fromResource(prefix + expectedResultPath).mkString
-    Post("/graphql").withEntity(ContentTypes.`application/json`, mutation) ~> addCredentials(token) ~> route ~> check {
-      print(responseAs[String])
-      responseAs[String] shouldEqual expectedResult
-    }
-  }
+  val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData = runTestRequest[GraphqlMutationData](addConsignmentJsonFilePrefix)
+  val expectedMutationResponse: String => GraphqlMutationData = getDataFromFile[GraphqlMutationData](addConsignmentJsonFilePrefix)
 
   "The api" should "create a consignment if the correct information is provided" in {
-    runTestMutation("mutation_alldata.json", "data_all.json")
+    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
+    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validAdminToken)
+    response.data.get.addConsignment should equal(expectedResponse.data.get.addConsignment)
   }
 
   "The api" should "throw an error if the series id field isn't provided" in {
-    runTestMutation("mutation_missingseriesid.json", "data_seriesid_missing.json")
+    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_seriesid_missing")
+    val response: GraphqlMutationData = runTestMutation("mutation_missingseriesid", validAdminToken)
+    response.errors.head.message should equal (expectedResponse.errors.head.message)
   }
 
   "The api" should "throw an error if the user id field isn't provided" in {
-    runTestMutation("mutation_missinguserid.json", "data_userid_missing.json")
+    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_userid_missing")
+    val response: GraphqlMutationData = runTestMutation("mutation_missinguserid", validAdminToken)
+    response.errors.head.message should equal (expectedResponse.errors.head.message)
   }
 
   "The api" should "allow an tdr_admin user to create a consignment" in {
-    runTestMutation("mutation_alldata.json", "data_all.json", validAdminToken)
+    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
+    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validAdminToken)
+    response.data.get.addConsignment should equal(expectedResponse.data.get.addConsignment)
   }
 
   "The api" should "allow a tdr_user user to create a consignment" in {
-    runTestMutation("mutation_alldata.json", "data_all.json")
+    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
+    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
+    response.data.get.addConsignment should equal(expectedResponse.data.get.addConsignment)
   }
 }

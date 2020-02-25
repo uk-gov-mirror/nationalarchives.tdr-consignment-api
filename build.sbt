@@ -20,6 +20,7 @@ enablePlugins(GraphQLSchemaPlugin)
 graphqlSchemaSnippet := "uk.gov.nationalarchives.tdr.api.graphql.GraphQlTypes.schema"
 
 lazy val akkaHttpVersion = "10.1.11"
+lazy val circeVersion = "0.13.0"
 
 libraryDependencies ++= Seq(
   "org.sangria-graphql" %% "sangria" % "2.0.0-M3",
@@ -33,11 +34,12 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http-xml"        % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-stream"          % "2.6.3",
 
-  "io.circe" %% "circe-core" % "0.13.0-M2",
-  "io.circe" %% "circe-parser" % "0.13.0-M2",
-  "io.circe" %% "circe-optics" % "0.12.0",
-  "io.circe" %% "circe-generic" % "0.13.0-M2",
-  "uk.gov.nationalarchives" %% "consignment-api-db" % "0.0.7",
+  "io.circe" %% "circe-core" % circeVersion,
+  "io.circe" %% "circe-parser" % circeVersion,
+  "io.circe" %% "circe-optics" % circeVersion,
+  "io.circe" %% "circe-generic" % circeVersion,
+  "io.circe" %% "circe-generic-extras" % circeVersion,
+    "uk.gov.nationalarchives" %% "consignment-api-db" % "0.0.7",
   "mysql" % "mysql-connector-java" % "6.0.6",
   "com.typesafe.slick" %% "slick" % "3.3.2",
   "com.typesafe.slick" %% "slick-hikaricp" % "3.3.2",
@@ -53,7 +55,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-testkit" % "2.6.3" % Test,
   "com.tngtech.keycloakmock" % "mock" % "0.2.0" % Test,
   "com.h2database" % "h2" % "1.4.200" % Test,
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.1"
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.1",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.17" % Test
 )
 
 javaOptions in Test += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf"
