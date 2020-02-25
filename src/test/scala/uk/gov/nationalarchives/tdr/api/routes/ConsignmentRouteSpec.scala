@@ -1,5 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.routes
 
+import java.sql.{PreparedStatement, ResultSet}
+
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.auto._
@@ -33,6 +35,9 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validAdminToken)
     response.data.get.addConsignment should equal(expectedResponse.data.get.addConsignment)
+
+    checkConsignmentExists(response.data.get.addConsignment.consignmentid.get)
+
   }
 
   "The api" should "throw an error if the series id field isn't provided" in {
@@ -51,11 +56,23 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validAdminToken)
     response.data.get.addConsignment should equal(expectedResponse.data.get.addConsignment)
+
+    checkConsignmentExists(response.data.get.addConsignment.consignmentid.get)
   }
 
   "The api" should "allow a tdr_user user to create a consignment" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
     response.data.get.addConsignment should equal(expectedResponse.data.get.addConsignment)
+
+    checkConsignmentExists(response.data.get.addConsignment.consignmentid.get)
+  }
+
+  private def checkConsignmentExists(consignmentId: Long): Unit = {
+    val sql = s"select * from consignmentapi.Consignment where ConsignmentId = $consignmentId;"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    val rs: ResultSet = ps.executeQuery()
+    rs.next()
+    rs.getString("ConsignmentId") should equal(consignmentId.toString)
   }
 }
