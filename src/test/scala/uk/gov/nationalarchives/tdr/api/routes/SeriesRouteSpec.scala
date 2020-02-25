@@ -67,13 +67,13 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
   "The api" should "return an error if a user queries without a body argument" in {
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_error_no_body")
     val response: GraphqlQueryData = runTestQuery("query_no_body", validUserToken())
-    response.errors should equal(expectedResponse.errors)
+    response.errors.head.message should equal(expectedResponse.errors.head.message)
   }
 
   "The api" should "return an error if a user queries with a different body to their own" in {
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_incorrect_body")
     val response: GraphqlQueryData = runTestQuery("query_incorrect_body", validUserToken())
-    response.errors should equal(expectedResponse.errors)
+    response.errors.head.message should equal(expectedResponse.errors.head.message)
   }
 
   "The api" should "return an error if a user queries with the correct body but it is not set on their user" in {
