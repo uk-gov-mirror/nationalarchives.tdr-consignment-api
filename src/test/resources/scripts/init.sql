@@ -14,5 +14,16 @@ CREATE TABLE IF NOT EXISTS consignmentapi.Body (
    Description varchar(255) default null,
    PRIMARY KEY (BodyId)
 );
+CREATE TABLE IF NOT EXISTS consignmentapi.TransferAgreement (
+  ConsignmentId int NOT NULL,
+  AllPublicRecords BOOLEAN DEFAULT NULL,
+  AllCrownCopyright BOOLEAN DEFAULT NULL,
+  AllEnglish BOOLEAN DEFAULT NULL,
+  AllDigital BOOLEAN DEFAULT NULL,
+  AppraisalSelectionSignedOff BOOLEAN DEFAULT NULL,
+  SensitivityReviewSignedOff BOOLEAN DEFAULT NULL,
+  TransferAgreementId int NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (TransferAgreementId)
+);
 DELETE from consignmentapi.Body;
 INSERT INTO consignmentapi.Body (BodyId, Name, Code, Description) VALUES (1, 'Body', 'Code', 'Description'), (2, 'Body2', 'Code', 'Description');
