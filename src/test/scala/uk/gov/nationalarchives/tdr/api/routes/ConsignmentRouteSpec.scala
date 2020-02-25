@@ -47,7 +47,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     response.errors.head.message should equal (expectedResponse.errors.head.message)
   }
 
-  "The api" should "allow an tdr_admin user to create a consignment" in {
+  "The api" should "allow a tdr_admin user to create a consignment" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validAdminToken)
     response.data.get.addConsignment should equal(expectedResponse.data.get.addConsignment)

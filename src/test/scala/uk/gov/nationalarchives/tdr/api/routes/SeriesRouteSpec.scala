@@ -41,6 +41,7 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
   "The api" should "return an empty series list" in {
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_empty")
     val response: GraphqlQueryData = runTestQuery("query_somedata", validUserToken())
+    response.data should equal(expectedResponse.data)
   }
 
   "The api" should "return the expected data" in {
