@@ -14,8 +14,6 @@ import scala.io.Source.fromResource
 
 object TestUtils  {
 
-//  implicit val executionContext: ExecutionContext = system.dispatcher
-
   implicit class AwaitFuture[T](future: Future[T]) {
     def await(timeout: Duration = 2.seconds): T = {
       Await.result(future, timeout)
