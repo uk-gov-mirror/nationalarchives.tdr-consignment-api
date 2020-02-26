@@ -1,0 +1,1 @@
+{"data":null,"errors":[{"message":"Field 'AddConsignmentInput.seriesid' of required type 'Long!' was not provided. (line 1, column 47):\nmutation {addConsignment(addConsignmentInput: {userid: 1}) {consignmentid, seriesid, userid}}\n                                              ^","locations":[{"column":47,"line":1}]}]}

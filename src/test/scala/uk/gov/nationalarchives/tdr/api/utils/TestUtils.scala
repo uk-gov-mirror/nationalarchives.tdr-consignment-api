@@ -1,13 +1,19 @@
 package uk.gov.nationalarchives.tdr.api.utils
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
+import akka.http.scaladsl.unmarshalling.{FromResponseUnmarshaller, Unmarshaller}
+import akka.stream.Materializer
 import com.tngtech.keycloakmock.api.KeycloakVerificationMock
 import com.tngtech.keycloakmock.api.TokenConfig.aTokenConfig
+import io.circe.Decoder
+import io.circe.parser.decode
 
-import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.io.Source.fromResource
 
-object TestUtils {
+object TestUtils  {
+
   implicit class AwaitFuture[T](future: Future[T]) {
     def await(timeout: Duration = 2.seconds): T = {
       Await.result(future, timeout)
@@ -43,5 +49,28 @@ object TestUtils {
       .build)
   )
   def invalidToken: OAuth2BearerToken = OAuth2BearerToken(testMock.getAccessToken(aTokenConfig().build))
+
+  case class GraphqlError(message: String, path: List[String], locations: List[Locations])
+
+  case class Locations(column: Int, line: Int)
+
+  def getDataFromFile[A](prefix: String)(fileName: String)(implicit decoder: Decoder[A]): A = {
+    getDataFromString(fromResource(s"$prefix$fileName.json").mkString)
+  }
+
+  def getDataFromString[A](dataString: String)(implicit decoder: Decoder[A]): A = {
+    val result: Either[io.circe.Error, A] = decode[A](dataString)
+    result match {
+      case Right(data) => data
+      case Left(e) => throw e
+    }
+  }
+
+  def unmarshalResponse[A]()(implicit mat: Materializer, ec: ExecutionContext, decoder: Decoder[A]): FromResponseUnmarshaller[A] = Unmarshaller(_ => {
+    res => {
+      Unmarshaller.stringUnmarshaller(res.entity).map(s => getDataFromString[A](s))
+    }
+  })
+
 
 }
