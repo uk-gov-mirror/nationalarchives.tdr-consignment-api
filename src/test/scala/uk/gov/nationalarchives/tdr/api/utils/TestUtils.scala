@@ -50,7 +50,7 @@ object TestUtils  {
   )
   def invalidToken: OAuth2BearerToken = OAuth2BearerToken(testMock.getAccessToken(aTokenConfig().build))
 
-  case class GraphqlError(message: String, path: List[String], locations: List[Locations])
+  case class GraphqlError(message: String)
 
   case class Locations(column: Int, line: Int)
 
