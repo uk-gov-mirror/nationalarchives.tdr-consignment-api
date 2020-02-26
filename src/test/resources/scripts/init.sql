@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS consignmentapi.Body (
 CREATE TABLE IF NOT EXISTS consignmentapi.Consignment (
   ConsignmentId bigint(20) NOT NULL AUTO_INCREMENT,
   SeriesId bigint(20) DEFAULT NULL,
-  UserId bigint(20) DEFAULT NULL,
+  UserId VARCHAR(40) DEFAULT NULL,
   Datetime timestamp NOT NULL,
   PRIMARY KEY (ConsignmentId)
 );
