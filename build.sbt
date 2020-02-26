@@ -39,7 +39,7 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-optics" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,
   "io.circe" %% "circe-generic-extras" % circeVersion,
-    "uk.gov.nationalarchives" %% "consignment-api-db" % "0.0.9-SNAPSHOT",
+  "uk.gov.nationalarchives" %% "consignment-api-db" % "0.0.9",
   "mysql" % "mysql-connector-java" % "6.0.6",
   "com.typesafe.slick" %% "slick" % "3.3.2",
   "com.typesafe.slick" %% "slick-hikaricp" % "3.3.2",
@@ -55,8 +55,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-testkit" % "2.6.3" % Test,
   "com.tngtech.keycloakmock" % "mock" % "0.2.0" % Test,
   "com.h2database" % "h2" % "1.4.200" % Test,
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.1",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.17" % Test
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.1"
 )
 
 javaOptions in Test += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf"
