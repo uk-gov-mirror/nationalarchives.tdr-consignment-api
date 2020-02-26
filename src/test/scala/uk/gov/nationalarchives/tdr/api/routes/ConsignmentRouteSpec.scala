@@ -1,6 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.routes
 
 import java.sql.{PreparedStatement, ResultSet}
+import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import io.circe.generic.extras.Configuration
@@ -23,9 +24,8 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     DbConnection.db.source.createConnection().prepareStatement(resetIdCount).executeUpdate()
   }
 
-  case class GraphqlError(message: String, locations: List[Locations])
   case class GraphqlMutationData(data: Option[AddConsignment], errors: List[GraphqlError] = Nil)
-  case class Consignment(consignmentid: Option[Long] = None, userid: Option[Long] = None, seriesid: Option[Long] = None)
+  case class Consignment(consignmentid: Option[Long] = None, userid: Option[UUID] = None, seriesid: Option[Long] = None)
   case class AddConsignment(addConsignment: Consignment) extends TestRequest
 
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData = runTestRequest[GraphqlMutationData](addConsignmentJsonFilePrefix)
