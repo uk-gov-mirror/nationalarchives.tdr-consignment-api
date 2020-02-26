@@ -14,5 +14,14 @@ CREATE TABLE IF NOT EXISTS consignmentapi.Body (
    Description varchar(255) default null,
    PRIMARY KEY (BodyId)
 );
+
+CREATE TABLE IF NOT EXISTS consignmentapi.Consignment (
+  ConsignmentId bigint(20) NOT NULL AUTO_INCREMENT,
+  SeriesId bigint(20) DEFAULT NULL,
+  UserId VARCHAR(40) DEFAULT NULL,
+  Datetime timestamp NOT NULL,
+  PRIMARY KEY (ConsignmentId)
+);
+
 DELETE from consignmentapi.Body;
 INSERT INTO consignmentapi.Body (BodyId, Name, Code, Description) VALUES (1, 'Body', 'Code', 'Description'), (2, 'Body2', 'Code', 'Description');

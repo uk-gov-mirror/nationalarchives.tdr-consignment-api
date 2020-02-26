@@ -45,7 +45,7 @@ object Tags {
       if(isAdmin) {
         continue
       } else {
-        throw AuthorisationException(ctx.field.name)
+        throw AuthorisationException(s"Admin permissions required to call ${ctx.field.name}")
       }
     }
   }

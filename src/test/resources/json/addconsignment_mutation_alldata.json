@@ -1,0 +1,1 @@
+{"query":"mutation {addConsignment(addConsignmentInput: {seriesid: 1, userid: \"4ab14990-ed63-4615-8336-56fbb9960300\"}) {consignmentid, seriesid, userid}}"}
