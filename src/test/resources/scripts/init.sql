@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS consignmentapi.Consignment (
   ConsignmentId bigint(20) NOT NULL AUTO_INCREMENT,
   SeriesId bigint(20) DEFAULT NULL,
   UserId VARCHAR(40) DEFAULT NULL,
-  Datetime timestamp NOT NULL,
+  Datetime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (ConsignmentId)
 );
 

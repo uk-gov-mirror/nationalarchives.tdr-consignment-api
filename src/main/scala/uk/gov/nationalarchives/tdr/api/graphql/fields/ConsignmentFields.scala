@@ -5,7 +5,7 @@ import java.util.UUID
 import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
-import sangria.schema.{Argument, Field, InputObjectType, ObjectType, fields}
+import sangria.schema.{Argument, Field, InputObjectType, LongType, ObjectType, OptionType, fields}
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 
@@ -17,6 +17,14 @@ object ConsignmentFields {
   implicit val AddConsignmentInputType: InputObjectType[AddConsignmentInput] = deriveInputObjectType[AddConsignmentInput]()
 
   val ConsignmentInputArg = Argument("addConsignmentInput", AddConsignmentInputType)
+  val ConsignmentIdArg = Argument("consignmentid", LongType)
+
+  val queryFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
+    Field("getConsignment", OptionType(ConsignmentType),
+      arguments=ConsignmentIdArg :: Nil,
+      resolve = ctx => ctx.ctx.consignmentService.getConsignment(ctx.arg(ConsignmentIdArg)),
+     )
+  )
 
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("addConsignment", ConsignmentType,

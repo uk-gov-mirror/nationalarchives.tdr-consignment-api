@@ -15,4 +15,10 @@ class ConsignmentService(consignmentRepository: ConsignmentRepository)(implicit 
       val consignmentRow = ConsignmentRow(addConsignmentInput.seriesid, addConsignmentInput.userid.toString, Timestamp.from(Instant.now()))
       consignmentRepository.addConsignment(consignmentRow).map(row => Consignment(row.consignmentid, UUID.fromString(row.userid), row.seriesid))
     }
+
+  def getConsignment(consignmentId: Long): Future[Option[Consignment]] = {
+    val consignments = consignmentRepository.getConsignment(consignmentId)
+
+    consignments.map(rows => rows.headOption.map(row => Consignment(row.consignmentid, UUID.fromString(row.userid), row.seriesid)))
+  }
 }
