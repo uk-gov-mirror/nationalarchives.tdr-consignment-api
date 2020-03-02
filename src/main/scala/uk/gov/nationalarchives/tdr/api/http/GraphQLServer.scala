@@ -17,6 +17,7 @@ import uk.gov.nationalarchives.tdr.api.service.{ConsignmentService, SeriesServic
 import spray.json.{JsObject, JsString, JsValue}
 import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser.AuthorisationException
 import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser
+import uk.gov.nationalarchives.tdr.keycloak.Token
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
@@ -28,7 +29,7 @@ object GraphQLServer {
     case (_, AuthorisationException(message)) => HandledException(message)
   }
 
-  def endpoint(requestJSON: JsValue, accessToken: AccessToken)(implicit ec: ExecutionContext): Route = {
+  def endpoint(requestJSON: JsValue, accessToken: Token)(implicit ec: ExecutionContext): Route = {
 
     val JsObject(fields) = requestJSON
 
@@ -50,7 +51,7 @@ object GraphQLServer {
 
   }
 
-  private def executeGraphQLQuery(query: Document, operation: Option[String], vars: JsObject, accessToken: AccessToken)
+  private def executeGraphQLQuery(query: Document, operation: Option[String], vars: JsObject, accessToken: Token)
                                  (implicit ec: ExecutionContext): Future[(StatusCode with Serializable, JsValue)] = {
     val db = DbConnection.db
     val seriesService = new SeriesService(new SeriesRepository(db))

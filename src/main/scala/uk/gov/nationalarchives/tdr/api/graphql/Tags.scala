@@ -14,21 +14,15 @@ object Tags {
   case class ValidateBody() extends ValidateTags {
     override def validate(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
       val token = ctx.ctx.accessToken
-      def getProperty(name: String) = token.getOtherClaims.get(name).asInstanceOf[String]
 
-      val resourceAccess = Option(token.getResourceAccess("tdr"))
-
-      val isAdmin: Boolean = resourceAccess match {
-        case Some(access) => access.getRoles.contains("tdr_admin")
-        case None => throw AuthorisationException("A role has not been assigned for this user")
-      }
+      val isAdmin: Boolean = token.roles.contains("tdr_admin")
 
       val bodyArg: Option[String] = ctx.argOpt("body")
 
       if(!isAdmin) {
-        val bodyFromToken: String = getProperty("body")
+        val bodyFromToken: String = token.transferringBody.getOrElse("")
         if(bodyFromToken != bodyArg.getOrElse("")) {
-          val msg = s"Body for user ${getProperty("user_id")} was ${bodyArg.getOrElse("")} in the query and $bodyFromToken in the token"
+          val msg = s"Body for user ${token.userId} was ${bodyArg.getOrElse("")} in the query and $bodyFromToken in the token"
           throw AuthorisationException(msg)
         }
         continue
@@ -41,7 +35,7 @@ object Tags {
   case class ValidateIsAdmin() extends ValidateTags {
     override def validate(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
       val token = ctx.ctx.accessToken
-      val isAdmin = token.getResourceAccess("tdr").getRoles.contains("tdr_admin")
+      val isAdmin: Boolean = token.roles.contains("tdr_admin")
       if(isAdmin) {
         continue
       } else {
