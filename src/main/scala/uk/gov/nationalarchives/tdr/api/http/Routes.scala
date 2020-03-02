@@ -9,9 +9,8 @@ import akka.http.scaladsl.server.RouteConcatenation._
 import akka.http.scaladsl.server.directives.Credentials
 import com.typesafe.config._
 import com.typesafe.scalalogging.Logger
-import org.keycloak.representations.AccessToken
 import spray.json.JsValue
-import uk.gov.nationalarchives.tdr.keycloak.KeycloakUtils
+import uk.gov.nationalarchives.tdr.keycloak.{KeycloakUtils, Token}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -26,10 +25,10 @@ object Routes {
   val url: String = ConfigFactory.load().getString("auth.url")
 
 
-  def tokenAuthenticator(credentials: Credentials): Future[Option[AccessToken]] = {
+  def tokenAuthenticator(credentials: Credentials): Future[Option[Token]] = {
     credentials match {
       case Credentials.Provided(token) => Future {
-        KeycloakUtils(url).verifyToken(token)
+        Some(KeycloakUtils(url).token(token))
       }
       case _ => Future.successful(None)
     }
