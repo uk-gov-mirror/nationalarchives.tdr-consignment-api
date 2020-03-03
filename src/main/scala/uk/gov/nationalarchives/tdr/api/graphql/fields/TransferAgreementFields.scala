@@ -5,6 +5,7 @@ import sangria.macros.derive._
 import sangria.marshalling.circe._
 import sangria.schema.{Argument, Field, InputObjectType, ObjectType, fields}
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
+import uk.gov.nationalarchives.tdr.api.graphql.Tags.{ValidateIsAdmin, ValidateUserOwnsConsignment}
 
 object TransferAgreementFields {
   case class TransferAgreement(consignmentId: Long,
@@ -32,6 +33,7 @@ object TransferAgreementFields {
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("addTransferAgreement", TransferAgreementType,
       arguments=TransferAgreementInputArg :: Nil,
-      resolve = ctx => ctx.ctx.transferAgreementService.addTransferAgreement(ctx.arg(TransferAgreementInputArg)))
-  )
+      resolve = ctx => ctx.ctx.transferAgreementService.addTransferAgreement(ctx.arg(TransferAgreementInputArg)),
+      tags=List(ValidateUserOwnsConsignment())
+    ))
 }
