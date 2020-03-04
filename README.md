@@ -19,4 +19,10 @@ Run the api
 
 `sbt run`
 
-  
+#### Generate Graphql Schema Locally
+
+To generate the Graphql schema locally run the following command:
+
+`sbt graphqlSchemaGen`
+
+The generated schema file will be placed in the following location: target/sbt-graphql/schema.graphql

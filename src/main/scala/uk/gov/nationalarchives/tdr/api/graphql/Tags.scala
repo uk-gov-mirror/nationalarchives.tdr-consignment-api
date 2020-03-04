@@ -29,7 +29,7 @@ object Tags {
       if(!isAdmin) {
         val bodyFromToken: String = token.transferringBody.getOrElse("")
         if(bodyFromToken != bodyArg.getOrElse("")) {
-          val msg = s"Body for user ${token.userId} was ${bodyArg.getOrElse("")} in the query and $bodyFromToken in the token"
+          val msg = s"Body for user ${token.userId.getOrElse("")} was ${bodyArg.getOrElse("")} in the query and $bodyFromToken in the token"
           throw AuthorisationException(msg)
         }
         continue
@@ -63,7 +63,7 @@ object Tags {
   case class ValidateUserOwnsConsignment() extends ValidateTags {
     override def validate(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
       val token = ctx.ctx.accessToken
-      val userId = token.getOtherClaims.get("user_id").asInstanceOf[String]
+      val userId = token.userId.getOrElse("")
       val input: AddTransferAgreementInput = ctx.arg[AddTransferAgreementInput]("addTransferAgreementInput")
       val result = ctx.ctx.consignmentService.getConsignment(input.consignmentId)
 
