@@ -22,7 +22,7 @@ object ConsignmentFields {
   val queryFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("getConsignment", OptionType(ConsignmentType),
       arguments=ConsignmentIdArg :: Nil,
-      resolve = ctx => ctx.ctx.consignmentService.getConsignment(ctx.arg(ConsignmentIdArg)),
+      resolve = ctx => ctx.ctx.consignmentService.getConsignment(ctx.arg(ConsignmentIdArg))
      )
   )
 
