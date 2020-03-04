@@ -1,0 +1,1 @@
+{"data":null,"errors":[{"message":"No body is set on a non admin user 1","path":["getSeries"],"locations":[{"column":2,"line":1}]}]}

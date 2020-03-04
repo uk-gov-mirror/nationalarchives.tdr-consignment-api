@@ -82,6 +82,12 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
     response.data should equal(expectedResponse.data)
   }
 
+  "The api" should "return an error if a user queries without a body argument and it is not set on their user" in {
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_error_missing_body")
+    val response: GraphqlQueryData = runTestQuery("query_no_body", validUserTokenNoBody)
+    response.errors.head.message should equal(expectedResponse.errors.head.message)
+  }
+
   "The api" should "return all series if an admin user queries without a body argument" in {
     val sql = "insert into consignmentapi.Series (SeriesId, BodyId) VALUES (1,1), (2, 2)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)

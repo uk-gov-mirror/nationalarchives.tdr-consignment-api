@@ -20,9 +20,13 @@ object Tags {
       val bodyArg: Option[String] = ctx.argOpt("body")
 
       if(!isAdmin) {
-        val bodyFromToken: String = token.transferringBody.getOrElse("")
-        if(bodyFromToken != bodyArg.getOrElse("")) {
-          val msg = s"Body for user ${token.userId} was ${bodyArg.getOrElse("")} in the query and $bodyFromToken in the token"
+        val bodyFromToken: Option[String] = token.transferringBody
+        if(bodyFromToken.getOrElse("") != bodyArg.getOrElse("")) {
+          val msg = s"Body for user ${token.userId.get} was ${bodyArg.getOrElse("")} in the query and ${bodyFromToken.getOrElse("")} in the token"
+          throw AuthorisationException(msg)
+        }
+        if(bodyFromToken.isEmpty) {
+          val msg = s"No body is set on a non admin user ${token.userId.get}"
           throw AuthorisationException(msg)
         }
         continue
