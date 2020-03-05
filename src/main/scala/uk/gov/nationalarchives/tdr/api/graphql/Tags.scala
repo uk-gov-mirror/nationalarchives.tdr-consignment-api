@@ -6,9 +6,7 @@ import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser.{AuthorisationE
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.Consignment
 import uk.gov.nationalarchives.tdr.api.graphql.fields.TransferAgreementFields.AddTransferAgreementInput
 
-import scala.util.{Failure, Success}
 import scala.concurrent._
-import ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -49,15 +47,6 @@ object Tags {
         throw AuthorisationException(s"Admin permissions required to call ${ctx.field.name}")
       }
     }
-  }
-
-  case class GetConsignmentId(argName: String) extends ValidateTags {
-    override def validate(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
-      argName match {
-        case "addTransferAgreementInput" => ctx.arg(argName)
-      }
-    }
-
   }
 
   case class ValidateUserOwnsConsignment() extends ValidateTags {

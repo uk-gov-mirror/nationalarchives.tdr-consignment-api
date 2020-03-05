@@ -32,7 +32,7 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
   case class AddTransferAgreement(addTransferAgreement: TransferAgreement) extends TestRequest
 
   override def beforeEach(): Unit = {
-    resetDataBase()
+    resetDatabase()
   }
 
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData =
@@ -98,7 +98,7 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
     rs.getString("TransferAgreementId") should equal(transferAgreementId.toString)
   }
 
-  private def resetDataBase(): Unit = {
+  private def resetDatabase(): Unit = {
     DbConnection.db.source.createConnection().prepareStatement("delete from consignmentapi.TransferAgreement").executeUpdate()
     DbConnection.db.source.createConnection().prepareStatement("delete from consignmentapi.Consignment").executeUpdate()
 
