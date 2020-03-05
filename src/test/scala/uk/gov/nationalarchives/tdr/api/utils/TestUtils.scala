@@ -34,13 +34,13 @@ object TestUtils  {
     aTokenConfig()
       .withResourceRole("tdr", "tdr_user")
       .withClaim("body", "Body")
-      .withClaim("user_id", "1")
+      .withClaim("user_id", "4ab14990-ed63-4615-8336-56fbb9960300")
       .build)
   )
   def validUserTokenNoBody: OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
     aTokenConfig()
       .withResourceRole("tdr", "tdr_user")
-      .withClaim("user_id", "1")
+      .withClaim("user_id", "4ab14990-ed63-4615-8336-56fbb9960300")
       .build)
   )
   def validAdminToken: OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
@@ -50,7 +50,7 @@ object TestUtils  {
   )
   def invalidToken: OAuth2BearerToken = OAuth2BearerToken(testMock.getAccessToken(aTokenConfig().build))
 
-  case class GraphqlError(message: String, locations: List[Locations])
+  case class GraphqlError(message: String)
 
   case class Locations(column: Int, line: Int)
 

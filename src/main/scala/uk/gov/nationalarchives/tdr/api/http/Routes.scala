@@ -28,7 +28,7 @@ object Routes {
   def tokenAuthenticator(credentials: Credentials): Future[Option[Token]] = {
     credentials match {
       case Credentials.Provided(token) => Future {
-        Some(KeycloakUtils(url).token(token))
+        KeycloakUtils(url).token(token)
       }
       case _ => Future.successful(None)
     }

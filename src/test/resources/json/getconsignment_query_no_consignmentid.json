@@ -1,0 +1,1 @@
+{"query":"{getConsignment{seriesid, consignmentid, userid}}"}

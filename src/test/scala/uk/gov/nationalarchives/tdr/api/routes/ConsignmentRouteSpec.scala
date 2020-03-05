@@ -15,6 +15,7 @@ import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach {
   private val addConsignmentJsonFilePrefix: String = "json/addconsignment_"
+  private val getConsignmentJsonFilePrefix: String = "json/getconsignment_"
 
   implicit val customConfig: Configuration = Configuration.default.withDefaults
 
@@ -24,12 +25,17 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     DbConnection.db.source.createConnection().prepareStatement(resetIdCount).executeUpdate()
   }
 
+  case class GraphqlQueryData(data: Option[GetConsignment], errors: List[GraphqlError] = Nil)
   case class GraphqlMutationData(data: Option[AddConsignment], errors: List[GraphqlError] = Nil)
   case class Consignment(consignmentid: Option[Long] = None, userid: Option[UUID] = None, seriesid: Option[Long] = None)
+  case class GetConsignment(getConsignment: Option[Consignment]) extends TestRequest
   case class AddConsignment(addConsignment: Consignment) extends TestRequest
 
+  val runTestQuery: (String, OAuth2BearerToken) => GraphqlQueryData = runTestRequest[GraphqlQueryData](getConsignmentJsonFilePrefix)
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData = runTestRequest[GraphqlMutationData](addConsignmentJsonFilePrefix)
+  val expectedQueryResponse: String => GraphqlQueryData = getDataFromFile[GraphqlQueryData](getConsignmentJsonFilePrefix)
   val expectedMutationResponse: String => GraphqlMutationData = getDataFromFile[GraphqlMutationData](addConsignmentJsonFilePrefix)
+
 
   "The api" should "create a consignment if the correct information is provided" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
@@ -37,7 +43,6 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     response.data.get.addConsignment should equal(expectedResponse.data.get.addConsignment)
 
     checkConsignmentExists(response.data.get.addConsignment.consignmentid.get)
-
   }
 
   "The api" should "throw an error if the series id field isn't provided" in {
@@ -66,6 +71,31 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     response.data.get.addConsignment should equal(expectedResponse.data.get.addConsignment)
 
     checkConsignmentExists(response.data.get.addConsignment.consignmentid.get)
+  }
+
+  "The api" should "return all requested fields" in {
+    val sql = "insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'4ab14990-ed63-4615-8336-56fbb9960300')"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.executeUpdate()
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_all")
+    val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())
+    response.data should equal(expectedResponse.data)
+  }
+
+  "The api" should "return the expected data" in {
+    val sql = "insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'4ab14990-ed63-4615-8336-56fbb9960300')"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.executeUpdate()
+
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_some")
+    val response: GraphqlQueryData = runTestQuery("query_somedata", validUserToken())
+    response.data should equal(expectedResponse.data)
+  }
+
+  "The api" should "return an error if a user queries without a consignment id argument" in {
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_error_no_consignmentid")
+    val response: GraphqlQueryData = runTestQuery("query_no_consignmentid", validUserToken())
+    response.errors.head.message should equal(expectedResponse.errors.head.message)
   }
 
   private def checkConsignmentExists(consignmentId: Long): Unit = {

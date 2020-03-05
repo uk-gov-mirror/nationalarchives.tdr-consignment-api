@@ -12,4 +12,9 @@ class ConsignmentRepository(db: Database) {
   def addConsignment(consignmentRow: ConsignmentRow): Future[ConsignmentRow] = {
     db.run(insertQuery += consignmentRow)
   }
+
+  def getConsignment(consignmentId: Long): Future[Seq[ConsignmentRow]] = {
+    val query = Consignment.filter(_.consignmentid === consignmentId)
+    db.run(query.result)
+  }
 }

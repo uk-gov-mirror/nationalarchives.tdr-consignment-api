@@ -1,0 +1,1 @@
+{"data":null,"errors":[{"message":"Field 'getConsignment' argument 'consignmentid' of type 'Long!' is required but not provided. (line 1, column 2):\n{getConsignment{seriesid, consignmentid, userid}}\n ^"}]}

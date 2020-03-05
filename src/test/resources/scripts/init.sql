@@ -1,4 +1,5 @@
 CREATE SCHEMA IF NOT EXISTS consignmentapi;
+
 CREATE TABLE IF NOT EXISTS consignmentapi.Series (
   BodyId int DEFAULT NULL,
   Name varchar(255) DEFAULT NULL,
@@ -7,6 +8,7 @@ CREATE TABLE IF NOT EXISTS consignmentapi.Series (
   SeriesId int NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (SeriesId)
 );
+
 CREATE TABLE IF NOT EXISTS consignmentapi.Body (
    BodyId int not null,
    Name varchar(255) default null,
@@ -18,9 +20,21 @@ CREATE TABLE IF NOT EXISTS consignmentapi.Body (
 CREATE TABLE IF NOT EXISTS consignmentapi.Consignment (
   ConsignmentId bigint(20) NOT NULL AUTO_INCREMENT,
   SeriesId bigint(20) DEFAULT NULL,
-  UserId VARCHAR(40) DEFAULT NULL,
-  Datetime timestamp NOT NULL,
+  UserId varchar(40) DEFAULT NULL,
+  Datetime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (ConsignmentId)
+);
+
+CREATE TABLE IF NOT EXISTS consignmentapi.TransferAgreement (
+  ConsignmentId int NOT NULL,
+  AllPublicRecords BOOLEAN DEFAULT NULL,
+  AllCrownCopyright BOOLEAN DEFAULT NULL,
+  AllEnglish BOOLEAN DEFAULT NULL,
+  AllDigital BOOLEAN DEFAULT NULL,
+  AppraisalSelectionSignedOff BOOLEAN DEFAULT NULL,
+  SensitivityReviewSignedOff BOOLEAN DEFAULT NULL,
+  TransferAgreementId int NOT NULL AUTO_INCREMENT,
+PRIMARY KEY (TransferAgreementId)
 );
 
 DELETE from consignmentapi.Body;
