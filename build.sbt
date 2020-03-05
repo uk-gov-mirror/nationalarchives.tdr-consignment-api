@@ -65,9 +65,7 @@ assemblyJarName in assembly := "consignmentapi.jar"
 
 assemblyMergeStrategy in assembly := {
   case PathList("META-INF", xs @ _*) => MergeStrategy.discard
-  case x =>
-    val oldStrategy = (assemblyMergeStrategy in assembly).value
-    oldStrategy(x)
+  case _ => MergeStrategy.first
 }
 
 mainClass in assembly := Some("uk.gov.nationalarchives.tdr.api.http.ApiServer")
