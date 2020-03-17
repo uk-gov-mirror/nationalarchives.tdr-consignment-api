@@ -15,10 +15,12 @@ import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach  {
 
   private val addTransferAgreementJsonFilePrefix: String = "json/addtransferagreement_"
+  private val getTransferAgreementJsonFilePrefix: String = "json/gettransferagreement_"
 
   implicit val customConfig: Configuration = Configuration.default.withDefaults
 
   case class GraphqlMutationData(data: Option[AddTransferAgreement], errors: List[GraphqlError] = Nil)
+  case class GraphqlQueryData(transferAgreement: Option[TransferAgreement], errors: List[GraphqlError] = Nil)
   case class TransferAgreement(
                                 consignmentid: Option[Long] = None,
                                 allPublicRecords: Option[Boolean] = None,
@@ -37,8 +39,12 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
 
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData =
     runTestRequest[GraphqlMutationData](addTransferAgreementJsonFilePrefix)
+  val runTestQuery: (String, OAuth2BearerToken) => GraphqlQueryData =
+    runTestRequest[GraphqlQueryData](getTransferAgreementJsonFilePrefix)
   val expectedMutationResponse: String => GraphqlMutationData =
     getDataFromFile[GraphqlMutationData](addTransferAgreementJsonFilePrefix)
+  val expectedQueryResponse: String => GraphqlQueryData =
+    getDataFromFile[GraphqlQueryData](getTransferAgreementJsonFilePrefix)
 
   "The api" should "return all requested fields from inserted Transfer Agreement object" in {
     val sql = "insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'4ab14990-ed63-4615-8336-56fbb9960300')"
@@ -88,6 +94,54 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_error_invalid_consignmentid")
     val response: GraphqlMutationData = runTestMutation("mutation_invalid_consignmentid", validUserToken())
     response.errors.head.message should equal(expectedResponse.errors.head.message)
+  }
+
+  "The api" should "return an existing transfer agreement for a user owned consignment" in {
+    val consignentSql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$userId')"
+    val sql = "INSERT INTO consignmentapi.TransferAgreement (ConsignmentId, AllPublicRecords, AllCrownCopyright, " +
+      "AllEnglish, AllDigital, AppraisalSelectionSignedOff, SensitivityReviewSignedOff, TransferAgreementId) " +
+      "VALUES (1, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE);"
+    val psConsignemnt: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(consignentSql)
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.executeUpdate()
+    psConsignemnt.executeUpdate()
+
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_all")
+    val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())
+    response.transferAgreement should equal(expectedResponse)
+  }
+
+  "The api" should "return no transfer agreement if it doesn't exist" in {
+    val consignentSql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$userId')"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(consignentSql)
+    ps.executeUpdate()
+    ps.executeUpdate()
+
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_none")
+    val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())
+    response.transferAgreement should equal(expectedResponse)
+  }
+
+  "The api" should "return an error if the consignment id isn't provided" in {
+    val consignentSql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$userId')"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(consignentSql)
+    ps.executeUpdate()
+    ps.executeUpdate()
+
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_consignmentidmissing")
+    val response: GraphqlQueryData = runTestQuery("query_missingconsignmentid", validUserToken())
+    response.transferAgreement should equal(expectedResponse)
+  }
+
+  "The api" should "return an error if the user doesn't own the consignment" in {
+    val consignentSql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$userId')"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(consignentSql)
+    ps.executeUpdate()
+    ps.executeUpdate()
+
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_invalidconsignment")
+    val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())
+    response.transferAgreement should equal(expectedResponse)
   }
 
   private def checkTransferAgreementExists(transferAgreementId: Long): Unit = {
