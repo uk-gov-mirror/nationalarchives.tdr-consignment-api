@@ -104,8 +104,8 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
       "VALUES (1, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE);"
     val psConsignment: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(consignmentSql)
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    val r: Int = ps.executeUpdate()
-    val r1: Int = psConsignment.executeUpdate()
+    ps.executeUpdate()
+    psConsignment.executeUpdate()
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_all")
     val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())
