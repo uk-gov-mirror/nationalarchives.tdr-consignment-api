@@ -7,13 +7,13 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import org.keycloak.representations.AccessToken
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentRepository, SeriesRepository, TransferAgreementRepository}
+import uk.gov.nationalarchives.tdr.api.db.repository.{ClientFileMetadataRepository, ConsignmentRepository, SeriesRepository, TransferAgreementRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, GraphQlTypes}
 import sangria.ast.Document
 import sangria.execution._
 import sangria.marshalling.sprayJson._
 import sangria.parser.QueryParser
-import uk.gov.nationalarchives.tdr.api.service.{ConsignmentService, SeriesService, TransferAgreementService}
+import uk.gov.nationalarchives.tdr.api.service.{ClientFileMetadataService, ConsignmentService, SeriesService, TransferAgreementService}
 import spray.json.{JsObject, JsString, JsValue}
 import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser.AuthorisationException
 import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser
@@ -57,7 +57,13 @@ object GraphQLServer {
     val seriesService = new SeriesService(new SeriesRepository(db))
     val consignmentService = new ConsignmentService(new ConsignmentRepository(db))
     val transferAgreementService = new TransferAgreementService(new TransferAgreementRepository(db))
-    val context = ConsignmentApiContext(accessToken, seriesService, consignmentService, transferAgreementService)
+    val clientFileMetadataService = new ClientFileMetadataService(new ClientFileMetadataRepository(db))
+    val context = ConsignmentApiContext(
+      accessToken,
+      seriesService,
+      consignmentService,
+      transferAgreementService,
+      clientFileMetadataService)
     Executor.execute(
       GraphQlTypes.schema,
       query,  context,
