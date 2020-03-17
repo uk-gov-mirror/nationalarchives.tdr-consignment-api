@@ -1,6 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.routes
 
 import java.sql.{PreparedStatement, ResultSet}
+import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import io.circe.generic.extras.Configuration
@@ -47,7 +48,7 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
     getDataFromFile[GraphqlQueryData](getTransferAgreementJsonFilePrefix)
 
   "The api" should "return all requested fields from inserted Transfer Agreement object" in {
-    val sql = "insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'4ab14990-ed63-4615-8336-56fbb9960300')"
+    val sql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$userId')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.executeUpdate()
 
@@ -59,7 +60,7 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
   }
 
   "The api" should "return the expected data from inserted Transfer Agreement object" in {
-    val sql = "insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'4ab14990-ed63-4615-8336-56fbb9960300')"
+    val sql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$userId')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.executeUpdate()
 
@@ -87,7 +88,7 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
   }
 
   "The api" should "return an error if an invalid consignment id is provided" in {
-    val sql = "insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'4ab14990-ed63-4615-8336-56fbb9960300')"
+    val sql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$userId')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.executeUpdate()
 
@@ -97,18 +98,18 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
   }
 
   "The api" should "return an existing transfer agreement for a user owned consignment" in {
-    val consignentSql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$userId')"
+    val consignmentSql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$userId')"
     val sql = "INSERT INTO consignmentapi.TransferAgreement (ConsignmentId, AllPublicRecords, AllCrownCopyright, " +
       "AllEnglish, AllDigital, AppraisalSelectionSignedOff, SensitivityReviewSignedOff, TransferAgreementId) " +
       "VALUES (1, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE);"
-    val psConsignemnt: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(consignentSql)
+    val psConsignment: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(consignmentSql)
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.executeUpdate()
-    psConsignemnt.executeUpdate()
+    val r: Int = ps.executeUpdate()
+    val r1: Int = psConsignment.executeUpdate()
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_all")
     val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())
-    response.data should equal(expectedResponse)
+    response.data should equal(expectedResponse.data)
   }
 
   "The api" should "return no transfer agreement if it doesn't exist" in {
@@ -119,7 +120,7 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_none")
     val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())
-    response.data should equal(expectedResponse)
+    response.data should equal(expectedResponse.data)
   }
 
   "The api" should "return an error if the consignment id isn't provided" in {
@@ -130,18 +131,21 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_consignmentidmissing")
     val response: GraphqlQueryData = runTestQuery("query_missingconsignmentid", validUserToken())
-    response.data should equal(expectedResponse)
+    response.errors.length should equal(1)
+    response.errors.head.message should equal(expectedResponse.errors.head.message)
   }
 
   "The api" should "return an error if the user doesn't own the consignment" in {
-    val consignentSql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$userId')"
+    val otherUserId = UUID.randomUUID().toString
+    val consignentSql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$otherUserId')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(consignentSql)
     ps.executeUpdate()
     ps.executeUpdate()
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_invalidconsignment")
     val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())
-    response.data should equal(expectedResponse)
+    response.errors.length should equal(1)
+    response.errors.head.message should equal(expectedResponse.errors.head.message)
   }
 
   private def checkTransferAgreementExists(transferAgreementId: Long): Unit = {
