@@ -18,7 +18,16 @@ class TransferAgreementService(transferAgreementRepository: TransferAgreementRep
       input.appraisalSelectionSignedOff,
       input.sensitivityReviewSignedOff)
 
-    transferAgreementRepository.addTransferAgreement(transferAgreementRow).map(row => TransferAgreement(row.consignmentid,
+    transferAgreementRepository.addTransferAgreement(transferAgreementRow).map(dbRowToTransferAgreement)
+  }
+
+  def getTransferAgreement(consignmentId: Long): Future[Option[TransferAgreement]] = {
+    transferAgreementRepository.getTransferAgreement(consignmentId)
+      .map(ta => ta.headOption.map(dbRowToTransferAgreement))
+  }
+
+  private def dbRowToTransferAgreement(row: TransferagreementRow ): TransferAgreement = {
+    TransferAgreement(row.consignmentid,
       row.allpublicrecords,
       row.allcrowncopyright,
       row.allenglish,
@@ -26,6 +35,6 @@ class TransferAgreementService(transferAgreementRepository: TransferAgreementRep
       row.appraisalselectionsignedoff,
       row.sensitivityreviewsignedoff,
       row.transferagreementid
-    ))
+    )
   }
 }
