@@ -20,7 +20,7 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
   implicit val customConfig: Configuration = Configuration.default.withDefaults
 
   case class GraphqlMutationData(data: Option[AddTransferAgreement], errors: List[GraphqlError] = Nil)
-  case class GraphqlQueryData(transferAgreement: Option[TransferAgreement], errors: List[GraphqlError] = Nil)
+  case class GraphqlQueryData(data: Option[TransferAgreement], errors: List[GraphqlError] = Nil)
   case class TransferAgreement(
                                 consignmentid: Option[Long] = None,
                                 allPublicRecords: Option[Boolean] = None,
@@ -108,7 +108,7 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_all")
     val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())
-    response.transferAgreement should equal(expectedResponse)
+    response.data should equal(expectedResponse)
   }
 
   "The api" should "return no transfer agreement if it doesn't exist" in {
@@ -119,7 +119,7 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_none")
     val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())
-    response.transferAgreement should equal(expectedResponse)
+    response.data should equal(expectedResponse)
   }
 
   "The api" should "return an error if the consignment id isn't provided" in {
@@ -130,7 +130,7 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_consignmentidmissing")
     val response: GraphqlQueryData = runTestQuery("query_missingconsignmentid", validUserToken())
-    response.transferAgreement should equal(expectedResponse)
+    response.data should equal(expectedResponse)
   }
 
   "The api" should "return an error if the user doesn't own the consignment" in {
@@ -141,7 +141,7 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_invalidconsignment")
     val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())
-    response.transferAgreement should equal(expectedResponse)
+    response.data should equal(expectedResponse)
   }
 
   private def checkTransferAgreementExists(transferAgreementId: Long): Unit = {
