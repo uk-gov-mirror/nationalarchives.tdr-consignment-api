@@ -5,8 +5,12 @@ import sangria.schema.{ObjectType, Schema}
 
 object GraphQlTypes {
 
-  private val QueryType = ObjectType("Query", SeriesFields.queryFields ++ ConsignmentFields.queryFields)
-  private val MutationType = ObjectType("Mutation", SeriesFields.mutationFields ++ ConsignmentFields.mutationFields ++ TransferAgreementFields.mutationFields)
+  private val QueryType = ObjectType("Query", SeriesFields.queryFields ++ ConsignmentFields.queryFields ++ TransferAgreementFields.queryFields)
+  private val MutationType = ObjectType("Mutation",
+    SeriesFields.mutationFields ++
+    ConsignmentFields.mutationFields ++
+    TransferAgreementFields.mutationFields
+  )
 
   val schema: Schema[ConsignmentApiContext, Unit] = Schema(QueryType, Some(MutationType))
 }
