@@ -142,7 +142,7 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
     ps.executeUpdate()
     ps.executeUpdate()
 
-    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_invalidconsignment")
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_notowner")
     val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())
     response.errors.length should equal(1)
     response.errors.head.message should equal(expectedResponse.errors.head.message)

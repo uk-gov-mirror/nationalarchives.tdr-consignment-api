@@ -4,7 +4,6 @@ import sangria.execution.{BeforeFieldResult, FieldTag}
 import sangria.schema.Context
 import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser.{AuthorisationException, continue}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.Consignment
-import uk.gov.nationalarchives.tdr.api.graphql.fields.TransferAgreementFields.AddTransferAgreementInput
 import uk.gov.nationalarchives.tdr.api.graphql.validation.UserOwnsConsignment
 
 import scala.concurrent._
