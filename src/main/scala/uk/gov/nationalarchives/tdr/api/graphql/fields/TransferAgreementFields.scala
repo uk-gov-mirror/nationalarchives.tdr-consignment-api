@@ -17,7 +17,8 @@ object TransferAgreementFields {
                                allDigital: Option[Boolean] = None,
                                appraisalSelectionSignedOff: Option[Boolean] = None,
                                sensitivityReviewSignedOff: Option[Boolean] = None,
-                               transferAgreementId: Option[Long] = None)
+                               transferAgreementId: Option[Long] = None,
+                               isAgreementComplete: Boolean)
 
   case class AddTransferAgreementInput(consignmentId: Long,
                                        allPublicRecords: Option[Boolean] = None,
