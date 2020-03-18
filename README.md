@@ -15,9 +15,10 @@ cd tdr-consignment-api-data.git
 sbt flywayMigrate
 ```
 
-Run the api
+Run the api:
 
-`sbt run`
+* From IntelliJ, run the ApiServer app
+* Or from the command line, run `sbt run`
 
 #### Generate Graphql Schema Locally
 
