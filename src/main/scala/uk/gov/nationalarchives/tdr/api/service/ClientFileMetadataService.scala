@@ -13,6 +13,7 @@ class ClientFileMetadataService(clientFileMetadataRepository: ClientFileMetadata
                                (implicit val executionContext: ExecutionContext) {
 
   def addClientFileMetadata(input: AddClientFileMetadataInput): Future[ClientFileMetadata] = {
+
     val clientFileMetadataRow = ClientfilemetadataRow(
       input.fileId,
       input.originalPath,
@@ -21,7 +22,7 @@ class ClientFileMetadataService(clientFileMetadataRepository: ClientFileMetadata
       Timestamp.from(Instant.ofEpochMilli(input.lastModified)),
       Timestamp.from(Instant.ofEpochMilli(input.createdDate)),
       input.fileSize,
-      Timestamp.from(Instant.ofEpochMilli(input.dateTime))
+      Timestamp.from(Instant.ofEpochMilli(input.datetime))
     )
 
     clientFileMetadataRepository.addClientFileMetadata(clientFileMetadataRow).map(row => ClientFileMetadata(

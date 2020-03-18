@@ -37,5 +37,18 @@ CREATE TABLE IF NOT EXISTS consignmentapi.TransferAgreement (
 PRIMARY KEY (TransferAgreementId)
 );
 
+CREATE TABLE IF NOT EXISTS consignmentapi.ClientFileMetadata (
+   FileId bigint(20) NOT NULL AUTO_INCREMENT,
+   OriginalPath varchar(255) DEFAULT NULL,
+   Checksum varchar(255) DEFAULT NULL,
+   ChecksumType varchar(255) DEFAULT NULL,
+   LastModified timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+   CreatedDate timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   Filesize decimal(8,2) DEFAULT NULL,
+   Datetime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   ClientFileMetadataId bigint(20) NOT NULL auto_increment,
+   PRIMARY KEY (ClientFileMetadataId)
+);
+
 DELETE from consignmentapi.Body;
 INSERT INTO consignmentapi.Body (BodyId, Name, Code, Description) VALUES (1, 'Body', 'Code', 'Description'), (2, 'Body2', 'Code', 'Description');
