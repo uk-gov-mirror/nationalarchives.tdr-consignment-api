@@ -51,12 +51,12 @@ object Tags {
     }
   }
 
-  case class ValidateUserOwnsConsignment[T](argName: String, argument: Argument[T]) extends ValidateTags {
+  case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends ValidateTags {
     override def validate(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
       val token = ctx.ctx.accessToken
       val userId = token.userId.getOrElse("")
 
-      val arg: T = ctx.arg[T](argName)
+      val arg: T = ctx.arg[T](argument.name)
       val consignmentId: Long = arg match {
         case uoc: UserOwnsConsignment => uoc.consignmentId
         case id: Long => id
