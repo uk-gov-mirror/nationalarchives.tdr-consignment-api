@@ -1,0 +1,1 @@
+{"data":null,"errors":[{"message":"User does not own consignment","path":["getSeries"],"locations":[{"column":2,"line":1}]}]}

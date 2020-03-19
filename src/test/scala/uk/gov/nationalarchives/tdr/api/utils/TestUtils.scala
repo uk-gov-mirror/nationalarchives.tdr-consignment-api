@@ -30,17 +30,19 @@ object TestUtils  {
     mock
   }
 
+  val userId = "4ab14990-ed63-4615-8336-56fbb9960300"
+
   def validUserToken(body: String = "Body"): OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
     aTokenConfig()
       .withResourceRole("tdr", "tdr_user")
       .withClaim("body", "Body")
-      .withClaim("user_id", "4ab14990-ed63-4615-8336-56fbb9960300")
+      .withClaim("user_id", userId)
       .build)
   )
   def validUserTokenNoBody: OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
     aTokenConfig()
       .withResourceRole("tdr", "tdr_user")
-      .withClaim("user_id", "4ab14990-ed63-4615-8336-56fbb9960300")
+      .withClaim("user_id", userId)
       .build)
   )
   def validAdminToken: OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
