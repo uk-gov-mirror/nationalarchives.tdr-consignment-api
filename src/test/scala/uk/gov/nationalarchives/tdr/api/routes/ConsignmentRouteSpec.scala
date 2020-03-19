@@ -51,12 +51,6 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     response.errors.head.message should equal (expectedResponse.errors.head.message)
   }
 
-  "The api" should "throw an error if the user id field isn't provided" in {
-    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_userid_missing")
-    val response: GraphqlMutationData = runTestMutation("mutation_missinguserid", validUserToken())
-    response.errors.head.message should equal (expectedResponse.errors.head.message)
-  }
-
   "The api" should "allow a tdr_user user to create a consignment" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())

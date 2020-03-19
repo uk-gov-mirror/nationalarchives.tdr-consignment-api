@@ -25,7 +25,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
     val mockResponse = Future.successful(ConsignmentRow(1L, uuid.toString, Timestamp.from(Instant.now), Some(1)))
     when(consignmentRepositoryMock.addConsignment(any[ConsignmentRow])).thenReturn(mockResponse)
     val consignmentService = new ConsignmentService(consignmentRepositoryMock)
-    val result: Consignment = consignmentService.addConsignment(AddConsignmentInput(1 ,uuid)).await()
+    val result: Consignment = consignmentService.addConsignment(AddConsignmentInput(1, Some(uuid))).await()
     result.seriesid shouldBe 1
     result.userid shouldBe uuid
     result.consignmentid shouldBe defined
