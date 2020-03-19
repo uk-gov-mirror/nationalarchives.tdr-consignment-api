@@ -39,7 +39,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
   "The api" should "create a consignment if the correct information is provided" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
-    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validAdminToken)
+    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
     response.data.get.addConsignment should equal(expectedResponse.data.get.addConsignment)
 
     checkConsignmentExists(response.data.get.addConsignment.consignmentid.get)
@@ -47,22 +47,14 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
   "The api" should "throw an error if the series id field isn't provided" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_seriesid_missing")
-    val response: GraphqlMutationData = runTestMutation("mutation_missingseriesid", validAdminToken)
+    val response: GraphqlMutationData = runTestMutation("mutation_missingseriesid", validUserToken())
     response.errors.head.message should equal (expectedResponse.errors.head.message)
   }
 
   "The api" should "throw an error if the user id field isn't provided" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_userid_missing")
-    val response: GraphqlMutationData = runTestMutation("mutation_missinguserid", validAdminToken)
+    val response: GraphqlMutationData = runTestMutation("mutation_missinguserid", validUserToken())
     response.errors.head.message should equal (expectedResponse.errors.head.message)
-  }
-
-  "The api" should "allow a tdr_admin user to create a consignment" in {
-    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
-    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validAdminToken)
-    response.data.get.addConsignment should equal(expectedResponse.data.get.addConsignment)
-
-    checkConsignmentExists(response.data.get.addConsignment.consignmentid.get)
   }
 
   "The api" should "allow a tdr_user user to create a consignment" in {
