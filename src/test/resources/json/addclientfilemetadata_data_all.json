@@ -1,1 +1,1 @@
-{"data":{"addClientFileMetadata":{"fileId": 1, "originalPath": "originalpath", "checksum": "checksum", "checksumType": "checksumtype", "lastModified": 1584599020000, "createdDate": 1584599020000, "fileSize": "1000.00", "datetime": 1584599020000, "clientFileMetadataId": 1}}}
+{"data":{"addClientFileMetadata":{"fileId": 1, "originalPath": "originalpath", "checksum": "checksum", "checksumType": "checksumtype", "lastModified": 1584599020000, "createdDate": 1584599020000, "fileSize": 1000.00, "datetime": 1584599020000, "clientFileMetadataId": 1}}}
