@@ -1,11 +1,12 @@
 package uk.gov.nationalarchives.tdr.api.graphql
 
 import sangria.execution.{BeforeFieldResult, FieldTag}
-import sangria.schema.Context
+import sangria.schema.{Argument, Context}
 import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser.{AuthorisationException, continue}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.Consignment
 import uk.gov.nationalarchives.tdr.api.graphql.validation.UserOwnsConsignment
 
+import scala.Long
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -50,15 +51,15 @@ object Tags {
     }
   }
 
-  case class ValidateUserOwnsConsignment(argName: String) extends ValidateTags {
+  case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends ValidateTags {
     override def validate(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
       val token = ctx.ctx.accessToken
       val userId = token.userId.getOrElse("")
 
-      // Consignment id is either inside a case class extending UserOwnsConsignment or is a Long argument
-      val consignmentId: Long = Try(ctx.arg[UserOwnsConsignment](argName)) match {
-        case Success(value) => value.consignmentId
-        case Failure(_) => ctx.arg[Long](argName)
+      val arg: T = ctx.arg[T](argument.name)
+      val consignmentId: Long = arg match {
+        case uoc: UserOwnsConsignment => uoc.consignmentId
+        case id: Long => id
       }
 
       val result = ctx.ctx.consignmentService.getConsignment(consignmentId)

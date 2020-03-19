@@ -38,13 +38,13 @@ object TransferAgreementFields {
     Field("addTransferAgreement", TransferAgreementType,
       arguments=TransferAgreementInputArg :: Nil,
       resolve = ctx => ctx.ctx.transferAgreementService.addTransferAgreement(ctx.arg(TransferAgreementInputArg)),
-      tags=List(ValidateUserOwnsConsignment("addTransferAgreementInput"))
+      tags=List(ValidateUserOwnsConsignment(TransferAgreementInputArg))
     ))
 
   val queryFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("getTransferAgreement", OptionType(TransferAgreementType),
       arguments=ConsignmentIdArg :: Nil,
       resolve = ctx => ctx.ctx.transferAgreementService.getTransferAgreement(ctx.arg(ConsignmentIdArg)),
-      tags=List(ValidateUserOwnsConsignment("consignmentid"))
+      tags=List(ValidateUserOwnsConsignment(ConsignmentIdArg))
     ))
 }
