@@ -38,7 +38,7 @@ PRIMARY KEY (TransferAgreementId)
 );
 
 CREATE TABLE IF NOT EXISTS consignmentapi.ClientFileMetadata (
-   FileId bigint(20) NOT NULL AUTO_INCREMENT,
+   FileId bigint(20) NOT NULL,
    OriginalPath varchar(255) DEFAULT NULL,
    Checksum varchar(255) DEFAULT NULL,
    ChecksumType varchar(255) DEFAULT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS consignmentapi.ClientFileMetadata (
    CreatedDate timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
    Filesize decimal(8,2) DEFAULT NULL,
    Datetime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-   ClientFileMetadataId bigint(20) NOT NULL auto_increment,
+   ClientFileMetadataId bigint(20) NOT NULL AUTO_INCREMENT,
    PRIMARY KEY (ClientFileMetadataId)
 );
 

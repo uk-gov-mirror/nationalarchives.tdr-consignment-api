@@ -20,9 +20,8 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
   "addClientFileMetadata" should "create client file metadata given correct arguments" in {
 
     val dummyInstant = Instant.now()
-
     val dummyTimestamp = Timestamp.from(dummyInstant)
-    val dummyFileSize: BigDecimal = 1000
+    val dummyFileSize: BigDecimal = 1000.01
     val repositoryMock = mock[ClientFileMetadataRepository]
     val mockResponse = Future.successful(ClientfilemetadataRow(
       1L,
