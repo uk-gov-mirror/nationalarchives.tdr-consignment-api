@@ -18,14 +18,31 @@ class TransferAgreementService(transferAgreementRepository: TransferAgreementRep
       input.appraisalSelectionSignedOff,
       input.sensitivityReviewSignedOff)
 
-    transferAgreementRepository.addTransferAgreement(transferAgreementRow).map(row => TransferAgreement(row.consignmentid,
+    transferAgreementRepository.addTransferAgreement(transferAgreementRow).map(dbRowToTransferAgreement)
+  }
+
+  def getTransferAgreement(consignmentId: Long): Future[Option[TransferAgreement]] = {
+    transferAgreementRepository.getTransferAgreement(consignmentId)
+      .map(ta => ta.headOption.map(dbRowToTransferAgreement))
+  }
+
+  private def agreed(field: Option[Boolean]) = field.isDefined && field.get
+
+  private def isAgreementComplete(ta: TransferagreementRow): Boolean = {
+    val fields = List(ta.allcrowncopyright, ta.alldigital, ta.allenglish, ta.allpublicrecords, ta.appraisalselectionsignedoff, ta.sensitivityreviewsignedoff)
+    fields.forall(agreed)
+  }
+
+  private def dbRowToTransferAgreement(row: TransferagreementRow ): TransferAgreement = {
+    TransferAgreement(row.consignmentid,
       row.allpublicrecords,
       row.allcrowncopyright,
       row.allenglish,
       row.alldigital,
       row.appraisalselectionsignedoff,
       row.sensitivityreviewsignedoff,
-      row.transferagreementid
-    ))
+      row.transferagreementid,
+      isAgreementComplete(row)
+    )
   }
 }
