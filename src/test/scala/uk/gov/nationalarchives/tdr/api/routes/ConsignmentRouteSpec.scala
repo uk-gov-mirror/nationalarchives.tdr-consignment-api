@@ -65,6 +65,14 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     checkConsignmentExists(response.data.get.addConsignment.consignmentid.get)
   }
 
+  "The api" should "link a new consignment to the creating user" in {
+    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
+    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
+    response.data.get.addConsignment should equal(expectedResponse.data.get.addConsignment)
+
+    response.data.get.addConsignment.userid should contain(userId)
+  }
+
   "The api" should "return all requested fields" in {
     val sql = "insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'4ab14990-ed63-4615-8336-56fbb9960300')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)

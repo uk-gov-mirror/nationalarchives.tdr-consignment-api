@@ -1,5 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.utils
 
+import java.util.UUID
+
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import akka.http.scaladsl.unmarshalling.{FromResponseUnmarshaller, Unmarshaller}
 import akka.stream.Materializer
@@ -30,7 +32,7 @@ object TestUtils  {
     mock
   }
 
-  val userId = "4ab14990-ed63-4615-8336-56fbb9960300"
+  val userId = UUID.fromString("4ab14990-ed63-4615-8336-56fbb9960300")
 
   def validUserToken(body: String = "Body"): OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
     aTokenConfig()
