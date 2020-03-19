@@ -29,6 +29,10 @@ object ConsignmentFields {
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("addConsignment", ConsignmentType,
       arguments=ConsignmentInputArg :: Nil,
-      resolve = ctx => ctx.ctx.consignmentService.addConsignment(ctx.arg(ConsignmentInputArg)))
+      resolve = ctx => ctx.ctx.consignmentService.addConsignment(
+        ctx.arg(ConsignmentInputArg),
+        ctx.ctx.accessToken.userId.map(id => UUID.fromString(id))
+      )
+    )
   )
 }
