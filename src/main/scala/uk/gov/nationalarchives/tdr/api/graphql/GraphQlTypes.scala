@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.tdr.api.graphql
 
-import uk.gov.nationalarchives.tdr.api.graphql.fields.{ConsignmentFields, SeriesFields, TransferAgreementFields}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.{ClientFileMetadataFields, ConsignmentFields, SeriesFields, TransferAgreementFields}
 import sangria.schema.{ObjectType, Schema}
 
 object GraphQlTypes {
@@ -9,7 +9,8 @@ object GraphQlTypes {
   private val MutationType = ObjectType("Mutation",
     SeriesFields.mutationFields ++
     ConsignmentFields.mutationFields ++
-    TransferAgreementFields.mutationFields
+    TransferAgreementFields.mutationFields ++
+      ClientFileMetadataFields.mutationFields
   )
 
   val schema: Schema[ConsignmentApiContext, Unit] = Schema(QueryType, Some(MutationType))

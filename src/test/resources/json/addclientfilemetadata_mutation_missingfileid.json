@@ -1,0 +1,1 @@
+{"query":"mutation {addClientFileMetadata(addClientFileMetadataInput: {originalPath: \"originalpath\"}) {fileId, clientFileMetadataId}}"}
