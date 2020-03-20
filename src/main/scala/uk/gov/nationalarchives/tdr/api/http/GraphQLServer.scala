@@ -5,18 +5,17 @@ import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import org.keycloak.representations.AccessToken
-import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.db.repository.{ClientFileMetadataRepository, ConsignmentRepository, SeriesRepository, TransferAgreementRepository}
-import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, GraphQlTypes}
 import sangria.ast.Document
 import sangria.execution._
 import sangria.marshalling.sprayJson._
 import sangria.parser.QueryParser
-import uk.gov.nationalarchives.tdr.api.service.{ClientFileMetadataService, ConsignmentService, SeriesService, TransferAgreementService}
 import spray.json.{JsObject, JsString, JsValue}
-import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser.AuthorisationException
 import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser
+import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser.AuthorisationException
+import uk.gov.nationalarchives.tdr.api.db.DbConnection
+import uk.gov.nationalarchives.tdr.api.db.repository.{ClientFileMetadataRepository, ConsignmentRepository, SeriesRepository, TransferAgreementRepository}
+import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, GraphQlTypes}
+import uk.gov.nationalarchives.tdr.api.service._
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -55,7 +54,7 @@ object GraphQLServer {
                                  (implicit ec: ExecutionContext): Future[(StatusCode with Serializable, JsValue)] = {
     val db = DbConnection.db
     val seriesService = new SeriesService(new SeriesRepository(db))
-    val consignmentService = new ConsignmentService(new ConsignmentRepository(db))
+    val consignmentService = new ConsignmentService(new ConsignmentRepository(db), new CurrentTimeSource)
     val transferAgreementService = new TransferAgreementService(new TransferAgreementRepository(db))
     val clientFileMetadataService = new ClientFileMetadataService(new ClientFileMetadataRepository(db))
     val context = ConsignmentApiContext(

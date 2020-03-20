@@ -11,7 +11,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 
 object ConsignmentFields {
   case class Consignment(consignmentid: Option[Long] = None, userid: UUID, seriesid: Long)
-  case class AddConsignmentInput(seriesid: Long, userid: UUID)
+  case class AddConsignmentInput(seriesid: Long, userid: Option[UUID])
 
   implicit val ConsignmentType: ObjectType[Unit, Consignment] = deriveObjectType[Unit, Consignment]()
   implicit val AddConsignmentInputType: InputObjectType[AddConsignmentInput] = deriveInputObjectType[AddConsignmentInput]()
@@ -29,6 +29,10 @@ object ConsignmentFields {
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("addConsignment", ConsignmentType,
       arguments=ConsignmentInputArg :: Nil,
-      resolve = ctx => ctx.ctx.consignmentService.addConsignment(ctx.arg(ConsignmentInputArg)))
+      resolve = ctx => ctx.ctx.consignmentService.addConsignment(
+        ctx.arg(ConsignmentInputArg),
+        ctx.ctx.accessToken.userId.map(id => UUID.fromString(id))
+      )
+    )
   )
 }
