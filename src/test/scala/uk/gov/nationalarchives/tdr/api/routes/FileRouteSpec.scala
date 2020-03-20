@@ -8,7 +8,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.utils.TestRequest
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils.{GraphqlError, getDataFromFile, validUserToken}
+import uk.gov.nationalarchives.tdr.api.utils.TestUtils.{GraphqlError, getDataFromFile, userId, validUserToken}
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.auto._
 
@@ -20,6 +20,7 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
   override def beforeEach(): Unit = {
     val connection = DbConnection.db.source.createConnection()
     connection.prepareStatement("delete from consignmentapi.File").executeUpdate()
+    connection.prepareStatement("delete from consignmentapi.Consignment").executeUpdate()
     val resetConsignmentIdCount = "alter table consignmentapi.Consignment alter column ConsignmentId restart with 1"
     val resetFileIdCount = "alter table consignmentapi.File alter column FileId restart with 1"
     connection.prepareStatement(resetConsignmentIdCount).executeUpdate()
@@ -28,14 +29,18 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
   }
 
   case class GraphqlMutationData(data: Option[AddFiles], errors: List[GraphqlError] = Nil)
-  case class File(fileIds: List[Long])
+  case class File(fileIds: Seq[Long])
   case class AddFiles(addFiles: File)
 
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData = runTestRequest[GraphqlMutationData](addFileJsonFilePrefix)
   val expectedMutationResponse: String => GraphqlMutationData = getDataFromFile[GraphqlMutationData](addFileJsonFilePrefix)
 
   "The api" should "add one file if the correct information is provided" in {
-    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
+    val sql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$userId')"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.executeUpdate()
+
+    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_one_file")
     val response: GraphqlMutationData = runTestMutation("mutation_one_file", validUserToken())
 
     response.data.isDefined should equal(true)
@@ -44,6 +49,10 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
   }
 
   "The api" should "add three files if the correct information is provided" in {
+    val sql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$userId')"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.executeUpdate()
+
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
 
@@ -75,7 +84,7 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     val rs: ResultSet = ps.executeQuery()
     rs.next()
-    rs.getString("ConsignmentId") should equal(fileId.toString)
+    rs.getString("FileId") should equal(fileId.toString)
   }
 
 
