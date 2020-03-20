@@ -50,5 +50,14 @@ CREATE TABLE IF NOT EXISTS consignmentapi.ClientFileMetadata (
    PRIMARY KEY (ClientFileMetadataId)
 );
 
+CREATE TABLE IF NOT EXISTS consignmentapi.File (
+   FileId bigint(20) NOT NULL AUTO_INCREMENT,
+   ConsignmentId bigint(20) NOT NULL,
+   UserId varchar(40) DEFAULT NULL,
+   Datetime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   PRIMARY KEY (FileId)
+
+);
+
 DELETE from consignmentapi.Body;
 INSERT INTO consignmentapi.Body (BodyId, Name, Code, Description) VALUES (1, 'Body', 'Code', 'Description'), (2, 'Body2', 'Code', 'Description');
