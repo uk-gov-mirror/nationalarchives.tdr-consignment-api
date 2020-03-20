@@ -9,24 +9,28 @@ import org.mockito.MockitoSugar
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.FileRow
-import uk.gov.nationalarchives.tdr.api.db.repository.ConsignmentRepository
+import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentRepository, FileRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AddConsignmentInput, Consignment}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields.File
 import uk.gov.nationalarchives.tdr.api.utils.FixedTimeSource
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
+  implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
+
   "createFile" should "create a file given correct arguments" in {
     val uuid = UUID.randomUUID()
     val consignmentId = 1
     val fileRepositoryMock = mock[FileRepository]
     val mockResponse = Future.successful(FileRow(consignmentId, uuid.toString, Timestamp.from(Instant.now), Some(1)))
     when(fileRepositoryMock.addFile(any[FileRow])).thenReturn(mockResponse)
-    val fileService = new ConsignmentService(fileRepositoryMock, FixedTimeSource)
+    val fileService = new FileService(fileRepositoryMock, FixedTimeSource)
     val result: File = fileService.addFile(consignmentId).await()
+
     result.fileid shouldBe 1
-    result.userid shouldBe uuid
-    result.consignmentid.get shouldBe 1
+    result.consignmentid shouldBe 1
   }
 
   "createConsignment" should "link a consignment to the user's ID" in {
@@ -39,7 +43,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     val mockResponse = Future.successful(FileRow(consignmentId, userId.toString, Timestamp.from(Instant.now), Some(1)))
     when(fileRepositoryMock.addFile(any[FileRow])).thenReturn(mockResponse)
 
-    fileService.addFile(consignmentId: Long, Some(userId)).await()
+    fileService.addFile(consignmentId: Long).await()
 
     verify(fileRepositoryMock).addFile(expectedRow)
 
