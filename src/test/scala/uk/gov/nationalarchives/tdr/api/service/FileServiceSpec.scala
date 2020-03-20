@@ -27,7 +27,20 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     val mockResponse = Future.successful(FileRow(consignmentId, uuid.toString, Timestamp.from(Instant.now), Some(1)))
     when(fileRepositoryMock.addFile(any[FileRow])).thenReturn(mockResponse)
     val fileService = new FileService(fileRepositoryMock, FixedTimeSource)
-    val result: File = fileService.addFile(consignmentId).await()
+    val result: File = fileService.addFile(consignmentId, 1).await()
+
+    result.fileid shouldBe 1
+    result.consignmentid shouldBe 1
+  }
+
+  "createFile" should "create three files given correct arguments" in {
+    val uuid = UUID.randomUUID()
+    val consignmentId = 1
+    val fileRepositoryMock = mock[FileRepository]
+    val mockResponse = Future.successful(FileRow(consignmentId, uuid.toString, Timestamp.from(Instant.now), Some(1)))
+    when(fileRepositoryMock.addFile(any[FileRow])).thenReturn(mockResponse)
+    val fileService = new FileService(fileRepositoryMock, FixedTimeSource)
+    val result: File = fileService.addFile(consignmentId, 3).await()
 
     result.fileid shouldBe 1
     result.consignmentid shouldBe 1
@@ -43,7 +56,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     val mockResponse = Future.successful(FileRow(consignmentId, userId.toString, Timestamp.from(Instant.now), Some(1)))
     when(fileRepositoryMock.addFile(any[FileRow])).thenReturn(mockResponse)
 
-    fileService.addFile(consignmentId: Long).await()
+    fileService.addFile(consignmentId: Long, 1).await()
 
     verify(fileRepositoryMock).addFile(expectedRow)
 

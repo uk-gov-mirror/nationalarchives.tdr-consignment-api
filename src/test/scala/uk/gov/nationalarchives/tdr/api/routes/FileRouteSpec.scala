@@ -27,21 +27,30 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
     connection.close()
   }
 
-  case class GraphqlMutationData(data: Option[AddFile], errors: List[GraphqlError] = Nil)
-  case class File(fileid: Option[Long], consignmentId: Long)
-  case class AddFile(addFile: File)
+  case class GraphqlMutationData(data: Option[AddFiles], errors: List[GraphqlError] = Nil)
+  case class File(fileIds: List[Long])
+  case class AddFiles(addFiles: File)
 
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData = runTestRequest[GraphqlMutationData](addFileJsonFilePrefix)
   val expectedMutationResponse: String => GraphqlMutationData = getDataFromFile[GraphqlMutationData](addFileJsonFilePrefix)
 
-  "The api" should "add a file if the correct information is provided" in {
+  "The api" should "add one file if the correct information is provided" in {
+    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
+    val response: GraphqlMutationData = runTestMutation("mutation_one_file", validUserToken())
+
+    response.data.isDefined should equal(true)
+    response.data.get.addFiles should equal(expectedResponse.data.get.addFiles)
+    response.data.get.addFiles.fileIds.foreach(checkFileExists)
+  }
+
+  "The api" should "add three files if the correct information is provided" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
 
     response.data.isDefined should equal(true)
-    response.data.get.addFile should equal(expectedResponse.data.get.addFile)
+    response.data.get.addFiles should equal(expectedResponse.data.get.addFiles)
 
-    checkFileExists(response.data.get.addFile.fileid.get)
+    response.data.get.addFiles.fileIds.foreach(checkFileExists)
   }
 
   "The api" should "throw an error if the consignment id field is not provided" in {

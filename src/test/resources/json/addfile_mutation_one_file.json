@@ -1,0 +1,1 @@
+{"query":"mutation {addFile(consignmentId: 1) {fileids}}"}
