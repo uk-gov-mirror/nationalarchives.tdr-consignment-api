@@ -1,7 +1,8 @@
 package uk.gov.nationalarchives.tdr.api.graphql
 import uk.gov.nationalarchives.tdr.keycloak.Token
-import uk.gov.nationalarchives.tdr.api.service.{ClientFileMetadataService, ConsignmentService, SeriesService, TransferAgreementService}
+import uk.gov.nationalarchives.tdr.api.service.{ClientFileMetadataService, ConsignmentService, FileService, SeriesService, TransferAgreementService}
 
 case class ConsignmentApiContext(accessToken: Token, seriesService: SeriesService, consignmentService: ConsignmentService,
                                  transferAgreementService: TransferAgreementService,
-                                 clientFileMetadataService: ClientFileMetadataService)
+                                 clientFileMetadataService: ClientFileMetadataService,
+                                 fileService: FileService)
