@@ -1,1 +1,1 @@
-{"data":null,"errors":[{"message":"Field 'AddFileInput.consignmentId' of required type 'Long!' was not provided. (line 1, column 34):\nmutation {addFiles(addFileInput: {numberOfFiles: 3}) {fileIds}}\n                                 ^"}]}
+{"data":null,"errors":[{"message":"Field 'AddFilesInput.consignmentId' of required type 'Long!' was not provided. (line 1, column 35):\nmutation {addFiles(addFilesInput: {numberOfFiles: 3}) {fileIds}}\n                                  ^"}]}

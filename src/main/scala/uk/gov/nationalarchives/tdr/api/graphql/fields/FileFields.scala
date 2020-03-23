@@ -13,10 +13,10 @@ import uk.gov.nationalarchives.tdr.api.graphql.validation.UserOwnsConsignment
 object FileFields {
   case class File(fileIds: Seq[Long])
 
-  case class AddFileInput(consignmentId: Long, numberOfFiles: Option[Int]) extends UserOwnsConsignment
-  implicit val AddFileInputType: InputObjectType[AddFileInput] = deriveInputObjectType[AddFileInput]()
+  case class AddFilesInput(consignmentId: Long, numberOfFiles: Option[Int]) extends UserOwnsConsignment
+  implicit val AddFilesInputType: InputObjectType[AddFilesInput] = deriveInputObjectType[AddFilesInput]()
   implicit val FileType: ObjectType[Unit, File]  = deriveObjectType[Unit, File]()
-  private val FileInputArg = Argument("addFileInput", AddFileInputType)
+  private val FileInputArg = Argument("addFilesInput", AddFilesInputType)
 
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field(
