@@ -26,19 +26,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     val mockResponse = Future.successful(List(FileRow(consignmentId, uuid.toString, Timestamp.from(Instant.now), Some(1))))
     when(fileRepositoryMock.addFiles(any[List[FileRow]])).thenReturn(mockResponse)
     val fileService = new FileService(fileRepositoryMock, FixedTimeSource)
-    val result: Files = fileService.addFile(AddFilesInput(consignmentId, Some(1)),Some(uuid)).await()
-
-    result.fileIds shouldBe List(1)
-  }
-
-  "createFile" should "create one file with an empty number of files" in {
-    val uuid = UUID.randomUUID()
-    val consignmentId = 1
-    val fileRepositoryMock = mock[FileRepository]
-    val mockResponse = Future.successful(List(FileRow(consignmentId, uuid.toString, Timestamp.from(Instant.now), Some(1))))
-    when(fileRepositoryMock.addFiles(any[List[FileRow]])).thenReturn(mockResponse)
-    val fileService = new FileService(fileRepositoryMock, FixedTimeSource)
-    val result: Files = fileService.addFile(AddFilesInput(consignmentId, Option.empty),Some(uuid)).await()
+    val result: Files = fileService.addFile(AddFilesInput(consignmentId, 1),Some(uuid)).await()
 
     result.fileIds shouldBe List(1)
   }
@@ -54,7 +42,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
 
     when(fileRepositoryMock.addFiles(any[List[FileRow]])).thenReturn(mockResponse)
     val fileService = new FileService(fileRepositoryMock, FixedTimeSource)
-    val result: Files = fileService.addFile(AddFilesInput(consignmentId, Some(3)),Some(uuid)).await()
+    val result: Files = fileService.addFile(AddFilesInput(consignmentId, 3),Some(uuid)).await()
 
     result.fileIds shouldBe List(1,2,3)
   }
@@ -69,7 +57,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     val mockResponse = Future.successful(List(FileRow(consignmentId, userId.toString, Timestamp.from(Instant.now), Some(1))))
     when(fileRepositoryMock.addFiles(any[List[FileRow]])).thenReturn(mockResponse)
 
-    fileService.addFile(AddFilesInput(consignmentId, Some(1)),Some(userId)).await()
+    fileService.addFile(AddFilesInput(consignmentId, 1),Some(userId)).await()
 
     verify(fileRepositoryMock).addFiles(expectedRow)
 
