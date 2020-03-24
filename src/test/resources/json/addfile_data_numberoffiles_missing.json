@@ -1,0 +1,1 @@
+{"data":null,"errors":[{"message":"Field 'AddFilesInput.numberOfFiles' of required type 'Int!' was not provided. (line 1, column 35):\nmutation {addFiles(addFilesInput: {consignmentId: 1}) {fileIds}}\n                                  ^"}]}

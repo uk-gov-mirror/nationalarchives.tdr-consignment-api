@@ -68,6 +68,12 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
     response.errors.head.message should equal (expectedResponse.errors.head.message)
   }
 
+  "The api" should "throw an error if the number of files field is not provided" in {
+    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_numberoffiles_missing")
+    val response: GraphqlMutationData = runTestMutation("mutation_missingnumberoffiles", validUserToken())
+    response.errors.head.message should equal (expectedResponse.errors.head.message)
+  }
+
   "The api" should "throw an error if the user does not own the consignment" in {
     val sql = "insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'5ab14990-ed63-4615-8336-56fbb9960300')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
