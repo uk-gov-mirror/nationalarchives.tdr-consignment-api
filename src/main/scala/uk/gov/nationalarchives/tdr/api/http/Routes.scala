@@ -2,12 +2,10 @@ package uk.gov.nationalarchives.tdr.api.http
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.model.HttpMethods._
-import akka.http.scaladsl.model.headers._
-import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
-import akka.http.scaladsl.server.Directives.{as, authenticateOAuth2Async, complete, entity, get, path, post, _}
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.directives.Credentials
-import akka.http.scaladsl.server.{Directive0, Route}
 import com.typesafe.config._
 import com.typesafe.scalalogging.Logger
 import spray.json.JsValue
@@ -16,7 +14,7 @@ import uk.gov.nationalarchives.tdr.keycloak.{KeycloakUtils, Token}
 import scala.concurrent.{ExecutionContext, Future}
 
 
-object Routes {
+object Routes extends Cors {
 
   implicit val system: ActorSystem = ActorSystem("consignmentApi")
   implicit val executionContext: ExecutionContext = system.dispatcher
@@ -33,26 +31,6 @@ object Routes {
       }
       case _ => Future.successful(None)
     }
-  }
-
-  private def addAccessControlHeaders: Directive0 = {
-    respondWithHeaders(
-      `Access-Control-Allow-Origin`(HttpOrigin("http://localhost:9000")),
-      `Access-Control-Allow-Credentials`(true),
-      `Access-Control-Allow-Headers`("Authorization", "Content-Type", "X-Requested-With")
-    )
-  }
-
-  private def preflightRequestHandler: Route = options {
-    complete(HttpResponse(StatusCodes.OK)
-      .withHeaders(
-        `Access-Control-Allow-Methods`(OPTIONS, POST, GET)
-      )
-    )
-  }
-
-  def corsHandler(r: Route): Route = addAccessControlHeaders {
-    preflightRequestHandler ~ r
   }
 
   val route: Route =
