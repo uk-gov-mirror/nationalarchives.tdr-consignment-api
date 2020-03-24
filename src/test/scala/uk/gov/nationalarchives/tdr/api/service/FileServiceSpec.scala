@@ -63,7 +63,8 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     fileService.addFile(AddFilesInput(consignmentId, 1),Some(userId)).await()
 
     verify(fileRepositoryMock).addFiles(expectedRow)
-    captor.getValue should equal(expectedArgs)
+    captor.getAllValues.size should equal(1)
+    captor.getAllValues.get(0) should equal(expectedArgs)
 
   }
 }
