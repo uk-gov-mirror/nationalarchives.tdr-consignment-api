@@ -13,7 +13,6 @@ trait Cors {
 
   val frontendUrl: String = ConfigFactory.load().getString("frontend.url")
 
-
   private def addAccessControlHeaders: Directive0 = {
     respondWithHeaders(
       `Access-Control-Allow-Origin`(HttpOrigin(frontendUrl)),
