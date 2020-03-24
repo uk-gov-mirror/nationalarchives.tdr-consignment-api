@@ -3,9 +3,8 @@ package uk.gov.nationalarchives.tdr.api.http
 import akka.actor.ActorSystem
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives.{as, authenticateOAuth2Async, complete, entity, get, path, post}
+import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.server.RouteConcatenation._
 import akka.http.scaladsl.server.directives.Credentials
 import com.typesafe.config._
 import com.typesafe.scalalogging.Logger
@@ -15,7 +14,7 @@ import uk.gov.nationalarchives.tdr.keycloak.{KeycloakUtils, Token}
 import scala.concurrent.{ExecutionContext, Future}
 
 
-object Routes {
+object Routes extends Cors {
 
   implicit val system: ActorSystem = ActorSystem("consignmentApi")
   implicit val executionContext: ExecutionContext = system.dispatcher
@@ -35,7 +34,7 @@ object Routes {
   }
 
   val route: Route =
-    (post & path("graphql")) {
+    corsHandler((post & path("graphql")) {
       authenticateOAuth2Async("tdr", tokenAuthenticator) { accessToken =>
         entity(as[JsValue]) { requestJson =>
           GraphQLServer.endpoint(requestJson, accessToken)
@@ -43,5 +42,5 @@ object Routes {
       }
     } ~ (get & path("healthcheck")) {
       complete(StatusCodes.OK)
-    }
+    })
 }
