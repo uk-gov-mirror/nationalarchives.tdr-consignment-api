@@ -48,7 +48,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     result.fileIds shouldBe List(1,2,3)
   }
 
-  "createConsignment" should "link a consignment to the user's ID" in {
+  "createFile" should "link a consignment to the user's ID" in {
     val userId = UUID.randomUUID()
     val consignmentId = 123
     val fileRepositoryMock = mock[FileRepository]
