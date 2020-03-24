@@ -10,7 +10,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.FileRow
 import uk.gov.nationalarchives.tdr.api.db.repository.FileRepository
-import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields.{AddFilesInput, File}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields.{AddFilesInput, Files}
 import uk.gov.nationalarchives.tdr.api.utils.FixedTimeSource
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
@@ -26,7 +26,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     val mockResponse = Future.successful(List(FileRow(consignmentId, uuid.toString, Timestamp.from(Instant.now), Some(1))))
     when(fileRepositoryMock.addFiles(any[List[FileRow]])).thenReturn(mockResponse)
     val fileService = new FileService(fileRepositoryMock, FixedTimeSource)
-    val result: File = fileService.addFile(AddFilesInput(consignmentId, Some(1)),Some(uuid)).await()
+    val result: Files = fileService.addFile(AddFilesInput(consignmentId, Some(1)),Some(uuid)).await()
 
     result.fileIds shouldBe List(1)
   }
@@ -38,7 +38,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     val mockResponse = Future.successful(List(FileRow(consignmentId, uuid.toString, Timestamp.from(Instant.now), Some(1))))
     when(fileRepositoryMock.addFiles(any[List[FileRow]])).thenReturn(mockResponse)
     val fileService = new FileService(fileRepositoryMock, FixedTimeSource)
-    val result: File = fileService.addFile(AddFilesInput(consignmentId, Option.empty),Some(uuid)).await()
+    val result: Files = fileService.addFile(AddFilesInput(consignmentId, Option.empty),Some(uuid)).await()
 
     result.fileIds shouldBe List(1)
   }
@@ -54,7 +54,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
 
     when(fileRepositoryMock.addFiles(any[List[FileRow]])).thenReturn(mockResponse)
     val fileService = new FileService(fileRepositoryMock, FixedTimeSource)
-    val result: File = fileService.addFile(AddFilesInput(consignmentId, Some(3)),Some(uuid)).await()
+    val result: Files = fileService.addFile(AddFilesInput(consignmentId, Some(3)),Some(uuid)).await()
 
     result.fileIds shouldBe List(1,2,3)
   }
