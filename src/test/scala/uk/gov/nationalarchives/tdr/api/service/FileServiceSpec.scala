@@ -5,9 +5,10 @@ import java.time.Instant
 import java.util.UUID
 
 import org.mockito.ArgumentMatchers.any
-import org.mockito.MockitoSugar
+import org.mockito.{ArgumentCaptor, MockitoSugar}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import uk.gov.nationalarchives.Tables
 import uk.gov.nationalarchives.Tables.FileRow
 import uk.gov.nationalarchives.tdr.api.db.repository.FileRepository
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields.{AddFilesInput, Files}
@@ -54,12 +55,15 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     val fileService = new FileService(fileRepositoryMock, FixedTimeSource)
 
     val expectedRow = List(FileRow(consignmentId, userId.toString, Timestamp.from(FixedTimeSource.now), None))
-    val mockResponse = Future.successful(List(FileRow(consignmentId, userId.toString, Timestamp.from(Instant.now), Some(1))))
-    when(fileRepositoryMock.addFiles(any[List[FileRow]])).thenReturn(mockResponse)
+    val expectedArgs = List(FileRow(consignmentId, userId.toString, Timestamp.from(FixedTimeSource.now), Option.empty))
+    val captor: ArgumentCaptor[List[FileRow]] = ArgumentCaptor.forClass(classOf[List[FileRow]])
+    val mockResponse = Future.successful(List(FileRow(consignmentId, userId.toString, Timestamp.from(FixedTimeSource.now), Some(1))))
+    when(fileRepositoryMock.addFiles(captor.capture())).thenReturn(mockResponse)
 
     fileService.addFile(AddFilesInput(consignmentId, 1),Some(userId)).await()
 
     verify(fileRepositoryMock).addFiles(expectedRow)
+    captor.getValue should equal(expectedArgs)
 
   }
 }
