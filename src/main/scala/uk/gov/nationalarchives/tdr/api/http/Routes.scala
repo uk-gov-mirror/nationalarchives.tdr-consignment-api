@@ -2,11 +2,12 @@ package uk.gov.nationalarchives.tdr.api.http
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives.{as, authenticateOAuth2Async, complete, entity, get, path, post}
-import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.server.RouteConcatenation._
+import akka.http.scaladsl.model.HttpMethods._
+import akka.http.scaladsl.model.headers._
+import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
+import akka.http.scaladsl.server.Directives.{as, authenticateOAuth2Async, complete, entity, get, path, post, _}
 import akka.http.scaladsl.server.directives.Credentials
+import akka.http.scaladsl.server.{Directive0, Route}
 import com.typesafe.config._
 import com.typesafe.scalalogging.Logger
 import spray.json.JsValue
@@ -34,8 +35,28 @@ object Routes {
     }
   }
 
+  private def addAccessControlHeaders: Directive0 = {
+    respondWithHeaders(
+      `Access-Control-Allow-Origin`(HttpOrigin("http://localhost:9000")),
+      `Access-Control-Allow-Credentials`(true),
+      `Access-Control-Allow-Headers`("Authorization", "Content-Type", "X-Requested-With")
+    )
+  }
+
+  private def preflightRequestHandler: Route = options {
+    complete(HttpResponse(StatusCodes.OK)
+      .withHeaders(
+        `Access-Control-Allow-Methods`(OPTIONS, POST, GET)
+      )
+    )
+  }
+
+  def corsHandler(r: Route): Route = addAccessControlHeaders {
+    preflightRequestHandler ~ r
+  }
+
   val route: Route =
-    (post & path("graphql")) {
+    corsHandler((post & path("graphql")) {
       authenticateOAuth2Async("tdr", tokenAuthenticator) { accessToken =>
         entity(as[JsValue]) { requestJson =>
           GraphQLServer.endpoint(requestJson, accessToken)
@@ -43,5 +64,5 @@ object Routes {
       }
     } ~ (get & path("healthcheck")) {
       complete(StatusCodes.OK)
-    }
+    })
 }
