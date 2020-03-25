@@ -13,7 +13,7 @@ import spray.json.{JsObject, JsString, JsValue}
 import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser
 import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser.AuthorisationException
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.db.repository.{ClientFileMetadataRepository, ConsignmentRepository, SeriesRepository, TransferAgreementRepository}
+import uk.gov.nationalarchives.tdr.api.db.repository.{ClientFileMetadataRepository, ConsignmentRepository, FileRepository, SeriesRepository, TransferAgreementRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, GraphQlTypes}
 import uk.gov.nationalarchives.tdr.api.service._
 import uk.gov.nationalarchives.tdr.keycloak.Token
@@ -57,12 +57,15 @@ object GraphQLServer {
     val consignmentService = new ConsignmentService(new ConsignmentRepository(db), new CurrentTimeSource)
     val transferAgreementService = new TransferAgreementService(new TransferAgreementRepository(db))
     val clientFileMetadataService = new ClientFileMetadataService(new ClientFileMetadataRepository(db))
+    val fileService = new FileService(new FileRepository(db), new CurrentTimeSource)
     val context = ConsignmentApiContext(
       accessToken,
       seriesService,
       consignmentService,
       transferAgreementService,
-      clientFileMetadataService)
+      clientFileMetadataService,
+      fileService
+    )
     Executor.execute(
       GraphQlTypes.schema,
       query,  context,

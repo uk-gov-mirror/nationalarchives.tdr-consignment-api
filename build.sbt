@@ -39,7 +39,7 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-optics" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,
   "io.circe" %% "circe-generic-extras" % circeVersion,
-  "uk.gov.nationalarchives" %% "consignment-api-db" % "0.0.11",
+  "uk.gov.nationalarchives" %% "consignment-api-db" % "0.0.12",
   "mysql" % "mysql-connector-java" % "6.0.6",
   "com.typesafe.slick" %% "slick" % "3.3.2",
   "com.typesafe.slick" %% "slick-hikaricp" % "3.3.2",
