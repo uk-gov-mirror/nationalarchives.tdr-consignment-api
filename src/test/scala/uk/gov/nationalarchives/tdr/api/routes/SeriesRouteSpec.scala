@@ -12,9 +12,6 @@ import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.utils.TestRequest
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
-
-
-
 class SeriesRouteSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with TestRequest {
 
   private val getSeriesJsonFilePrefix: String = "json/getseries_"
@@ -64,13 +61,6 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
     response.data should equal(expectedResponse.data)
   }
 
-  "The api" should "return an error if a user queries without a body argument" in {
-    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_error_no_body")
-    val response: GraphqlQueryData = runTestQuery("query_no_body", validUserToken())
-    response.errors.head.message should equal(expectedResponse.errors.head.message)
-    response.errors.head.extensions.get.code should equal(expectedResponse.errors.head.extensions.get.code)
-  }
-
   "The api" should "return an error if a user queries with a different body to their own" in {
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_incorrect_body")
     val response: GraphqlQueryData = runTestQuery("query_incorrect_body", validUserToken())
@@ -83,16 +73,6 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
     val response: GraphqlQueryData = runTestQuery("query_incorrect_body", validUserTokenNoBody)
     response.data should equal(expectedResponse.data)
     response.errors.head.extensions.get.code should equal(expectedResponse.errors.head.extensions.get.code)
-  }
-
-  "The api" should "return all series if an admin user queries without a body argument" in {
-    val sql = "insert into consignmentapi.Series (SeriesId, BodyId) VALUES (1,1), (2, 2)"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.executeUpdate()
-
-    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_multipleseries")
-    val response: GraphqlQueryData = runTestQuery("query_admin", validAdminToken)
-    response.data should equal(expectedResponse.data)
   }
 
   "The api" should "return the correct series if an admin queries with a body argument" in {
