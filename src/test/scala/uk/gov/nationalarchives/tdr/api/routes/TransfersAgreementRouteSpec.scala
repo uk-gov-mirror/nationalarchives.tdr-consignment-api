@@ -85,6 +85,7 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_error_not_owner")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
     response.errors.head.message should equal(expectedResponse.errors.head.message)
+    response.errors.head.extensions.get.code should equal(expectedResponse.errors.head.extensions.get.code)
   }
 
   "The api" should "return an error if an invalid consignment id is provided" in {
@@ -146,6 +147,7 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
     val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())
     response.errors.length should equal(1)
     response.errors.head.message should equal(expectedResponse.errors.head.message)
+    response.errors.head.extensions.get.code should equal(expectedResponse.errors.head.extensions.get.code)
   }
 
   private def checkTransferAgreementExists(transferAgreementId: Long): Unit = {

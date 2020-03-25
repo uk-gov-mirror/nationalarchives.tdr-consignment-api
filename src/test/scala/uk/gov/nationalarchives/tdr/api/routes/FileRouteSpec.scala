@@ -82,7 +82,7 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_error_not_owner")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
     response.errors.head.message should equal(expectedResponse.errors.head.message)
-
+    response.errors.head.extensions.get.code should equal(expectedResponse.errors.head.extensions.get.code)
   }
 
   private def checkFileExists(fileId: Long) = {
