@@ -36,14 +36,21 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     val uuid = UUID.randomUUID()
     val consignmentId = 1
     val fileRepositoryMock = mock[FileRepository]
-    val fileRowOne = FileRow(consignmentId, uuid.toString, Timestamp.from(Instant.now), Some(1))
-    val fileRowTwo = FileRow(consignmentId, uuid.toString, Timestamp.from(Instant.now), Some(2))
-    val fileRowThree = FileRow(consignmentId, uuid.toString, Timestamp.from(Instant.now), Some(3))
+    val fileRowOne = FileRow(consignmentId, uuid.toString, Timestamp.from(FixedTimeSource.now), Some(1))
+    val fileRowTwo = FileRow(consignmentId, uuid.toString, Timestamp.from(FixedTimeSource.now), Some(2))
+    val fileRowThree = FileRow(consignmentId, uuid.toString, Timestamp.from(FixedTimeSource.now), Some(3))
+    val expectedArg = FileRow(consignmentId, uuid.toString, Timestamp.from(FixedTimeSource.now), Option.empty)
+    val expectedArgs = List(expectedArg, expectedArg, expectedArg)
+    val captor: ArgumentCaptor[List[FileRow]] = ArgumentCaptor.forClass(classOf[List[FileRow]])
     val mockResponse = Future.successful(List(fileRowOne, fileRowTwo, fileRowThree))
 
-    when(fileRepositoryMock.addFiles(any[List[FileRow]])).thenReturn(mockResponse)
+    when(fileRepositoryMock.addFiles(captor.capture())).thenReturn(mockResponse)
     val fileService = new FileService(fileRepositoryMock, FixedTimeSource)
     val result: Files = fileService.addFile(AddFilesInput(consignmentId, 3),Some(uuid)).await()
+
+    captor.getAllValues.size should equal(1)
+    captor.getAllValues.get(0).length should equal(3)
+    captor.getAllValues.get(0) should equal(expectedArgs)
 
     result.fileIds shouldBe List(1,2,3)
   }
