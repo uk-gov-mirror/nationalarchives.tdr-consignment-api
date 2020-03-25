@@ -56,7 +56,6 @@ CREATE TABLE IF NOT EXISTS consignmentapi.File (
    UserId varchar(40) DEFAULT NULL,
    Datetime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
    PRIMARY KEY (FileId)
-
 );
 
 DELETE from consignmentapi.Body;
