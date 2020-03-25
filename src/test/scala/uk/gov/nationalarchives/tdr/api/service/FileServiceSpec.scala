@@ -55,7 +55,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     result.fileIds shouldBe List(1,2,3)
   }
 
-  "createFile" should "link a consignment to the user's ID" in {
+  "createFile" should "link a file to the correct user and consignment" in {
     val userId = UUID.randomUUID()
     val consignmentId = 123
     val fileRepositoryMock = mock[FileRepository]
@@ -71,7 +71,8 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
 
     verify(fileRepositoryMock).addFiles(expectedRow)
     captor.getAllValues.size should equal(1)
-    captor.getAllValues.get(0) should equal(expectedArgs)
+    captor.getAllValues.get(0).head.consignmentid should equal(consignmentId)
+    captor.getAllValues.get(0).head.userid should equal(userId)
 
   }
 }
