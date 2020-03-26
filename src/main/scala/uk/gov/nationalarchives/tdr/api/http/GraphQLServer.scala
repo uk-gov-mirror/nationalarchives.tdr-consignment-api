@@ -13,8 +13,8 @@ import spray.json.{JsObject, JsString, JsValue}
 import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser
 import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser.AuthorisationException
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.db.repository._
-import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, GraphQlTypes}
+import uk.gov.nationalarchives.tdr.api.db.repository.{ClientFileMetadataRepository, ConsignmentRepository, SeriesRepository, TransferAgreementRepository, _}
+import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, ErrorCodes, GraphQlTypes}
 import uk.gov.nationalarchives.tdr.api.service._
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
@@ -25,7 +25,11 @@ import scala.util.{Failure, Success}
 object GraphQLServer {
 
   val exceptionHandler = ExceptionHandler {
-    case (_, AuthorisationException(message)) => HandledException(message)
+    case (resultMarshaller, AuthorisationException(message)) => {
+      val node = resultMarshaller.scalarNode(ErrorCodes.notAuthorised, "String", Set.empty)
+      val additionalFields = Map("code" -> node)
+      HandledException(message, additionalFields)
+    }
   }
 
   def endpoint(requestJSON: JsValue, accessToken: Token)(implicit ec: ExecutionContext): Route = {
@@ -79,5 +83,4 @@ object GraphQLServer {
         case error: ErrorWithResolver => InternalServerError -> error.resolveError
       }
   }
-
 }
