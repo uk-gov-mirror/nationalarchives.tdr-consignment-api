@@ -11,7 +11,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 
 object ConsignmentFields {
   case class Consignment(consignmentid: Option[Long] = None, userid: UUID, seriesid: Long)
-  case class AddConsignmentInput(seriesid: Long, userid: Option[UUID])
+  case class AddConsignmentInput(seriesid: Long)
 
   implicit val ConsignmentType: ObjectType[Unit, Consignment] = deriveObjectType[Unit, Consignment]()
   implicit val AddConsignmentInputType: InputObjectType[AddConsignmentInput] = deriveInputObjectType[AddConsignmentInput]()
