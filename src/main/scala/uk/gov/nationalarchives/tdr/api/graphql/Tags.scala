@@ -14,7 +14,7 @@ import scala.language.postfixOps
 
 object Tags {
 
-  abstract class ValidateTags() extends FieldTag {
+  trait ValidateTags extends FieldTag {
     def validate(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit]
   }
 
