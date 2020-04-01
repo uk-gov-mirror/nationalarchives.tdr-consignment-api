@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.tdr.api.routes
 
-import java.sql.{PreparedStatement, ResultSet}
+import java.sql.{Connection, PreparedStatement, ResultSet}
 import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
@@ -10,7 +10,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.utils.TestRequest
+import uk.gov.nationalarchives.tdr.api.utils.{FixedUUIDSource, TestRequest}
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach {
@@ -20,14 +20,16 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   implicit val customConfig: Configuration = Configuration.default.withDefaults
 
   override def beforeEach(): Unit = {
-    DbConnection.db.source.createConnection().prepareStatement("delete from consignmentapi.Consignment").executeUpdate()
-    val resetIdCount = "alter table consignmentapi.Consignment alter column ConsignmentId restart with 1"
-    DbConnection.db.source.createConnection().prepareStatement(resetIdCount).executeUpdate()
+    val conn: Connection = DbConnection.db.source.createConnection()
+    conn.prepareStatement("delete from consignmentapi.Consignment").executeUpdate()
+    conn.commit()
+    conn.close()
   }
+
 
   case class GraphqlQueryData(data: Option[GetConsignment], errors: List[GraphqlError] = Nil)
   case class GraphqlMutationData(data: Option[AddConsignment], errors: List[GraphqlError] = Nil)
-  case class Consignment(consignmentid: Option[Long] = None, userid: Option[UUID] = None, seriesid: Option[Long] = None)
+  case class Consignment(consignmentid: Option[UUID] = None, userid: Option[UUID] = None, seriesid: Option[UUID] = None)
   case class GetConsignment(getConsignment: Option[Consignment]) extends TestRequest
   case class AddConsignment(addConsignment: Consignment) extends TestRequest
 
@@ -36,6 +38,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   val expectedQueryResponse: String => GraphqlQueryData = getDataFromFile[GraphqlQueryData](getConsignmentJsonFilePrefix)
   val expectedMutationResponse: String => GraphqlMutationData = getDataFromFile[GraphqlMutationData](addConsignmentJsonFilePrefix)
 
+  val fixedUuidSource = new FixedUUIDSource()
 
   "The api" should "create a consignment if the correct information is provided" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
@@ -51,14 +54,6 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     response.errors.head.message should equal (expectedResponse.errors.head.message)
   }
 
-  "The api" should "allow a tdr_user user to create a consignment" in {
-    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
-    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
-    response.data.get.addConsignment should equal(expectedResponse.data.get.addConsignment)
-
-    checkConsignmentExists(response.data.get.addConsignment.consignmentid.get)
-  }
-
   "The api" should "link a new consignment to the creating user" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
@@ -68,8 +63,12 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   }
 
   "The api" should "return all requested fields" in {
-    val sql = "insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'4ab14990-ed63-4615-8336-56fbb9960300')"
+    val sql = "insert into consignmentapi.Consignment (ConsignmentId, SeriesId, UserId) VALUES (?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    val uuid = fixedUuidSource.uuid.toString
+    ps.setString(1, uuid)
+    ps.setString(2, uuid)
+    ps.setString(3, userId.toString)
     ps.executeUpdate()
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_all")
     val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())
@@ -77,8 +76,12 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   }
 
   "The api" should "return the expected data" in {
-    val sql = "insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'4ab14990-ed63-4615-8336-56fbb9960300')"
+    val sql = "insert into consignmentapi.Consignment (ConsignmentId, SeriesId, UserId) VALUES (?,?,?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    val uuid = fixedUuidSource.uuid.toString
+    ps.setString(1, uuid)
+    ps.setString(2, uuid)
+    ps.setString(3, userId.toString)
     ps.executeUpdate()
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_some")
@@ -92,9 +95,10 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     response.errors.head.message should equal(expectedResponse.errors.head.message)
   }
 
-  private def checkConsignmentExists(consignmentId: Long): Unit = {
-    val sql = s"select * from consignmentapi.Consignment where ConsignmentId = $consignmentId;"
+  private def checkConsignmentExists(consignmentId: UUID): Unit = {
+    val sql = s"select * from consignmentapi.Consignment where ConsignmentId = ?"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, consignmentId.toString)
     val rs: ResultSet = ps.executeQuery()
     rs.next()
     rs.getString("ConsignmentId") should equal(consignmentId.toString)

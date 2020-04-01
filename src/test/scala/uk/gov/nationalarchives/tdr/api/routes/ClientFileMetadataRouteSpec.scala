@@ -1,6 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.routes
 
 import java.sql.{PreparedStatement, ResultSet}
+import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import io.circe.generic.extras.Configuration
@@ -20,15 +21,15 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
 
   case class GraphqlMutationData(data: Option[AddClientFileMetadata], errors: List[GraphqlError] = Nil)
   case class ClientFileMetadata(
-                                fileId: Option[Long] = None,
+                                fileId: Option[UUID],
                                 originalPath: Option[String] = None,
                                 checksum: Option[String] = None,
                                 checksumType: Option[String] = None,
                                 lastModified: Option[Long] = None,
                                 createdDate: Option[Long] = None,
-                                fileSize: Option[BigDecimal] = None,
+                                fileSize: Option[Long] = None,
                                 datetime: Option[Long] = None,
-                                clientFileMetadataId: Option[Long] = None
+                                clientFileMetadataId: Option[UUID] = None
                               )
   case class AddClientFileMetadata(addClientFileMetadata: ClientFileMetadata) extends TestRequest
 
@@ -67,19 +68,16 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
     response.errors.head.message should equal (expectedResponse.errors.head.message)
   }
 
-  private def checkClientFileMetadataExists(clientFileMetadataId: Long): Unit = {
-    val sql = s"select * from consignmentapi.ClientFileMetadata where ClientFileMetadataId = $clientFileMetadataId;"
+  private def checkClientFileMetadataExists(clientFileMetadataId: UUID): Unit = {
+    val sql = "select * from consignmentapi.ClientFileMetadata where ClientFileMetadataId = ?;"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, clientFileMetadataId.toString)
     val rs: ResultSet = ps.executeQuery()
     rs.next()
     rs.getString("ClientFileMetadataId") should equal(clientFileMetadataId.toString)
   }
 
-  private def resetDatabase(): Unit = {
-    DbConnection.db.source.createConnection().prepareStatement("delete from consignmentapi.ClientFileMetadata").executeUpdate()
+  private def resetDatabase(): Unit = DbConnection.db.source.createConnection()
+    .prepareStatement("delete from consignmentapi.ClientFileMetadata").executeUpdate()
 
-    val resetClientFileMetadataIdCount =
-      "alter table consignmentapi.ClientFileMetadata alter column ClientFileMetadataId restart with 1"
-    DbConnection.db.source.createConnection().prepareStatement(resetClientFileMetadataIdCount).executeUpdate()
-  }
 }
