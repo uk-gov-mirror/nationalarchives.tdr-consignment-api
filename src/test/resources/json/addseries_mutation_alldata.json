@@ -1,1 +1,1 @@
-{"query":"mutation {addSeries(addSeriesInput: {bodyid: 1, name: \"Series Name\", code: \"seriesCode\", description: \"Series Description\"}) {bodyid, name, code, description, seriesid}}"}
+{"query":"mutation {addSeries(addSeriesInput: {bodyid: \"6e3b76c4-1745-4467-8ac5-b4dd736e1b3e\", name: \"Series Name\", code: \"seriesCode\", description: \"Series Description\"}) {bodyid, name, code, description, seriesid}}"}
