@@ -1,15 +1,18 @@
 package uk.gov.nationalarchives.tdr.api.graphql.fields
 
+import java.util.UUID
+
 import sangria.marshalling.circe._
 import io.circe.generic.auto._
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import sangria.macros.derive._
 import sangria.schema.{Argument, Field, InputObjectType, ListType, ObjectType, OptionInputType, StringType, fields}
 import uk.gov.nationalarchives.tdr.api.graphql.Tags.{ValidateBody, ValidateIsAdmin}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 
 object SeriesFields {
-  case class Series(seriesid: Long, bodyid: Long, name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
-  case class AddSeriesInput(bodyid: Long, name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
+  case class Series(seriesid: UUID, bodyid: UUID, name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
+  case class AddSeriesInput(bodyid: UUID, name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
 
   implicit val SeriesType: ObjectType[Unit, Series] = deriveObjectType[Unit, Series]()
   implicit val AddSeriesInputType: InputObjectType[AddSeriesInput] = deriveInputObjectType[AddSeriesInput]()

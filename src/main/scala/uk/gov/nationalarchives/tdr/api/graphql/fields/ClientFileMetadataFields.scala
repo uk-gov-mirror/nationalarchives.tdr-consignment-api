@@ -1,5 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.graphql.fields
 
+import java.util.UUID
+
 import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
@@ -8,23 +10,23 @@ import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 
 object ClientFileMetadataFields {
-  case class ClientFileMetadata(fileId: Long,
+  case class ClientFileMetadata(fileId: UUID,
                                 originalPath: Option[String] = None,
                                 checksum: Option[String] = None,
                                 checksumType: Option[String] = None,
                                 lastModified: Long,
                                 createdDate: Long,
-                                fileSize: Option[BigDecimal] = None,
+                                fileSize: Option[Long] = None,
                                 datetime: Long,
-                                clientFileMetadataId: Long)
+                                clientFileMetadataId: UUID)
 
-  case class AddClientFileMetadataInput(fileId: Long,
+  case class AddClientFileMetadataInput(fileId: UUID,
                                         originalPath: Option[String] = None,
                                         checksum: Option[String] = None,
                                         checksumType: Option[String] = None,
                                         lastModified: Long,
                                         createdDate: Long,
-                                        fileSize: Option[BigDecimal] = None,
+                                        fileSize: Option[Long] = None,
                                         datetime: Long)
 
   implicit val ClientFileMetadataType: ObjectType[Unit, ClientFileMetadata] = deriveObjectType[Unit, ClientFileMetadata]()

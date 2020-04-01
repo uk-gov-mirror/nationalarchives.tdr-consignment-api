@@ -1,7 +1,13 @@
 package uk.gov.nationalarchives.tdr.api.graphql
 
+import java.util.UUID
+
+import sangria.ast.StringValue
 import uk.gov.nationalarchives.tdr.api.graphql.fields.{ClientFileMetadataFields, ConsignmentFields, FileFields, SeriesFields, TransferAgreementFields}
-import sangria.schema.{ObjectType, Schema}
+import sangria.schema.{ObjectType, ScalarType, Schema}
+import sangria.validation.ValueCoercionViolation
+
+import scala.util.{Failure, Success, Try}
 
 object GraphQlTypes {
 

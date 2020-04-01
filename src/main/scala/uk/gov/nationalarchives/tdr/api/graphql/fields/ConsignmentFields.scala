@@ -10,14 +10,14 @@ import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 
 object ConsignmentFields {
-  case class Consignment(consignmentid: Option[Long] = None, userid: UUID, seriesid: Long)
-  case class AddConsignmentInput(seriesid: Long)
+  case class Consignment(consignmentid: Option[UUID] = None, userid: UUID, seriesid: UUID)
+  case class AddConsignmentInput(seriesid: UUID)
 
   implicit val ConsignmentType: ObjectType[Unit, Consignment] = deriveObjectType[Unit, Consignment]()
   implicit val AddConsignmentInputType: InputObjectType[AddConsignmentInput] = deriveInputObjectType[AddConsignmentInput]()
 
   val ConsignmentInputArg = Argument("addConsignmentInput", AddConsignmentInputType)
-  val ConsignmentIdArg = Argument("consignmentid", LongType)
+  val ConsignmentIdArg = Argument("consignmentid", UuidType)
 
   val queryFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("getConsignment", OptionType(ConsignmentType),
