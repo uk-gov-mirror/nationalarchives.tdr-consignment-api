@@ -6,7 +6,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.SeriesFields.{AddSeriesInp
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class SeriesService(seriesRepository: SeriesRepository)(implicit val executionContext: ExecutionContext) {
+class SeriesService(seriesRepository: SeriesRepository, uuidSource: UUIDSource)(implicit val executionContext: ExecutionContext) {
 
   def getSeries(bodyOption: Option[String]): Future[Seq[Series]] = {
     val series = if(bodyOption.isDefined) {
@@ -15,13 +15,13 @@ class SeriesService(seriesRepository: SeriesRepository)(implicit val executionCo
       seriesRepository.getSeries()
     }
     series.map(seriesRows =>
-      seriesRows.map(s => Series(s.seriesid.get, s.bodyid, s.name, s.code, s.description)
+      seriesRows.map(s => Series(s.seriesid, s.bodyid, s.name, s.code, s.description)
       ))
     }
 
   def addSeries(input: AddSeriesInput): Future[Series] = {
-    val newSeries = SeriesRow(input.bodyid, input.code, input.name, input.description)
+    val newSeries = SeriesRow(uuidSource.uuid, input.bodyid, input.code, input.name, input.description)
 
-    seriesRepository.addSeries(newSeries).map(sr => Series(sr.seriesid.get, sr.bodyid, sr.code, sr.name, sr.description))
+    seriesRepository.addSeries(newSeries).map(sr => Series(sr.seriesid, sr.bodyid, sr.code, sr.name, sr.description))
   }
 }
