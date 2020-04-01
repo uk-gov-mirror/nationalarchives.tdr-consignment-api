@@ -5,6 +5,7 @@ import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import com.typesafe.config.ConfigFactory
 import sangria.ast.Document
 import sangria.execution._
 import sangria.marshalling.sprayJson._
@@ -56,12 +57,14 @@ object GraphQLServer {
 
   private def executeGraphQLQuery(query: Document, operation: Option[String], vars: JsObject, accessToken: Token)
                                  (implicit ec: ExecutionContext): Future[(StatusCode with Serializable, JsValue)] = {
+    val uuidSourceClass: Class[_] = Class.forName(ConfigFactory.load().getString("uuidsource"))
+    val uuidSource: UUIDSource = uuidSourceClass.getDeclaredConstructor().newInstance().asInstanceOf[UUIDSource]
     val db = DbConnection.db
-    val seriesService = new SeriesService(new SeriesRepository(db))
-    val consignmentService = new ConsignmentService(new ConsignmentRepository(db), new CurrentTimeSource)
-    val transferAgreementService = new TransferAgreementService(new TransferAgreementRepository(db))
-    val clientFileMetadataService = new ClientFileMetadataService(new ClientFileMetadataRepository(db))
-    val fileService = new FileService(new FileRepository(db), new CurrentTimeSource)
+    val seriesService = new SeriesService(new SeriesRepository(db), uuidSource)
+    val consignmentService = new ConsignmentService(new ConsignmentRepository(db), new CurrentTimeSource, uuidSource)
+    val transferAgreementService = new TransferAgreementService(new TransferAgreementRepository(db), uuidSource)
+    val clientFileMetadataService = new ClientFileMetadataService(new ClientFileMetadataRepository(db), uuidSource)
+    val fileService = new FileService(new FileRepository(db), new CurrentTimeSource, uuidSource)
     val context = ConsignmentApiContext(
       accessToken,
       seriesService,
