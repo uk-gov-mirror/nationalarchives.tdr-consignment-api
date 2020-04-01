@@ -1,19 +1,21 @@
 package uk.gov.nationalarchives.tdr.api.db.repository
 
-import slick.jdbc.MySQLProfile.api._
-import uk.gov.nationalarchives.Tables.{ConsignmentRow, Consignment}
+import java.util.UUID
+
+import slick.jdbc.PostgresProfile.api._
+import uk.gov.nationalarchives.Tables.{Consignment, ConsignmentRow}
 
 import scala.concurrent.Future
 
 class ConsignmentRepository(db: Database) {
   private val insertQuery = Consignment returning Consignment.map(_.consignmentid) into
-    ((consignment, consignmentid) => consignment.copy(consignmentid = Some(consignmentid)))
+    ((consignment, consignmentid) => consignment.copy(consignmentid = consignmentid))
 
   def addConsignment(consignmentRow: ConsignmentRow): Future[ConsignmentRow] = {
     db.run(insertQuery += consignmentRow)
   }
 
-  def getConsignment(consignmentId: Long): Future[Seq[ConsignmentRow]] = {
+  def getConsignment(consignmentId: UUID): Future[Seq[ConsignmentRow]] = {
     val query = Consignment.filter(_.consignmentid === consignmentId)
     db.run(query.result)
   }
