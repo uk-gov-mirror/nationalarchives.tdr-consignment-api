@@ -4,7 +4,6 @@ import java.sql.{PreparedStatement, ResultSet}
 import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
-import akka.testkit.TestKit
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

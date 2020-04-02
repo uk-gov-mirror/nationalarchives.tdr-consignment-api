@@ -18,9 +18,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
-  val fixedUuidSource = new FixedUUIDSource()
 
   "getSeries" should "return all series if no argument is provided" in {
+    val fixedUuidSource = new FixedUUIDSource()
     val repoMock = setupSeriesResponses
     val seriesService: SeriesService = new SeriesService(repoMock, fixedUuidSource)
     val seriesResponse: Seq[SeriesFields.Series] = seriesService.getSeries(Option.empty).await()
@@ -33,6 +33,7 @@ class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
   }
 
   "getSeries" should "return the specfic series for a body if one is provided" in {
+    val fixedUuidSource = new FixedUUIDSource()
     val repoMock = setupSeriesResponses
 
     val seriesService: SeriesService = new SeriesService(repoMock, fixedUuidSource)
@@ -45,6 +46,7 @@ class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
   }
 
   "addSeries" should "insert series and return inserted series object" in {
+    val fixedUuidSource = new FixedUUIDSource()
     val seriesId = UUID.randomUUID()
     val bodyId = UUID.randomUUID()
     val seriesDescription: String = "Series Description"
@@ -82,6 +84,7 @@ class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
   }
 
   private def setupSeriesResponses = {
+    val fixedUuidSource = new FixedUUIDSource()
     val seriesOne = SeriesRow(fixedUuidSource.uuid, fixedUuidSource.uuid, Option.apply("name1"), Option.apply("code1"), Option.apply("description1"))
     val seriesTwo = SeriesRow(fixedUuidSource.uuid, fixedUuidSource.uuid, Option.apply("name2"), Option.apply("code2"), Option.apply("description2"))
     val mockResponseAll: Future[Seq[SeriesRow]] = Future.successful(Seq(seriesOne, seriesTwo))

@@ -19,9 +19,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
-  val fixedUuidSource = new FixedUUIDSource()
+
 
   "createConsignment" should "create a consignment given correct arguments" in {
+    val fixedUuidSource = new FixedUUIDSource()
     val userUuid = UUID.randomUUID()
     val seriesUuid = UUID.randomUUID()
     val consignmentUuid = fixedUuidSource.uuid
@@ -38,13 +39,16 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
   }
 
   "createConsignment" should "link a consignment to the user's ID" in {
+    val fixedUuidSource = new FixedUUIDSource()
     val userUuid = UUID.randomUUID()
     val seriesUuid = UUID.randomUUID()
+    val consignmentId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
     val consignmentRepositoryMock = mock[ConsignmentRepository]
     val consignmentService = new ConsignmentService(consignmentRepositoryMock, FixedTimeSource, fixedUuidSource)
 
-    val expectedRow = ConsignmentRow(fixedUuidSource.uuid, seriesUuid, userUuid, Timestamp.from(FixedTimeSource.now))
-    val mockResponse = Future.successful(ConsignmentRow(fixedUuidSource.uuid, seriesUuid, userUuid, Timestamp.from(Instant.now)))
+
+    val expectedRow = ConsignmentRow(consignmentId, seriesUuid, userUuid, Timestamp.from(FixedTimeSource.now))
+    val mockResponse = Future.successful(ConsignmentRow(consignmentId, seriesUuid, userUuid, Timestamp.from(Instant.now)))
     when(consignmentRepositoryMock.addConsignment(any[ConsignmentRow])).thenReturn(mockResponse)
 
     consignmentService.addConsignment(AddConsignmentInput(seriesUuid), Some(userUuid)).await()
@@ -53,6 +57,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
   }
 
   "getConsignment" should "return the specfic Consignment for the requested consignment id" in {
+    val fixedUuidSource = new FixedUUIDSource()
     val userUuid = UUID.randomUUID()
     val seriesUuid = UUID.randomUUID()
     val consignmentUuid = UUID.randomUUID()
@@ -72,6 +77,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
   }
 
   "getConsignment" should "return none when consignment id does not exist" in {
+    val fixedUuidSource = new FixedUUIDSource()
     val mockResponse: Future[Seq[ConsignmentRow]] = Future.successful(Seq())
     val consignmentRepoMock = mock[ConsignmentRepository]
     when(consignmentRepoMock.getConsignment(any[UUID])).thenReturn(mockResponse)

@@ -18,9 +18,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
-  val fixedUuidSource = new FixedUUIDSource()
 
   "createFile" should "create a file given correct arguments" in {
+    val fixedUuidSource = new FixedUUIDSource()
     val uuid = UUID.randomUUID()
     val fileId = UUID.randomUUID()
     val consignmentId = UUID.randomUUID()
@@ -34,16 +34,19 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
   }
 
   "createFile" should "create three files given correct arguments" in {
-    val fileUuid = fixedUuidSource.uuid
+    val fixedUuidSource = new FixedUUIDSource()
+    val fileUuidOne = fixedUuidSource.uuid
+    val fileUuidTwo = fixedUuidSource.uuid
+    val fileUuidThree = fixedUuidSource.uuid
+    fixedUuidSource.reset
     val consignmentUuid = UUID.randomUUID()
     val userUuid = UUID.randomUUID()
 
     val fileRepositoryMock = mock[FileRepository]
-    val fileRowOne = FileRow(fileUuid, consignmentUuid, userUuid, Timestamp.from(FixedTimeSource.now))
-    val fileRowTwo = FileRow(fileUuid, consignmentUuid, userUuid, Timestamp.from(FixedTimeSource.now))
-    val fileRowThree = FileRow(fileUuid, consignmentUuid, userUuid, Timestamp.from(FixedTimeSource.now))
-    val expectedArg = FileRow(fileUuid, consignmentUuid, userUuid, Timestamp.from(FixedTimeSource.now))
-    val expectedArgs = List(expectedArg, expectedArg, expectedArg)
+    val fileRowOne = FileRow(fileUuidOne, consignmentUuid, userUuid, Timestamp.from(FixedTimeSource.now))
+    val fileRowTwo = FileRow(fileUuidTwo, consignmentUuid, userUuid, Timestamp.from(FixedTimeSource.now))
+    val fileRowThree = FileRow(fileUuidThree, consignmentUuid, userUuid, Timestamp.from(FixedTimeSource.now))
+    val expectedArgs = List(fileRowOne, fileRowTwo, fileRowThree)
     val captor: ArgumentCaptor[List[FileRow]] = ArgumentCaptor.forClass(classOf[List[FileRow]])
     val mockResponse = Future.successful(List(fileRowOne, fileRowTwo, fileRowThree))
 
@@ -53,16 +56,18 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
 
     captor.getAllValues.size should equal(1)
     captor.getAllValues.get(0).length should equal(3)
-    captor.getAllValues.get(0) should equal(expectedArgs)
+    captor.getAllValues.get(0).forall(expectedArgs.contains) should be(true)
 
-    result.fileIds shouldBe List(fixedUuidSource.uuid, fixedUuidSource.uuid, fixedUuidSource.uuid)
+    result.fileIds shouldBe List(fileUuidOne, fileUuidTwo, fileUuidThree)
   }
 
   "createFile" should "link a file to the correct user and consignment" in {
+    val fixedUuidSource = new FixedUUIDSource()
     val userId = UUID.randomUUID()
     val fileUuid = fixedUuidSource.uuid
     val consignmentUuid = UUID.randomUUID()
     val fileRepositoryMock = mock[FileRepository]
+    fixedUuidSource.reset
     val fileService = new FileService(fileRepositoryMock, FixedTimeSource, fixedUuidSource)
 
     val expectedRow = List(FileRow(fileUuid, consignmentUuid, userId, Timestamp.from(FixedTimeSource.now)))

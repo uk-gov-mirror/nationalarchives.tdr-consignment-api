@@ -18,9 +18,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
-  val fixedUuidSource = new FixedUUIDSource()
 
   "addClientFileMetadata" should "create client file metadata given correct arguments" in {
+    val fixedUuidSource = new FixedUUIDSource()
     val clientMetadataUuid = fixedUuidSource.uuid
     val fileUuid = UUID.randomUUID()
     val dummyInstant = Instant.now()

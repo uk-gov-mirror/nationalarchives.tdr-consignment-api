@@ -38,8 +38,6 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   val expectedQueryResponse: String => GraphqlQueryData = getDataFromFile[GraphqlQueryData](getConsignmentJsonFilePrefix)
   val expectedMutationResponse: String => GraphqlMutationData = getDataFromFile[GraphqlMutationData](addConsignmentJsonFilePrefix)
 
-  val fixedUuidSource = new FixedUUIDSource()
-
   "The api" should "create a consignment if the correct information is provided" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
@@ -63,6 +61,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   }
 
   "The api" should "return all requested fields" in {
+    val fixedUuidSource = new FixedUUIDSource()
     val sql = "insert into consignmentapi.Consignment (ConsignmentId, SeriesId, UserId) VALUES (?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     val uuid = fixedUuidSource.uuid.toString
@@ -76,6 +75,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   }
 
   "The api" should "return the expected data" in {
+    val fixedUuidSource = new FixedUUIDSource()
     val sql = "insert into consignmentapi.Consignment (ConsignmentId, SeriesId, UserId) VALUES (?,?,?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     val uuid = fixedUuidSource.uuid.toString
