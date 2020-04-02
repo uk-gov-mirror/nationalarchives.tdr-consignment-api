@@ -37,7 +37,7 @@ object TestUtils  {
   def validUserToken(body: String = "Body"): OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
     aTokenConfig()
       .withResourceRole("tdr", "tdr_user")
-      .withClaim("body", "Body")
+      .withClaim("body", body)
       .withClaim("user_id", userId)
       .build)
   )

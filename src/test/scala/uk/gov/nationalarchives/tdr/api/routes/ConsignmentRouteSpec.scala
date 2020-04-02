@@ -10,8 +10,8 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.utils.{FixedUUIDSource, TestRequest}
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
+import uk.gov.nationalarchives.tdr.api.utils.{FixedUUIDSource, TestRequest}
 
 class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach {
   private val addConsignmentJsonFilePrefix: String = "json/addconsignment_"
@@ -22,6 +22,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   override def beforeEach(): Unit = {
     val conn: Connection = DbConnection.db.source.createConnection()
     conn.prepareStatement("delete from Consignment").executeUpdate()
+    conn.prepareStatement("delete from Series").executeUpdate()
     conn.commit()
     conn.close()
   }
@@ -38,7 +39,9 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   val expectedQueryResponse: String => GraphqlQueryData = getDataFromFile[GraphqlQueryData](getConsignmentJsonFilePrefix)
   val expectedMutationResponse: String => GraphqlMutationData = getDataFromFile[GraphqlMutationData](addConsignmentJsonFilePrefix)
 
-  "The api" should "create a consignment if the correct information is provided" in {
+  "addConsignment" should "create a consignment if the correct information is provided" in {
+    createSeries(UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e"))
+
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
     response.data.get.addConsignment should equal(expectedResponse.data.get.addConsignment)
@@ -46,18 +49,29 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     checkConsignmentExists(response.data.get.addConsignment.consignmentid.get)
   }
 
-  "The api" should "throw an error if the series id field isn't provided" in {
+  "addConsignment" should "throw an error if the series id field isn't provided" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_seriesid_missing")
     val response: GraphqlMutationData = runTestMutation("mutation_missingseriesid", validUserToken())
     response.errors.head.message should equal (expectedResponse.errors.head.message)
   }
 
-  "The api" should "link a new consignment to the creating user" in {
+  "addConsignment" should "link a new consignment to the creating user" in {
+    createSeries(UUID.fromString(("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")))
+
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
     response.data.get.addConsignment should equal(expectedResponse.data.get.addConsignment)
 
     response.data.get.addConsignment.userid should contain(userId)
+  }
+
+  "addConsignment" should "not allow a user to link a consignment to a series from another transferring body" in {
+    createSeries(UUID.fromString(("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")))
+
+    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken(body = "some-other-transferring-body"))
+
+    response.errors should have size 1
+    response.errors.head.extensions.get.code should equal("NOT_AUTHORISED")
   }
 
   "The api" should "return all requested fields" in {
@@ -102,5 +116,13 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     val rs: ResultSet = ps.executeQuery()
     rs.next()
     rs.getString("ConsignmentId") should equal(consignmentId.toString)
+  }
+
+  private def createSeries(bodyId: UUID): Unit = {
+    val sql = "insert into Series (SeriesId, BodyId) VALUES (?,?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, "6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
+    ps.setString(2, bodyId.toString)
+    ps.executeUpdate()
   }
 }

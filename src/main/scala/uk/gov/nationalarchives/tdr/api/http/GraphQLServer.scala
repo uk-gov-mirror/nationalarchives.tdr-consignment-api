@@ -64,13 +64,15 @@ object GraphQLServer {
     val transferAgreementService = new TransferAgreementService(new TransferAgreementRepository(db), uuidSource)
     val clientFileMetadataService = new ClientFileMetadataService(new ClientFileMetadataRepository(db), uuidSource)
     val fileService = new FileService(new FileRepository(db), new CurrentTimeSource, uuidSource)
+    val transferringBodyService = new TransferringBodyService(new TransferringBodyRepository(db))
     val context = ConsignmentApiContext(
       accessToken,
-      seriesService,
-      consignmentService,
-      transferAgreementService,
       clientFileMetadataService,
-      fileService
+      consignmentService,
+      fileService,
+      seriesService,
+      transferAgreementService,
+      transferringBodyService
     )
     Executor.execute(
       GraphQlTypes.schema,
