@@ -21,6 +21,7 @@ object SeriesFields {
     Field("getSeries", ListType(SeriesType),
       arguments=BodyArg :: Nil,
       resolve = ctx => ctx.ctx.seriesService.getSeries(ctx.arg(BodyArg)),
-      tags=List(ValidateBody()))
+      tags=List(ValidateBody)
+    )
   )
 }

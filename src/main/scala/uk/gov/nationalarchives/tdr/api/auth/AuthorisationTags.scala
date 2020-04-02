@@ -17,7 +17,7 @@ trait AuthorisationTag extends FieldTag {
   def validate(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit]
 }
 
-case class ValidateBody() extends AuthorisationTag {
+object ValidateBody extends AuthorisationTag {
   override def validate(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
     val token = ctx.ctx.accessToken
 
@@ -32,7 +32,7 @@ case class ValidateBody() extends AuthorisationTag {
   }
 }
 
-case class ValidateIsAdmin() extends AuthorisationTag {
+object ValidateIsAdmin extends AuthorisationTag {
   override def validate(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
     val token = ctx.ctx.accessToken
     val isAdmin: Boolean = token.roles.contains("tdr_admin")
