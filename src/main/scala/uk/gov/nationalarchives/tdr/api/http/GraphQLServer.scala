@@ -57,7 +57,7 @@ object GraphQLServer {
 
   private def executeGraphQLQuery(query: Document, operation: Option[String], vars: JsObject, accessToken: Token)
                                  (implicit ec: ExecutionContext): Future[(StatusCode with Serializable, JsValue)] = {
-    val uuidSourceClass: Class[_] = Class.forName(ConfigFactory.load().getString("uuidsource"))
+    val uuidSourceClass: Class[_] = Class.forName(ConfigFactory.load().getString("source.uuid"))
     val uuidSource: UUIDSource = uuidSourceClass.getDeclaredConstructor().newInstance().asInstanceOf[UUIDSource]
     val db = DbConnection.db
     val seriesService = new SeriesService(new SeriesRepository(db), uuidSource)
