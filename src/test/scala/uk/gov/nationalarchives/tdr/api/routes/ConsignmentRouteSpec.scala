@@ -74,7 +74,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     response.errors.head.extensions.get.code should equal("NOT_AUTHORISED")
   }
 
-  "The api" should "return all requested fields" in {
+  "getConsignment" should "return all requested fields" in {
     val fixedUuidSource = new FixedUUIDSource()
     val sql = "insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES (?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
@@ -88,7 +88,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     response.data should equal(expectedResponse.data)
   }
 
-  "The api" should "return the expected data" in {
+  "getConsignment" should "return the expected data" in {
     val fixedUuidSource = new FixedUUIDSource()
     val sql = "insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES (?,?,?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
@@ -103,7 +103,19 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     response.data should equal(expectedResponse.data)
   }
 
-  "The api" should "return an error if a user queries without a consignment id argument" in {
+  "getConsignment" should "not allow a user to get a consignment that they did not create" in {
+    val otherUserId = "73abd1dc-294d-4068-b60d-c1cd4782d08d"
+    val sql = s"insert into Consignment (SeriesId, UserId) VALUES (1, '$otherUserId')"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.executeUpdate()
+
+    val response: GraphqlQueryData = runTestQuery("query_somedata", validUserToken())
+
+    response.errors should have size 1
+    response.errors.head.extensions.get.code should equal("NOT_AUTHORISED")
+  }
+
+  "getConsignment" should "return an error if a user queries without a consignment id argument" in {
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_error_no_consignmentid")
     val response: GraphqlQueryData = runTestQuery("query_no_consignmentid", validUserToken())
     response.errors.head.message should equal(expectedResponse.errors.head.message)
