@@ -46,7 +46,7 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
     getDataFromFile[GraphqlMutationData](addTransferAgreementJsonFilePrefix)
   val expectedQueryResponse: String => GraphqlQueryData =
     getDataFromFile[GraphqlQueryData](getTransferAgreementJsonFilePrefix)
-  
+
   "The api" should "return all requested fields from inserted Transfer Agreement object" in {
     val fixedUUIDSource = new FixedUUIDSource()
     val sql = "insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (?,?)"
