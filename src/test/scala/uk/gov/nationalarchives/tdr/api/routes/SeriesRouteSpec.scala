@@ -84,23 +84,4 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
     val response: GraphqlQueryData = runTestQuery("query_somedata", validUserToken())
     response.data should equal(expectedResponse.data)
   }
-
-  "The api" should "return all requested fields from inserted Series object" in {
-    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
-    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validAdminToken)
-    response.data should equal(expectedResponse.data)
-  }
-
-  "The api" should "return the expected data from inserted Series object" in {
-    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_some")
-    val response: GraphqlMutationData = runTestMutation("mutation_somedata", validAdminToken)
-    response.data should equal(expectedResponse.data)
-  }
-
-  "The api" should "return an error if a user has role_user and inserts a Series" in {
-    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_error_incorrect_role")
-    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
-    response.data should equal(expectedResponse.data)
-    response.errors.head.extensions.get.code should equal(expectedResponse.errors.head.extensions.get.code)
-  }
 }
