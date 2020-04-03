@@ -8,11 +8,11 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.{ArgumentCaptor, MockitoSugar}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import uk.gov.nationalarchives.Tables.FileRow
-import uk.gov.nationalarchives.tdr.api.db.repository.FileRepository
+import uk.gov.nationalarchives.Tables.{ConsignmentRow, FileRow}
+import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentRepository, FileRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields.{AddFilesInput, Files}
-import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
+import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -25,9 +25,10 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     val fileId = UUID.randomUUID()
     val consignmentId = UUID.randomUUID()
     val fileRepositoryMock = mock[FileRepository]
+    val consignmentRepositoryMock = mock[ConsignmentRepository]
     val mockResponse = Future.successful(List(FileRow(fileId, consignmentId, uuid, Timestamp.from(Instant.now))))
     when(fileRepositoryMock.addFiles(any[List[FileRow]])).thenReturn(mockResponse)
-    val fileService = new FileService(fileRepositoryMock, FixedTimeSource, fixedUuidSource)
+    val fileService = new FileService(fileRepositoryMock, consignmentRepositoryMock, FixedTimeSource, fixedUuidSource)
     val result: Files = fileService.addFile(AddFilesInput(consignmentId, 1),Some(uuid)).await()
 
     result.fileIds shouldBe List(fileId)
@@ -43,6 +44,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     val userUuid = UUID.randomUUID()
 
     val fileRepositoryMock = mock[FileRepository]
+    val consignmentRepositoryMock = mock[ConsignmentRepository]
     val fileRowOne = FileRow(fileUuidOne, consignmentUuid, userUuid, Timestamp.from(FixedTimeSource.now))
     val fileRowTwo = FileRow(fileUuidTwo, consignmentUuid, userUuid, Timestamp.from(FixedTimeSource.now))
     val fileRowThree = FileRow(fileUuidThree, consignmentUuid, userUuid, Timestamp.from(FixedTimeSource.now))
@@ -51,7 +53,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     val mockResponse = Future.successful(List(fileRowOne, fileRowTwo, fileRowThree))
 
     when(fileRepositoryMock.addFiles(captor.capture())).thenReturn(mockResponse)
-    val fileService = new FileService(fileRepositoryMock, FixedTimeSource, fixedUuidSource)
+    val fileService = new FileService(fileRepositoryMock, consignmentRepositoryMock, FixedTimeSource, fixedUuidSource)
     val result: Files = fileService.addFile(AddFilesInput(consignmentUuid, 3),Some(userUuid)).await()
 
     captor.getAllValues.size should equal(1)
@@ -67,8 +69,9 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     val fileUuid = fixedUuidSource.uuid
     val consignmentUuid = UUID.randomUUID()
     val fileRepositoryMock = mock[FileRepository]
+    val consignmentRepositoryMock = mock[ConsignmentRepository]
     fixedUuidSource.reset
-    val fileService = new FileService(fileRepositoryMock, FixedTimeSource, fixedUuidSource)
+    val fileService = new FileService(fileRepositoryMock, consignmentRepositoryMock, FixedTimeSource, fixedUuidSource)
 
     val expectedRow = List(FileRow(fileUuid, consignmentUuid, userId, Timestamp.from(FixedTimeSource.now)))
     val captor: ArgumentCaptor[List[FileRow]] = ArgumentCaptor.forClass(classOf[List[FileRow]])
@@ -81,5 +84,33 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     captor.getAllValues.size should equal(1)
     captor.getAllValues.get(0).head.consignmentid should equal(consignmentUuid)
     captor.getAllValues.get(0).head.userid should equal(userId)
+  }
+
+  "getOwnersOfFiles" should "find the owners of the given files" in {
+    val fixedUuidSource = new FixedUUIDSource()
+    val fileId1 = UUID.fromString("bc609dc4-e153-4620-a7ab-20e7fd5a4005")
+    val fileId2 = UUID.fromString("67178a08-36ea-41c2-83ee-4b343b6429cb")
+    val userId1 = UUID.fromString("e9cac50f-c5eb-42b4-bb5d-355ccf8920cc")
+    val userId2 = UUID.fromString("f4ffe1d0-3525-4a7c-ba0c-812f6e054ab1")
+    val seriesId1 = UUID.fromString("bb503ea6-7207-42d7-9844-81471aa1b36a")
+    val seriesId2 = UUID.fromString("74394d89-aa22-4170-b50e-3f5eefda7062")
+    val consignmentId1 = UUID.fromString("0ae52efa-4f01-4b05-84f1-e36626180dad")
+    val consignmentId2 = UUID.fromString("2e29cc1c-0a3e-40b2-b39d-f60bfea88abe")
+
+    val fileRepositoryMock = mock[FileRepository]
+    val consignmentRepositoryMock = mock[ConsignmentRepository]
+    val fileService = new FileService(fileRepositoryMock, consignmentRepositoryMock, FixedTimeSource, fixedUuidSource)
+    val consignment1 = ConsignmentRow(consignmentId1, seriesId1, userId1, Timestamp.from(Instant.now))
+    val consignment2 = ConsignmentRow(consignmentId2, seriesId2, userId2, Timestamp.from(Instant.now))
+
+    when(consignmentRepositoryMock.getConsignmentsOfFiles(Seq(fileId1)))
+      .thenReturn(Future.successful(Seq((fileId1, consignment1), (fileId2, consignment2))))
+
+    val owners = fileService.getOwnersOfFiles(Seq(fileId1)).await()
+
+    owners should have size 2
+
+    owners(0).userId should equal(userId1)
+    owners(1).userId should equal(userId2)
   }
 }

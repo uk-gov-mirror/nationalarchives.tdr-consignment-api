@@ -12,7 +12,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ConsignmentService(consignmentRepository: ConsignmentRepository, timeSource: TimeSource, uuidSource: UUIDSource)
                         (implicit val executionContext: ExecutionContext) {
-    def addConsignment(addConsignmentInput: AddConsignmentInput, userId: Option[UUID]): Future[Consignment] = {
+
+  def addConsignment(addConsignmentInput: AddConsignmentInput, userId: Option[UUID]): Future[Consignment] = {
       val consignmentRow = ConsignmentRow(uuidSource.uuid, addConsignmentInput.seriesid, userId.get, Timestamp.from(timeSource.now))
       consignmentRepository.addConsignment(consignmentRow).map(row => Consignment(Some(row.consignmentid), row.userid, row.seriesid))
     }
