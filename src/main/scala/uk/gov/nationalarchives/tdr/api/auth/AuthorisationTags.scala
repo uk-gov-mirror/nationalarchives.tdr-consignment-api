@@ -4,21 +4,30 @@ import java.util.UUID
 
 import sangria.execution.{BeforeFieldResult, FieldTag}
 import sangria.schema.{Argument, Context}
-import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser.{AuthorisationException, continue}
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
-import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.Consignment
 import uk.gov.nationalarchives.tdr.api.graphql.validation.UserOwnsConsignment
 
 import scala.concurrent._
-import scala.concurrent.duration._
 import scala.language.postfixOps
 
 trait AuthorisationTag extends FieldTag {
-  def validate(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit]
+  def validate(ctx: Context[ConsignmentApiContext, _])
+              (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]]
+
+  val continue: BeforeFieldResult[ConsignmentApiContext, Unit] = BeforeFieldResult(())
 }
 
-object ValidateBody extends AuthorisationTag {
-  override def validate(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
+trait SyncAuthorisationTag extends AuthorisationTag {
+  final def validate(ctx: Context[ConsignmentApiContext, _])
+                    (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
+    Future.successful(validateSync(ctx))
+  }
+
+  def validateSync(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit]
+}
+
+object ValidateBody extends SyncAuthorisationTag {
+  override def validateSync(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
     val token = ctx.ctx.accessToken
 
     val bodyArg: String = ctx.arg("body")
@@ -32,8 +41,8 @@ object ValidateBody extends AuthorisationTag {
   }
 }
 
-object ValidateIsAdmin extends AuthorisationTag {
-  override def validate(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
+object ValidateIsAdmin extends SyncAuthorisationTag {
+  override def validateSync(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
     val token = ctx.ctx.accessToken
     val isAdmin: Boolean = token.roles.contains("tdr_admin")
     if(isAdmin) {
@@ -45,7 +54,8 @@ object ValidateIsAdmin extends AuthorisationTag {
 }
 
 case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends AuthorisationTag {
-  override def validate(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
+  override def validate(ctx: Context[ConsignmentApiContext, _])
+                       (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val token = ctx.ctx.accessToken
     val userId = token.userId.getOrElse("")
 
@@ -55,18 +65,18 @@ case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends Authori
       case id: UUID => id
     }
 
-    val result = ctx.ctx.consignmentService.getConsignment(consignmentId)
+    ctx.ctx.consignmentService
+      .getConsignment(consignmentId)
+      .map(consignment => {
+        if(consignment.isEmpty) {
+          throw AuthorisationException("Invalid consignment id")
+        }
 
-    val consignment: Option[Consignment] = Await.result(result, 5 seconds)
-
-    if(consignment.isEmpty) {
-      throw AuthorisationException("Invalid consignment id")
-    }
-
-    if (consignment.get.userid.toString == userId) {
-      continue
-    } else {
-      throw AuthorisationException("User does not own consignment")
-    }
+        if (consignment.get.userid.toString == userId) {
+          continue
+        } else {
+          throw AuthorisationException("User does not own consignment")
+        }
+      })
   }
 }

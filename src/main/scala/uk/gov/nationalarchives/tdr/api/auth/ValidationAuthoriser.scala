@@ -1,11 +1,14 @@
 package uk.gov.nationalarchives.tdr.api.auth
 
-import sangria.execution.{BeforeFieldResult, Middleware, MiddlewareAttachment, MiddlewareBeforeField, MiddlewareQueryContext}
+import sangria.execution.{BeforeFieldResult, Middleware, MiddlewareBeforeField, MiddlewareQueryContext}
 import sangria.schema.Context
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
-object ValidationAuthoriser extends Middleware[ConsignmentApiContext] with MiddlewareBeforeField[ConsignmentApiContext] {
 
-  case class AuthorisationException(message: String) extends Exception(message)
+import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.duration._
+
+class ValidationAuthoriser(implicit executionContext: ExecutionContext)
+  extends Middleware[ConsignmentApiContext] with MiddlewareBeforeField[ConsignmentApiContext] {
 
   override type QueryVal = Unit
   override type FieldVal = Unit
@@ -17,8 +20,20 @@ object ValidationAuthoriser extends Middleware[ConsignmentApiContext] with Middl
   override def beforeField(queryVal: QueryVal, mctx: MiddlewareQueryContext[ConsignmentApiContext, _, _]
                            , ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
       val validationList: Seq[BeforeFieldResult[ConsignmentApiContext, Unit]] = ctx.field.tags.map {
-        case v: AuthorisationTag => v.validate(ctx)
+        case v: AuthorisationTag => {
+          val validationResult = v.validate(ctx)
+
+          // Awaiting a Future is risky because the thread will block until the response is returned or the timeout is reached.
+          // It could cause the API to be slow because akka-http cannot assign threads to new requests while this one is
+          // blocked.
+          //
+          // We are only using Await because Sangria middleware does not support Futures like the main resolvers do. We should
+          // remove it when we find a way to do authorisation in a completely async way in Sangria.
+          Await.result(validationResult, 5 seconds)
+        }
       }
     validationList.headOption.getOrElse(continue)
   }
 }
+
+case class AuthorisationException(message: String) extends Exception(message)
