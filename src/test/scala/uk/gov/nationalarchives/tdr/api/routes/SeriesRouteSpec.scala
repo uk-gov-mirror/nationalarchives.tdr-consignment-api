@@ -13,9 +13,6 @@ import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.utils.TestRequest
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
-
-
-
 class SeriesRouteSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with TestRequest {
 
   private val getSeriesJsonFilePrefix: String = "json/getseries_"
@@ -69,13 +66,6 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
     response.data should equal(expectedResponse.data)
   }
 
-  "The api" should "return an error if a user queries without a body argument" in {
-    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_error_no_body")
-    val response: GraphqlQueryData = runTestQuery("query_no_body", validUserToken())
-    response.errors.head.message should equal(expectedResponse.errors.head.message)
-    response.errors.head.extensions.get.code should equal(expectedResponse.errors.head.extensions.get.code)
-  }
-
   "The api" should "return an error if a user queries with a different body to their own" in {
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_incorrect_body")
     val response: GraphqlQueryData = runTestQuery("query_incorrect_body", validUserToken())
@@ -90,20 +80,6 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
     response.errors.head.extensions.get.code should equal(expectedResponse.errors.head.extensions.get.code)
   }
 
-  "The api" should "return all series if an admin user queries without a body argument" in {
-    val sql = "insert into consignmentapi.Series (SeriesId, BodyId) VALUES (?,?), (?, ?)"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.setString(1, "6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
-    ps.setString(2, "6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
-    ps.setString(3, "f67d1337-cbd0-4fd1-9eac-611489e7113f")
-    ps.setString(4, "645bee46-d738-439b-8007-2083bc983154")
-    ps.executeUpdate()
-
-    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_multipleseries")
-    val response: GraphqlQueryData = runTestQuery("query_admin", validAdminToken)
-    response.data should equal(expectedResponse.data)
-  }
-
   "The api" should "return the correct series if an admin queries with a body argument" in {
     val sql = "insert into consignmentapi.Series (SeriesId, BodyId) VALUES (?,?), (?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
@@ -116,24 +92,5 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_some")
     val response: GraphqlQueryData = runTestQuery("query_somedata", validUserToken())
     response.data should equal(expectedResponse.data)
-  }
-
-  "The api" should "return all requested fields from inserted Series object" in {
-    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
-    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validAdminToken)
-    response.data should equal(expectedResponse.data)
-  }
-
-  "The api" should "return the expected data from inserted Series object" in {
-    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_some")
-    val response: GraphqlMutationData = runTestMutation("mutation_somedata", validAdminToken)
-    response.data should equal(expectedResponse.data)
-  }
-
-  "The api" should "return an error if a user has role_user and inserts a Series" in {
-    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_error_incorrect_role")
-    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
-    response.data should equal(expectedResponse.data)
-    response.errors.head.extensions.get.code should equal(expectedResponse.errors.head.extensions.get.code)
   }
 }
