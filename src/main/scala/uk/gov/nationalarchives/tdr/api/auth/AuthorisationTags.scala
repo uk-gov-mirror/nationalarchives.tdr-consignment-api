@@ -41,18 +41,6 @@ object ValidateBody extends SyncAuthorisationTag {
   }
 }
 
-object ValidateIsAdmin extends SyncAuthorisationTag {
-  override def validateSync(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
-    val token = ctx.ctx.accessToken
-    val isAdmin: Boolean = token.roles.contains("tdr_admin")
-    if(isAdmin) {
-      continue
-    } else {
-      throw AuthorisationException(s"Admin permissions required to call ${ctx.field.name}")
-    }
-  }
-}
-
 case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends AuthorisationTag {
   override def validate(ctx: Context[ConsignmentApiContext, _])
                        (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {

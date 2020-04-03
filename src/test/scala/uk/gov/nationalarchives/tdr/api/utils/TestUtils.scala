@@ -47,11 +47,6 @@ object TestUtils  {
       .withClaim("user_id", userId)
       .build)
   )
-  def validAdminToken: OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
-    aTokenConfig()
-      .withResourceRole("tdr", "tdr_admin")
-      .build)
-  )
   def invalidToken: OAuth2BearerToken = OAuth2BearerToken(testMock.getAccessToken(aTokenConfig().build))
 
   case class GraphqlError(message: String, extensions: Option[GraphqlErrorExtensions])
