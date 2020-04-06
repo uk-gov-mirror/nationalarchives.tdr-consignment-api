@@ -12,7 +12,7 @@ import uk.gov.nationalarchives.Tables.ConsignmentRow
 import uk.gov.nationalarchives.tdr.api.db.repository.ConsignmentRepository
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AddConsignmentInput, Consignment}
-import uk.gov.nationalarchives.tdr.api.utils.FixedTimeSource
+import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -20,59 +20,71 @@ import scala.concurrent.{ExecutionContext, Future}
 class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
 
+
   "createConsignment" should "create a consignment given correct arguments" in {
-    val uuid = UUID.randomUUID()
+    val fixedUuidSource = new FixedUUIDSource()
+    val userUuid = UUID.randomUUID()
+    val seriesUuid = UUID.randomUUID()
+    val consignmentUuid = fixedUuidSource.uuid
     val consignmentRepositoryMock = mock[ConsignmentRepository]
-    val mockResponse = Future.successful(ConsignmentRow(1L, uuid.toString, Timestamp.from(Instant.now), Some(1)))
+    val mockResponse = Future.successful(ConsignmentRow(consignmentUuid, seriesUuid, userUuid, Timestamp.from(Instant.now)))
     when(consignmentRepositoryMock.addConsignment(any[ConsignmentRow])).thenReturn(mockResponse)
-    val consignmentService = new ConsignmentService(consignmentRepositoryMock, FixedTimeSource)
-    val result: Consignment = consignmentService.addConsignment(AddConsignmentInput(1), Some(uuid)).await()
-    result.seriesid shouldBe 1
-    result.userid shouldBe uuid
+    val consignmentService = new ConsignmentService(consignmentRepositoryMock, FixedTimeSource, fixedUuidSource)
+    val result: Consignment = consignmentService.addConsignment(AddConsignmentInput(seriesUuid), Some(userUuid)).await()
+    result.consignmentid shouldBe Some(consignmentUuid)
+    result.seriesid shouldBe seriesUuid
+    result.userid shouldBe userUuid
     result.consignmentid shouldBe defined
-    result.consignmentid.get shouldBe 1
+    result.consignmentid.get shouldBe consignmentUuid
   }
 
   "createConsignment" should "link a consignment to the user's ID" in {
-    val userId = UUID.randomUUID()
-    val seriesId = 123
+    val fixedUuidSource = new FixedUUIDSource()
+    val userUuid = UUID.randomUUID()
+    val seriesUuid = UUID.randomUUID()
+    val consignmentId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
     val consignmentRepositoryMock = mock[ConsignmentRepository]
-    val consignmentService = new ConsignmentService(consignmentRepositoryMock, FixedTimeSource)
+    val consignmentService = new ConsignmentService(consignmentRepositoryMock, FixedTimeSource, fixedUuidSource)
 
-    val expectedRow = ConsignmentRow(seriesId, userId.toString, Timestamp.from(FixedTimeSource.now), None)
-    val mockResponse = Future.successful(ConsignmentRow(seriesId, userId.toString, Timestamp.from(Instant.now), Some(1)))
+
+    val expectedRow = ConsignmentRow(consignmentId, seriesUuid, userUuid, Timestamp.from(FixedTimeSource.now))
+    val mockResponse = Future.successful(ConsignmentRow(consignmentId, seriesUuid, userUuid, Timestamp.from(Instant.now)))
     when(consignmentRepositoryMock.addConsignment(any[ConsignmentRow])).thenReturn(mockResponse)
 
-    consignmentService.addConsignment(AddConsignmentInput(seriesId), Some(userId)).await()
+    consignmentService.addConsignment(AddConsignmentInput(seriesUuid), Some(userUuid)).await()
 
     verify(consignmentRepositoryMock).addConsignment(expectedRow)
   }
 
   "getConsignment" should "return the specfic Consignment for the requested consignment id" in {
+    val fixedUuidSource = new FixedUUIDSource()
     val userUuid = UUID.randomUUID()
-    val consignmentRow = ConsignmentRow(1L, userUuid.toString, Timestamp.from(Instant.now), Some(1))
+    val seriesUuid = UUID.randomUUID()
+    val consignmentUuid = UUID.randomUUID()
+    val consignmentRow = ConsignmentRow(consignmentUuid, seriesUuid, userUuid, Timestamp.from(Instant.now))
     val mockResponse: Future[Seq[ConsignmentRow]] = Future.successful(Seq(consignmentRow))
     val consignmentRepoMock = mock[ConsignmentRepository]
-    when(consignmentRepoMock.getConsignment(anyLong())).thenReturn(mockResponse)
+    when(consignmentRepoMock.getConsignment(any[UUID])).thenReturn(mockResponse)
 
-    val consignmentService: ConsignmentService = new ConsignmentService(consignmentRepoMock, FixedTimeSource)
-    val response: Option[ConsignmentFields.Consignment] = consignmentService.getConsignment(1).await()
+    val consignmentService: ConsignmentService = new ConsignmentService(consignmentRepoMock, FixedTimeSource, fixedUuidSource)
+    val response: Option[ConsignmentFields.Consignment] = consignmentService.getConsignment(consignmentUuid).await()
 
-    verify(consignmentRepoMock, times(1)).getConsignment(anyLong())
+    verify(consignmentRepoMock, times(1)).getConsignment(any[UUID])
     val consignment: ConsignmentFields.Consignment = response.get
-    consignment.consignmentid should equal(Some(1))
-    consignment.seriesid should equal(1L)
+    consignment.consignmentid should equal(Some(consignmentUuid))
+    consignment.seriesid should equal(seriesUuid)
     consignment.userid should equal(userUuid)
   }
 
   "getConsignment" should "return none when consignment id does not exist" in {
+    val fixedUuidSource = new FixedUUIDSource()
     val mockResponse: Future[Seq[ConsignmentRow]] = Future.successful(Seq())
     val consignmentRepoMock = mock[ConsignmentRepository]
-    when(consignmentRepoMock.getConsignment(anyLong())).thenReturn(mockResponse)
+    when(consignmentRepoMock.getConsignment(any[UUID])).thenReturn(mockResponse)
 
-    val consignmentService: ConsignmentService = new ConsignmentService(consignmentRepoMock, FixedTimeSource)
-    val response: Option[ConsignmentFields.Consignment] = consignmentService.getConsignment(1).await()
-    verify(consignmentRepoMock, times(1)).getConsignment(anyLong())
+    val consignmentService: ConsignmentService = new ConsignmentService(consignmentRepoMock, FixedTimeSource, fixedUuidSource)
+    val response: Option[ConsignmentFields.Consignment] = consignmentService.getConsignment(UUID.randomUUID()).await()
+    verify(consignmentRepoMock, times(1)).getConsignment(any[UUID])
 
     response should be(None)
   }

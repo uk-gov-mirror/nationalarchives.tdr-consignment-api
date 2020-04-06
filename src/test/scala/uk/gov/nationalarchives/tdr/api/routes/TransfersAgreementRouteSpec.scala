@@ -10,7 +10,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.utils.TestRequest
+import uk.gov.nationalarchives.tdr.api.utils.{FixedUUIDSource, TestRequest}
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach  {
@@ -23,14 +23,14 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
   case class GraphqlMutationData(data: Option[AddTransferAgreement], errors: List[GraphqlError] = Nil)
   case class GraphqlQueryData(data: Option[TransferAgreement], errors: List[GraphqlError] = Nil)
   case class TransferAgreement(
-                                consignmentid: Option[Long] = None,
+                                consignmentid: Option[UUID] = None,
                                 allPublicRecords: Option[Boolean] = None,
                                 allCrownCopyright: Option[Boolean] = None,
                                 allEnglish: Option[Boolean] = None,
                                 allDigital: Option[Boolean] = None,
                                 appraisalSelectionSignedOff: Option[Boolean] = None,
                                 sensitivityReviewSignedOff: Option[Boolean] = None,
-                                transferAgreementId: Option[Long] = None
+                                transferAgreementId: Option[UUID] = None
                               )
   case class AddTransferAgreement(addTransferAgreement: TransferAgreement) extends TestRequest
 
@@ -48,8 +48,11 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
     getDataFromFile[GraphqlQueryData](getTransferAgreementJsonFilePrefix)
 
   "The api" should "return all requested fields from inserted Transfer Agreement object" in {
-    val sql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$userId')"
+    val fixedUUIDSource = new FixedUUIDSource()
+    val sql = "insert into Consignment (SeriesId, UserId) VALUES (?,?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, fixedUUIDSource.uuid.toString)
+    ps.setString(2, userId.toString)
     ps.executeUpdate()
 
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
@@ -60,8 +63,11 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
   }
 
   "The api" should "return the expected data from inserted Transfer Agreement object" in {
-    val sql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$userId')"
+    val fixedUUIDSource = new FixedUUIDSource()
+    val sql = "insert into Consignment (SeriesId, UserId) VALUES (?,?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, fixedUUIDSource.uuid.toString)
+    ps.setString(2, userId.toString)
     ps.executeUpdate()
 
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_some")
@@ -72,14 +78,18 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
   }
 
   "The api" should "throw an error if the consignment id field is not provided" in {
+    val fixedUUIDSource = new FixedUUIDSource()
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_consignmentid_missing")
     val response: GraphqlMutationData = runTestMutation("mutation_missingconsignmentid", validUserToken())
     response.errors.head.message should equal (expectedResponse.errors.head.message)
   }
 
   "The api" should "return an error if a user does not own the transfer agreement's consignment id" in {
-    val sql = "insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'5ab14990-ed63-4615-8336-56fbb9960300')"
+    val fixedUUIDSource = new FixedUUIDSource()
+    val sql = "insert into Consignment (SeriesId, UserId) VALUES (?,?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, fixedUUIDSource.uuid.toString)
+    ps.setString(2, "5ab14990-ed63-4615-8336-56fbb9960300")
     ps.executeUpdate()
 
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_error_not_owner")
@@ -89,8 +99,11 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
   }
 
   "The api" should "return an error if an invalid consignment id is provided" in {
-    val sql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$userId')"
+    val fixedUUIDSource = new FixedUUIDSource()
+    val sql = "insert into Consignment (SeriesId, UserId) VALUES (?,?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, fixedUUIDSource.uuid.toString)
+    ps.setString(2, userId.toString)
     ps.executeUpdate()
 
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_error_invalid_consignmentid")
@@ -99,12 +112,16 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
   }
 
   "The api" should "return an existing transfer agreement for a user owned consignment" in {
-    val consignmentSql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$userId')"
-    val sql = "INSERT INTO consignmentapi.TransferAgreement (ConsignmentId, AllPublicRecords, AllCrownCopyright, " +
+    val fixedUUIDSource = new FixedUUIDSource()
+    val consignmentSql = s"insert into Consignment (SeriesId, UserId) VALUES (1,'$userId')"
+    val sql = "INSERT INTO TransferAgreement (ConsignmentId, AllPublicRecords, AllCrownCopyright, " +
       "AllEnglish, AllDigital, AppraisalSelectionSignedOff, SensitivityReviewSignedOff, TransferAgreementId) " +
-      "VALUES (1, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE);"
+      "VALUES (?, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, ?);"
     val psConsignment: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(consignmentSql)
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    val uuid = fixedUUIDSource.uuid.toString
+    ps.setString(1, uuid)
+    ps.setString(2, uuid)
     ps.executeUpdate()
     psConsignment.executeUpdate()
 
@@ -114,9 +131,11 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
   }
 
   "The api" should "return no transfer agreement if it doesn't exist" in {
-    val consignentSql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$userId')"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(consignentSql)
-    ps.executeUpdate()
+    val fixedUUIDSource = new FixedUUIDSource()
+    val sql = "insert into Consignment (SeriesId, UserId) VALUES (?,?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, fixedUUIDSource.uuid.toString)
+    ps.setString(2, userId.toString)
     ps.executeUpdate()
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_none")
@@ -125,11 +144,12 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
   }
 
   "The api" should "return an error if the consignment id isn't provided" in {
-    val consignentSql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$userId')"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(consignentSql)
+    val fixedUUIDSource = new FixedUUIDSource()
+    val sql = "insert into Consignment (SeriesId, UserId) VALUES (?,?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, fixedUUIDSource.uuid.toString)
+    ps.setString(2, userId.toString)
     ps.executeUpdate()
-    ps.executeUpdate()
-
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_consignmentidmissing")
     val response: GraphqlQueryData = runTestQuery("query_missingconsignmentid", validUserToken())
     response.errors.length should equal(1)
@@ -137,10 +157,12 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
   }
 
   "The api" should "return an error if the user doesn't own the consignment" in {
+    val fixedUUIDSource = new FixedUUIDSource()
     val otherUserId = UUID.randomUUID().toString
-    val consignentSql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$otherUserId')"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(consignentSql)
-    ps.executeUpdate()
+    val sql = "insert into Consignment (SeriesId, UserId) VALUES (?,?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, fixedUUIDSource.uuid.toString)
+    ps.setString(2, otherUserId)
     ps.executeUpdate()
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_notowner")
@@ -150,22 +172,17 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
     response.errors.head.extensions.get.code should equal(expectedResponse.errors.head.extensions.get.code)
   }
 
-  private def checkTransferAgreementExists(transferAgreementId: Long): Unit = {
-    val sql = s"select * from consignmentapi.TransferAgreement where TransferAgreementId = $transferAgreementId;"
+  private def checkTransferAgreementExists(transferAgreementId: UUID): Unit = {
+    val sql = "select * from TransferAgreement where TransferAgreementId = ?"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, transferAgreementId.toString)
     val rs: ResultSet = ps.executeQuery()
     rs.next()
     rs.getString("TransferAgreementId") should equal(transferAgreementId.toString)
   }
 
   private def resetDatabase(): Unit = {
-    DbConnection.db.source.createConnection().prepareStatement("delete from consignmentapi.TransferAgreement").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from consignmentapi.Consignment").executeUpdate()
-
-    val resetTransferAgreementIdCount = "alter table consignmentapi.TransferAgreement alter column TransferAgreementId restart with 1"
-    DbConnection.db.source.createConnection().prepareStatement(resetTransferAgreementIdCount).executeUpdate()
-
-    val resetConsignmentIdCount = "alter table consignmentapi.Consignment alter column ConsignmentId restart with 1"
-    DbConnection.db.source.createConnection().prepareStatement(resetConsignmentIdCount).executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("delete from TransferAgreement").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("delete from Consignment").executeUpdate()
   }
 }

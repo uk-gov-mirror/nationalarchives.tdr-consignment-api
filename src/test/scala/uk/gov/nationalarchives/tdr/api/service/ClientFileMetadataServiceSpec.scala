@@ -2,6 +2,7 @@ package uk.gov.nationalarchives.tdr.api.service
 
 import java.sql.Timestamp
 import java.time.Instant
+import java.util.UUID
 
 import org.mockito.ArgumentMatchers._
 import org.mockito.MockitoSugar
@@ -10,6 +11,7 @@ import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.ClientfilemetadataRow
 import uk.gov.nationalarchives.tdr.api.db.repository.ClientFileMetadataRepository
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ClientFileMetadataFields.AddClientFileMetadataInput
+import uk.gov.nationalarchives.tdr.api.utils.FixedUUIDSource
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -18,27 +20,30 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
 
   "addClientFileMetadata" should "create client file metadata given correct arguments" in {
-
+    val fixedUuidSource = new FixedUUIDSource()
+    val clientMetadataUuid = fixedUuidSource.uuid
+    val fileUuid = UUID.randomUUID()
     val dummyInstant = Instant.now()
     val dummyTimestamp = Timestamp.from(dummyInstant)
-    val dummyFileSize: BigDecimal = 1000.01
+    val dummyFileSize: Long = 1000
     val repositoryMock = mock[ClientFileMetadataRepository]
     val mockResponse = Future.successful(ClientfilemetadataRow(
-      1L,
+      clientMetadataUuid,
+      fileUuid,
       Some("dummy/original/path"),
       Some("dummyCheckSum"),
       Some("checksumType"),
       dummyTimestamp,
       dummyTimestamp,
       Some(dummyFileSize),
-      dummyTimestamp,
-      Some(1L))
+      dummyTimestamp
+    )
     )
 
     when(repositoryMock.addClientFileMetadata(any[ClientfilemetadataRow])).thenReturn(mockResponse)
-    val service = new ClientFileMetadataService(repositoryMock)
+    val service = new ClientFileMetadataService(repositoryMock, fixedUuidSource)
     val result = service.addClientFileMetadata(AddClientFileMetadataInput(
-      1L,
+      fileUuid,
       Some("dummy/original/path"),
       Some("dummyCheckSum"),
       Some("checksumType"),
@@ -47,7 +52,7 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
       Some(dummyFileSize),
       dummyInstant.toEpochMilli)).await()
 
-    result.fileId shouldBe 1
+    result.fileId shouldBe fileUuid
     result.originalPath.get shouldBe "dummy/original/path"
     result.checksum.get shouldBe "dummyCheckSum"
     result.checksumType.get shouldBe "checksumType"
@@ -55,6 +60,6 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
     result.createdDate shouldBe dummyInstant.toEpochMilli
     result.fileSize.get shouldBe dummyFileSize
     result.datetime shouldBe dummyInstant.toEpochMilli
-    result.clientFileMetadataId shouldBe 1
+    result.clientFileMetadataId shouldBe clientMetadataUuid
   }
 }

@@ -10,12 +10,12 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields.{AddFilesInput,
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class FileService(fileRepository: FileRepository, timeSource: TimeSource)(implicit val executionContext: ExecutionContext) {
+class FileService(fileRepository: FileRepository, timeSource: TimeSource, uuidSource: UUIDSource)(implicit val executionContext: ExecutionContext) {
 
   def addFile(addFilesInput: AddFilesInput, userId: Option[UUID]): Future[Files] = {
     val rows: Seq[nationalarchives.Tables.FileRow] = List.fill(addFilesInput.numberOfFiles)(1)
-      .map(_ => FileRow(addFilesInput.consignmentId, userId.get.toString, Timestamp.from(timeSource.now)))
+      .map(_ => FileRow(uuidSource.uuid, addFilesInput.consignmentId, userId.get, Timestamp.from(timeSource.now)))
 
-    fileRepository.addFiles(rows).map(_.map(_.fileid.get)).map(fileids => Files(fileids))
+    fileRepository.addFiles(rows).map(_.map(_.fileid)).map(fileids => Files(fileids))
   }
 }

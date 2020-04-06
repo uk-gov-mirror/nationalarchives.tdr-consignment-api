@@ -1,6 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.routes
 
 import java.sql.PreparedStatement
+import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import io.circe.generic.extras.Configuration
@@ -21,7 +22,7 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
 
   case class GraphqlQueryData(data: Option[GetSeries], errors: List[GraphqlError] = Nil)
   case class GraphqlMutationData(data: Option[AddSeries], errors: List[GraphqlError] = Nil)
-  case class Series(seriesid: Option[Long], bodyid: Option[Long], name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
+  case class Series(bodyid: Option[UUID], name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
   case class GetSeries(getSeries: List[Series]) extends TestRequest
   case class AddSeries(addSeries: Series)
 
@@ -31,7 +32,7 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
   val expectedMutationResponse: String => GraphqlMutationData = getDataFromFile[GraphqlMutationData](addSeriesJsonFilePrefix)
 
   override def beforeEach(): Unit = {
-    DbConnection.db.source.createConnection().prepareStatement("delete from consignmentapi.Series").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("delete from Series").executeUpdate()
   }
 
 
@@ -43,7 +44,9 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
 
   "The api" should "return the expected data" in {
     val ps: PreparedStatement = DbConnection.db.source.createConnection()
-      .prepareStatement("insert into consignmentapi.Series (SeriesId, BodyId) VALUES (1, 1)")
+      .prepareStatement("""insert into Series (SeriesId, BodyId) VALUES (?, ?)""")
+    ps.setString(1, "6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
+    ps.setString(2, "6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
     ps.executeUpdate()
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_some")
@@ -52,8 +55,10 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
   }
 
   "The api" should "return all requested fields" in {
-    val sql = "insert into consignmentapi.Series (SeriesId, BodyId, Name, Code, Description) VALUES (1,1,'Name','Code','Description')"
+    val sql = "insert into Series (SeriesId, BodyId, Name, Code, Description) VALUES (?,?,'Name','Code','Description')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, "6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
+    ps.setString(2, "6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
     ps.executeUpdate()
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_all")
@@ -76,8 +81,12 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
   }
 
   "The api" should "return the correct series if an admin queries with a body argument" in {
-    val sql = "insert into consignmentapi.Series (SeriesId, BodyId) VALUES (1,1), (2, 2)"
+    val sql = "insert into Series (SeriesId, BodyId) VALUES (?,?), (?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, "6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
+    ps.setString(2, "6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
+    ps.setString(3, "f67d1337-cbd0-4fd1-9eac-611489e7113f")
+    ps.setString(4, "645bee46-d738-439b-8007-2083bc983154")
     ps.executeUpdate()
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_some")

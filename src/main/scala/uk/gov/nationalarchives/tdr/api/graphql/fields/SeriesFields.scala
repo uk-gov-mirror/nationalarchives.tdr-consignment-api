@@ -1,5 +1,8 @@
 package uk.gov.nationalarchives.tdr.api.graphql.fields
 
+import java.util.UUID
+import sangria.marshalling.circe._
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
@@ -8,7 +11,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.Tags.ValidateBody
 
 object SeriesFields {
-  case class Series(seriesid: Long, bodyid: Long, name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
+  case class Series(seriesid: UUID, bodyid: UUID, name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
 
   implicit val SeriesType: ObjectType[Unit, Series] = deriveObjectType[Unit, Series]()
 

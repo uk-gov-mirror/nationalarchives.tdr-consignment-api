@@ -1,16 +1,18 @@
 package uk.gov.nationalarchives.tdr.api.service
 
+import java.util.UUID
+
 import uk.gov.nationalarchives.tdr.api.db.repository.TransferAgreementRepository
 import uk.gov.nationalarchives.tdr.api.graphql.fields.TransferAgreementFields.{AddTransferAgreementInput, TransferAgreement}
 import uk.gov.nationalarchives.Tables.TransferagreementRow
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class TransferAgreementService(transferAgreementRepository: TransferAgreementRepository)
+class TransferAgreementService(transferAgreementRepository: TransferAgreementRepository, uuidSource: UUIDSource)
                               (implicit val executionContext: ExecutionContext) {
 
   def addTransferAgreement(input: AddTransferAgreementInput): Future[TransferAgreement] = {
-    val transferAgreementRow = TransferagreementRow(input.consignmentId,
+    val transferAgreementRow = TransferagreementRow(uuidSource.uuid, input.consignmentId,
       input.allPublicRecords,
       input.allCrownCopyright,
       input.allEnglish,
@@ -21,7 +23,7 @@ class TransferAgreementService(transferAgreementRepository: TransferAgreementRep
     transferAgreementRepository.addTransferAgreement(transferAgreementRow).map(dbRowToTransferAgreement)
   }
 
-  def getTransferAgreement(consignmentId: Long): Future[Option[TransferAgreement]] = {
+  def getTransferAgreement(consignmentId: UUID): Future[Option[TransferAgreement]] = {
     transferAgreementRepository.getTransferAgreement(consignmentId)
       .map(ta => ta.headOption.map(dbRowToTransferAgreement))
   }
@@ -41,7 +43,7 @@ class TransferAgreementService(transferAgreementRepository: TransferAgreementRep
       row.alldigital,
       row.appraisalselectionsignedoff,
       row.sensitivityreviewsignedoff,
-      row.transferagreementid,
+      Some(row.transferagreementid),
       isAgreementComplete(row)
     )
   }

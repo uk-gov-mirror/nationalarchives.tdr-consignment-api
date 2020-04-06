@@ -9,12 +9,13 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.ClientFileMetadataFields.{
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ClientFileMetadataService(clientFileMetadataRepository: ClientFileMetadataRepository)
+class ClientFileMetadataService(clientFileMetadataRepository: ClientFileMetadataRepository, uuidSource: UUIDSource)
                                (implicit val executionContext: ExecutionContext) {
 
   def addClientFileMetadata(input: AddClientFileMetadataInput): Future[ClientFileMetadata] = {
 
     val clientFileMetadataRow = ClientfilemetadataRow(
+      uuidSource.uuid,
       input.fileId,
       input.originalPath,
       input.checksum,
@@ -34,7 +35,7 @@ class ClientFileMetadataService(clientFileMetadataRepository: ClientFileMetadata
       row.createddate.getTime,
       row.filesize,
       row.datetime.getTime,
-      row.clientfilemetadataid.get
+      row.clientfilemetadataid
     ))
   }
 }

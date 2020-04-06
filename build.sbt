@@ -1,6 +1,8 @@
 import rocks.muki.graphql.schema.SchemaLoader
 import sbt.File
 
+
+
 name := "tdr-consignment-api"
 version := "0.1.0-SNAPSHOT"
 
@@ -9,8 +11,9 @@ description := "The consignment API for TDR"
 scalaVersion := "2.13.0"
 scalacOptions ++= Seq("-deprecation", "-feature")
 
-resolvers ++= Seq(
-  "Sonatype Releases" at "https://dl.bintray.com/mockito/maven/"
+resolvers ++= Seq[Resolver](
+  "Sonatype Releases" at "https://dl.bintray.com/mockito/maven/",
+  "TDR Releases" at "s3://tdr-releases-mgmt"
 )
 
 mainClass in (Compile, run) := Some("uk.gov.nationalarchives.tdr.api.http.ApiServer")
@@ -39,8 +42,8 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-optics" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,
   "io.circe" %% "circe-generic-extras" % circeVersion,
-  "uk.gov.nationalarchives" %% "consignment-api-db" % "0.0.12",
-  "mysql" % "mysql-connector-java" % "6.0.6",
+  "uk.gov.nationalarchives" %% "consignment-api-db" % "0.0.20",
+  "org.postgresql" % "postgresql" % "42.2.11",
   "com.typesafe.slick" %% "slick" % "3.3.2",
   "com.typesafe.slick" %% "slick-hikaricp" % "3.3.2",
   "ch.megard" %% "akka-http-cors" % "0.4.2",
@@ -55,7 +58,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-testkit" % "2.6.3" % Test,
   "com.tngtech.keycloakmock" % "mock" % "0.2.0" % Test,
   "com.h2database" % "h2" % "1.4.200" % Test,
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.7"
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.12"
+
 )
 
 javaOptions in Test += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf"

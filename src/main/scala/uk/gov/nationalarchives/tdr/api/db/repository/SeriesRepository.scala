@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.tdr.api.db.repository
 
-import slick.jdbc.MySQLProfile.api._
+import slick.jdbc.PostgresProfile.api._
 import uk.gov.nationalarchives.Tables._
 
 import scala.concurrent.Future

@@ -1,16 +1,16 @@
 package uk.gov.nationalarchives.tdr.api.graphql
 
+import java.util.UUID
+
 import sangria.execution.{BeforeFieldResult, FieldTag}
 import sangria.schema.{Argument, Context}
 import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser.{AuthorisationException, continue}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.Consignment
 import uk.gov.nationalarchives.tdr.api.graphql.validation.UserOwnsConsignment
 
-import scala.Long
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scala.util.{Failure, Success, Try}
 
 object Tags {
 
@@ -51,9 +51,9 @@ object Tags {
       val userId = token.userId.getOrElse("")
 
       val arg: T = ctx.arg[T](argument.name)
-      val consignmentId: Long = arg match {
+      val consignmentId: UUID = arg match {
         case uoc: UserOwnsConsignment => uoc.consignmentId
-        case id: Long => id
+        case id: UUID => id
       }
 
       val result = ctx.ctx.consignmentService.getConsignment(consignmentId)
