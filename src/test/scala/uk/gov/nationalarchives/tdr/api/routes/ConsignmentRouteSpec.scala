@@ -21,7 +21,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
   override def beforeEach(): Unit = {
     val conn: Connection = DbConnection.db.source.createConnection()
-    conn.prepareStatement("delete from consignmentapi.Consignment").executeUpdate()
+    conn.prepareStatement("delete from Consignment").executeUpdate()
     conn.commit()
     conn.close()
   }
@@ -62,7 +62,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
   "The api" should "return all requested fields" in {
     val fixedUuidSource = new FixedUUIDSource()
-    val sql = "insert into consignmentapi.Consignment (ConsignmentId, SeriesId, UserId) VALUES (?, ?, ?)"
+    val sql = "insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES (?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     val uuid = fixedUuidSource.uuid.toString
     ps.setString(1, uuid)
@@ -76,7 +76,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
   "The api" should "return the expected data" in {
     val fixedUuidSource = new FixedUUIDSource()
-    val sql = "insert into consignmentapi.Consignment (ConsignmentId, SeriesId, UserId) VALUES (?,?,?)"
+    val sql = "insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES (?,?,?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     val uuid = fixedUuidSource.uuid.toString
     ps.setString(1, uuid)
@@ -96,7 +96,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   }
 
   private def checkConsignmentExists(consignmentId: UUID): Unit = {
-    val sql = s"select * from consignmentapi.Consignment where ConsignmentId = ?"
+    val sql = s"select * from Consignment where ConsignmentId = ?"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, consignmentId.toString)
     val rs: ResultSet = ps.executeQuery()

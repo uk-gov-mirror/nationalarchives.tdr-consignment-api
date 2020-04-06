@@ -1,6 +1,4 @@
-CREATE SCHEMA IF NOT EXISTS consignmentapi;
-
-CREATE TABLE IF NOT EXISTS consignmentapi.Series (
+CREATE TABLE IF NOT EXISTS Series (
   BodyId UUID DEFAULT '6e3b76c4-1745-4467-8ac5-b4dd736e1b3e',
   Name varchar(255) DEFAULT NULL,
   Code varchar(255) DEFAULT NULL,
@@ -9,7 +7,7 @@ CREATE TABLE IF NOT EXISTS consignmentapi.Series (
   PRIMARY KEY (SeriesId)
 );
 
-CREATE TABLE IF NOT EXISTS consignmentapi.Body (
+CREATE TABLE IF NOT EXISTS Body (
    BodyId UUID not null DEFAULT '6e3b76c4-1745-4467-8ac5-b4dd736e1b3e',
    Name varchar(255) default null,
    Code varchar(255) default null,
@@ -17,7 +15,7 @@ CREATE TABLE IF NOT EXISTS consignmentapi.Body (
    PRIMARY KEY (BodyId)
 );
 
-CREATE TABLE IF NOT EXISTS consignmentapi.Consignment (
+CREATE TABLE IF NOT EXISTS Consignment (
   ConsignmentId uuid NOT NULL DEFAULT '6e3b76c4-1745-4467-8ac5-b4dd736e1b3e',
   SeriesId uuid DEFAULT '6e3b76c4-1745-4467-8ac5-b4dd736e1b3e',
   UserId uuid DEFAULT NULL,
@@ -25,7 +23,7 @@ CREATE TABLE IF NOT EXISTS consignmentapi.Consignment (
   PRIMARY KEY (ConsignmentId)
 );
 
-CREATE TABLE IF NOT EXISTS consignmentapi.TransferAgreement (
+CREATE TABLE IF NOT EXISTS TransferAgreement (
   ConsignmentId uuid NOT NULL DEFAULT '6e3b76c4-1745-4467-8ac5-b4dd736e1b3e',
   AllPublicRecords BOOLEAN DEFAULT NULL,
   AllCrownCopyright BOOLEAN DEFAULT NULL,
@@ -37,7 +35,7 @@ CREATE TABLE IF NOT EXISTS consignmentapi.TransferAgreement (
 PRIMARY KEY (TransferAgreementId)
 );
 
-CREATE TABLE IF NOT EXISTS consignmentapi.ClientFileMetadata (
+CREATE TABLE IF NOT EXISTS ClientFileMetadata (
    FileId uuid NOT NULL DEFAULT '6e3b76c4-1745-4467-8ac5-b4dd736e1b3e',
    OriginalPath varchar(255) DEFAULT NULL,
    Checksum varchar(255) DEFAULT NULL,
@@ -50,7 +48,7 @@ CREATE TABLE IF NOT EXISTS consignmentapi.ClientFileMetadata (
    PRIMARY KEY (ClientFileMetadataId)
 );
 
-CREATE TABLE IF NOT EXISTS consignmentapi.File (
+CREATE TABLE IF NOT EXISTS File (
    FileId uuid NOT NULL DEFAULT '6e3b76c4-1745-4467-8ac5-b4dd736e1b3e',
    ConsignmentId uuid NOT NULL,
    UserId uuid DEFAULT NULL,
@@ -58,5 +56,5 @@ CREATE TABLE IF NOT EXISTS consignmentapi.File (
    PRIMARY KEY (FileId)
 );
 
-DELETE from consignmentapi.Body;
-INSERT INTO consignmentapi.Body (BodyId, Name, Code, Description) VALUES ('6e3b76c4-1745-4467-8ac5-b4dd736e1b3e', 'Body', 'Code', 'Description'), ('645bee46-d738-439b-8007-2083bc983154', 'Body2', 'Code', 'Description');
+DELETE from Body;
+INSERT INTO Body (BodyId, Name, Code, Description) VALUES ('6e3b76c4-1745-4467-8ac5-b4dd736e1b3e', 'Body', 'Code', 'Description'), ('645bee46-d738-439b-8007-2083bc983154', 'Body2', 'Code', 'Description');

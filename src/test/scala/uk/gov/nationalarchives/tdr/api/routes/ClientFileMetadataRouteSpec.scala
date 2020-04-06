@@ -69,7 +69,7 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
   }
 
   private def checkClientFileMetadataExists(clientFileMetadataId: UUID): Unit = {
-    val sql = "select * from consignmentapi.ClientFileMetadata where ClientFileMetadataId = ?;"
+    val sql = "select * from ClientFileMetadata where ClientFileMetadataId = ?;"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, clientFileMetadataId.toString)
     val rs: ResultSet = ps.executeQuery()
@@ -78,6 +78,6 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
   }
 
   private def resetDatabase(): Unit = DbConnection.db.source.createConnection()
-    .prepareStatement("delete from consignmentapi.ClientFileMetadata").executeUpdate()
+    .prepareStatement("delete from ClientFileMetadata").executeUpdate()
 
 }

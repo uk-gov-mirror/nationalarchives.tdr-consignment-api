@@ -20,8 +20,8 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
 
   override def beforeEach(): Unit = {
     val connection = DbConnection.db.source.createConnection()
-    connection.prepareStatement("delete from consignmentapi.File").executeUpdate()
-    connection.prepareStatement("delete from consignmentapi.Consignment").executeUpdate()
+    connection.prepareStatement("delete from File").executeUpdate()
+    connection.prepareStatement("delete from Consignment").executeUpdate()
     connection.close()
   }
 
@@ -35,7 +35,7 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
   val fixedUuidSource = new FixedUUIDSource()
 
   "The api" should "add one file if the correct information is provided" in {
-    val sql = s"insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'$userId')"
+    val sql = s"insert into Consignment (SeriesId, UserId) VALUES (1,'$userId')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.executeUpdate()
 
@@ -48,7 +48,7 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
   }
 
   "The api" should "add three files if the correct information is provided" in {
-    val sql = "insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (?,?)"
+    val sql = "insert into Consignment (SeriesId, UserId) VALUES (?,?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, fixedUuidSource.uuid.toString)
     ps.setString(2, userId.toString)
@@ -76,7 +76,7 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
   }
 
   "The api" should "throw an error if the user does not own the consignment" in {
-    val sql = "insert into consignmentapi.Consignment (SeriesId, UserId) VALUES (1,'5ab14990-ed63-4615-8336-56fbb9960300')"
+    val sql = "insert into Consignment (SeriesId, UserId) VALUES (1,'5ab14990-ed63-4615-8336-56fbb9960300')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.executeUpdate()
 
@@ -87,7 +87,7 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
   }
 
   private def checkFileExists(fileId: UUID) = {
-    val sql = s"select * from consignmentapi.File where FileId = ?"
+    val sql = s"select * from File where FileId = ?"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, fileId.toString)
     val rs: ResultSet = ps.executeQuery()

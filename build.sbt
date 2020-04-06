@@ -13,8 +13,7 @@ scalacOptions ++= Seq("-deprecation", "-feature")
 
 resolvers ++= Seq[Resolver](
   "Sonatype Releases" at "https://dl.bintray.com/mockito/maven/",
-  s3resolver.value("Releases resolver", s3("tdr-releases-mgmt")),
-  s3resolver.value("Snapshots resolver", s3("tdr-snapshots-mgmt"))
+  "TDR Releases" at "s3://tdr-releases-mgmt"
 )
 
 mainClass in (Compile, run) := Some("uk.gov.nationalarchives.tdr.api.http.ApiServer")
@@ -43,7 +42,7 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-optics" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,
   "io.circe" %% "circe-generic-extras" % circeVersion,
-  "uk.gov.nationalarchives" %% "consignment-api-db" % "0.0.17",
+  "uk.gov.nationalarchives" %% "consignment-api-db" % "0.0.20",
   "org.postgresql" % "postgresql" % "42.2.11",
   "com.typesafe.slick" %% "slick" % "3.3.2",
   "com.typesafe.slick" %% "slick-hikaricp" % "3.3.2",
@@ -59,7 +58,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-testkit" % "2.6.3" % Test,
   "com.tngtech.keycloakmock" % "mock" % "0.2.0" % Test,
   "com.h2database" % "h2" % "1.4.200" % Test,
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.7"
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.12"
 
 )
 
