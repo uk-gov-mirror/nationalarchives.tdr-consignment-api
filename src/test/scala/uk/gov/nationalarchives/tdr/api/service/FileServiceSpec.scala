@@ -81,6 +81,5 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     captor.getAllValues.size should equal(1)
     captor.getAllValues.get(0).head.consignmentid should equal(consignmentUuid)
     captor.getAllValues.get(0).head.userid should equal(userId)
-
   }
 }
