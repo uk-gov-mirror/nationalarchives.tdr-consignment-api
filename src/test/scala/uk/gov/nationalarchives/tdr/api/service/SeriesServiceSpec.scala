@@ -21,7 +21,6 @@ class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     val fixedUuidSource = new FixedUUIDSource()
     val repoMock = setupSeriesResponses
 
-
     val seriesService: SeriesService = new SeriesService(repoMock, fixedUuidSource)
     val seriesResponse: Seq[SeriesFields.Series] = seriesService.getSeries("1").await()
 
