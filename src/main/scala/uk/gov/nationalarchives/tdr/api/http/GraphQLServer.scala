@@ -11,8 +11,7 @@ import sangria.execution._
 import sangria.marshalling.sprayJson._
 import sangria.parser.QueryParser
 import spray.json.{JsObject, JsString, JsValue}
-import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser
-import uk.gov.nationalarchives.tdr.api.auth.ValidationAuthoriser.AuthorisationException
+import uk.gov.nationalarchives.tdr.api.auth.{AuthorisationException, ValidationAuthoriser}
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.db.repository.{ClientFileMetadataRepository, ConsignmentRepository, SeriesRepository, TransferAgreementRepository, _}
 import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, ErrorCodes, GraphQlTypes}
@@ -78,7 +77,7 @@ object GraphQLServer {
       query,  context,
       variables = vars,
       operationName = operation,
-      middleware = ValidationAuthoriser :: Nil,
+      middleware = new ValidationAuthoriser :: Nil,
       exceptionHandler = exceptionHandler
     ).map(OK -> _)
       .recover {

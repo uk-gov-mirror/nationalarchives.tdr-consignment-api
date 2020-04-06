@@ -6,8 +6,8 @@ import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
 import sangria.schema.{Argument, Field, InputObjectType, LongType, ObjectType, OptionType, fields}
+import uk.gov.nationalarchives.tdr.api.auth.ValidateUserOwnsConsignment
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
-import uk.gov.nationalarchives.tdr.api.graphql.Tags.ValidateUserOwnsConsignment
 import uk.gov.nationalarchives.tdr.api.graphql.validation.UserOwnsConsignment
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 

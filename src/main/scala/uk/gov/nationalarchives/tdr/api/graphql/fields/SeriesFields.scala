@@ -7,8 +7,8 @@ import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
 import sangria.schema.{Argument, Field, ListType, ObjectType, StringType, fields}
+import uk.gov.nationalarchives.tdr.api.auth.ValidateBody
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
-import uk.gov.nationalarchives.tdr.api.graphql.Tags.ValidateBody
 
 object SeriesFields {
   case class Series(seriesid: UUID, bodyid: UUID, name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
@@ -21,6 +21,7 @@ object SeriesFields {
     Field("getSeries", ListType(SeriesType),
       arguments=BodyArg :: Nil,
       resolve = ctx => ctx.ctx.seriesService.getSeries(ctx.arg(BodyArg)),
-      tags=List(ValidateBody()))
+      tags=List(ValidateBody)
+    )
   )
 }
