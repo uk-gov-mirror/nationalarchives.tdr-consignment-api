@@ -9,7 +9,7 @@ class ClientFileMetadataRepository(db: Database) {
   private val insertQuery = Clientfilemetadata returning Clientfilemetadata.map(_.clientfilemetadataid) into
     ((clientFileMetadata, clientfilemetadataid) => clientFileMetadata.copy(clientfilemetadataid = clientfilemetadataid))
 
-  def addClientFileMetadata(clientFileMetadataRow: ClientfilemetadataRow): Future[ClientfilemetadataRow] = {
-    db.run(insertQuery += clientFileMetadataRow)
+  def addClientFileMetadata(clientFileMetadataRows: Seq[ClientfilemetadataRow]): Future[Seq[ClientfilemetadataRow]] = {
+    db.run(insertQuery ++= clientFileMetadataRows)
   }
 }
