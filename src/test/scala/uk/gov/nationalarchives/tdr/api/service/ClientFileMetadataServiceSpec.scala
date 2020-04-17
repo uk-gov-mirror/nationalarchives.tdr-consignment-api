@@ -10,7 +10,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.ClientfilemetadataRow
 import uk.gov.nationalarchives.tdr.api.db.repository.ClientFileMetadataRepository
-import uk.gov.nationalarchives.tdr.api.graphql.fields.ClientFileMetadataFields.AddClientFileMetadataInput
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ClientFileMetadataFields.{AddClientFileMetadataInput, ClientFileMetadata}
 import uk.gov.nationalarchives.tdr.api.utils.FixedUUIDSource
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
@@ -27,7 +27,7 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
     val dummyTimestamp = Timestamp.from(dummyInstant)
     val dummyFileSize: Long = 1000
     val repositoryMock = mock[ClientFileMetadataRepository]
-    val mockResponse = Future.successful(ClientfilemetadataRow(
+    val mockResponse = Future.successful(Seq(ClientfilemetadataRow(
       clientMetadataUuid,
       fileUuid,
       Some("dummy/original/path"),
@@ -37,12 +37,12 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
       dummyTimestamp,
       Some(dummyFileSize),
       dummyTimestamp
-    )
+    ))
     )
 
-    when(repositoryMock.addClientFileMetadata(any[ClientfilemetadataRow])).thenReturn(mockResponse)
+    when(repositoryMock.addClientFileMetadata(any[Seq[ClientfilemetadataRow]])).thenReturn(mockResponse)
     val service = new ClientFileMetadataService(repositoryMock, fixedUuidSource)
-    val result = service.addClientFileMetadata(AddClientFileMetadataInput(
+    val result = service.addClientFileMetadata(Seq(AddClientFileMetadataInput(
       fileUuid,
       Some("dummy/original/path"),
       Some("dummyCheckSum"),
@@ -50,16 +50,18 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
       dummyInstant.toEpochMilli,
       dummyInstant.toEpochMilli,
       Some(dummyFileSize),
-      dummyInstant.toEpochMilli)).await()
+      dummyInstant.toEpochMilli))).await()
 
-    result.fileId shouldBe fileUuid
-    result.originalPath.get shouldBe "dummy/original/path"
-    result.checksum.get shouldBe "dummyCheckSum"
-    result.checksumType.get shouldBe "checksumType"
-    result.lastModified shouldBe dummyInstant.toEpochMilli
-    result.createdDate shouldBe dummyInstant.toEpochMilli
-    result.fileSize.get shouldBe dummyFileSize
-    result.datetime shouldBe dummyInstant.toEpochMilli
-    result.clientFileMetadataId shouldBe clientMetadataUuid
+    result.length shouldBe 1
+    val r: ClientFileMetadata = result.head
+    r.fileId shouldBe fileUuid
+    r.originalPath.get shouldBe "dummy/original/path"
+    r.checksum.get shouldBe "dummyCheckSum"
+    r.checksumType.get shouldBe "checksumType"
+    r.lastModified shouldBe dummyInstant.toEpochMilli
+    r.createdDate shouldBe dummyInstant.toEpochMilli
+    r.fileSize.get shouldBe dummyFileSize
+    r.datetime shouldBe dummyInstant.toEpochMilli
+    r.clientFileMetadataId shouldBe clientMetadataUuid
   }
 }

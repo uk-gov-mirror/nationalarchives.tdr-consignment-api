@@ -12,30 +12,32 @@ import scala.concurrent.{ExecutionContext, Future}
 class ClientFileMetadataService(clientFileMetadataRepository: ClientFileMetadataRepository, uuidSource: UUIDSource)
                                (implicit val executionContext: ExecutionContext) {
 
-  def addClientFileMetadata(input: AddClientFileMetadataInput): Future[ClientFileMetadata] = {
+  def addClientFileMetadata(inputs: Seq[AddClientFileMetadataInput]): Future[Seq[ClientFileMetadata]] = {
 
-    val clientFileMetadataRow = ClientfilemetadataRow(
+    val rows: Seq[ClientfilemetadataRow] = inputs.map(i => ClientfilemetadataRow(
       uuidSource.uuid,
-      input.fileId,
-      input.originalPath,
-      input.checksum,
-      input.checksumType,
-      Timestamp.from(Instant.ofEpochMilli(input.lastModified)),
-      Timestamp.from(Instant.ofEpochMilli(input.createdDate)),
-      input.fileSize,
-      Timestamp.from(Instant.ofEpochMilli(input.datetime))
-    )
+      i.fileId,
+      i.originalPath,
+      i.checksum,
+      i.checksumType,
+      Timestamp.from(Instant.ofEpochMilli(i.lastModified)),
+      Timestamp.from(Instant.ofEpochMilli(i.createdDate)),
+      i.fileSize,
+      Timestamp.from(Instant.ofEpochMilli(i.datetime))))
 
-    clientFileMetadataRepository.addClientFileMetadata(clientFileMetadataRow).map(row => ClientFileMetadata(
-      row.fileid,
-      row.originalpath,
-      row.checksum,
-      row.checksumtype,
-      row.lastmodified.getTime,
-      row.createddate.getTime,
-      row.filesize,
-      row.datetime.getTime,
-      row.clientfilemetadataid
-    ))
-  }
-}
+    clientFileMetadataRepository.addClientFileMetadata(rows).map(r => {
+      r.map(row => {
+        ClientFileMetadata(
+          row.fileid,
+          row.originalpath,
+          row.checksum,
+          row.checksumtype,
+          row.lastmodified.getTime,
+          row.createddate.getTime,
+          row.filesize,
+          row.datetime.getTime,
+          row.clientfilemetadataid
+        )
+      })
+    })
+}}

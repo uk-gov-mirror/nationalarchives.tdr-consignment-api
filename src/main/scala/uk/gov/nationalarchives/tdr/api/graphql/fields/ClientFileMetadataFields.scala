@@ -5,7 +5,7 @@ import java.util.UUID
 import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
-import sangria.schema.{Argument, Field, InputObjectType, ObjectType, fields}
+import sangria.schema.{Argument, Field, InputObjectType, ListInputType, ListType, ObjectType, fields}
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 
@@ -32,10 +32,10 @@ object ClientFileMetadataFields {
   implicit val ClientFileMetadataType: ObjectType[Unit, ClientFileMetadata] = deriveObjectType[Unit, ClientFileMetadata]()
   implicit val AddClientFileMetadataInputType: InputObjectType[AddClientFileMetadataInput] = deriveInputObjectType[AddClientFileMetadataInput]()
 
-  val ClientFileMetadataInputArg = Argument("addClientFileMetadataInput", AddClientFileMetadataInputType)
+  val ClientFileMetadataInputArg = Argument("addClientFileMetadataInput", ListInputType(AddClientFileMetadataInputType))
 
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
-    Field("addClientFileMetadata", ClientFileMetadataType,
+    Field("addClientFileMetadata", ListType(ClientFileMetadataType),
       arguments=ClientFileMetadataInputArg :: Nil,
       resolve = ctx => ctx.ctx.clientFileMetadataService.addClientFileMetadata(ctx.arg(ClientFileMetadataInputArg))
     ))

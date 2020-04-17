@@ -31,7 +31,7 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
                                 datetime: Option[Long] = None,
                                 clientFileMetadataId: Option[UUID] = None
                               )
-  case class AddClientFileMetadata(addClientFileMetadata: ClientFileMetadata) extends TestRequest
+  case class AddClientFileMetadata(addClientFileMetadata: List[ClientFileMetadata]) extends TestRequest
 
   override def beforeEach(): Unit = {
     resetDatabase()
@@ -48,7 +48,7 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
     response.data.get.addClientFileMetadata should equal(expectedResponse.data.get.addClientFileMetadata)
 
-    checkClientFileMetadataExists(response.data.get.addClientFileMetadata.clientFileMetadataId.get)
+    checkClientFileMetadataExists(response.data.get.addClientFileMetadata.head.clientFileMetadataId.get)
   }
 
   "The api" should "return the expected data from inserted Client File metadata object" in {
@@ -57,7 +57,7 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
     val response: GraphqlMutationData = runTestMutation("mutation_somedata", validUserToken())
     response.data.get.addClientFileMetadata should equal(expectedResponse.data.get.addClientFileMetadata)
 
-    checkClientFileMetadataExists(response.data.get.addClientFileMetadata.clientFileMetadataId.get)
+    checkClientFileMetadataExists(response.data.get.addClientFileMetadata.head.clientFileMetadataId.get)
   }
 
   "The api" should "throw an error if the file id field is not provided" in {
