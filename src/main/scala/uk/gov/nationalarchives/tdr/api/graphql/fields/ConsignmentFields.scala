@@ -6,6 +6,7 @@ import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
 import sangria.schema.{Argument, Field, InputObjectType, LongType, ObjectType, OptionType, fields}
+import uk.gov.nationalarchives.tdr.api.auth.{ValidateSeries, ValidateUserOwnsConsignment}
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 
@@ -22,7 +23,8 @@ object ConsignmentFields {
   val queryFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("getConsignment", OptionType(ConsignmentType),
       arguments=ConsignmentIdArg :: Nil,
-      resolve = ctx => ctx.ctx.consignmentService.getConsignment(ctx.arg(ConsignmentIdArg))
+      resolve = ctx => ctx.ctx.consignmentService.getConsignment(ctx.arg(ConsignmentIdArg)),
+      tags=List(ValidateUserOwnsConsignment(ConsignmentIdArg))
      )
   )
 
@@ -32,7 +34,8 @@ object ConsignmentFields {
       resolve = ctx => ctx.ctx.consignmentService.addConsignment(
         ctx.arg(ConsignmentInputArg),
         ctx.ctx.accessToken.userId.map(id => UUID.fromString(id))
-      )
+      ),
+      tags=List(ValidateSeries)
     )
   )
 }

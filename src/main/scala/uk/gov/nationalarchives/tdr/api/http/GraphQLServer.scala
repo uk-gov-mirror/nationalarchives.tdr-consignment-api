@@ -59,18 +59,24 @@ object GraphQLServer {
     val uuidSourceClass: Class[_] = Class.forName(ConfigFactory.load().getString("source.uuid"))
     val uuidSource: UUIDSource = uuidSourceClass.getDeclaredConstructor().newInstance().asInstanceOf[UUIDSource]
     val db = DbConnection.db
+
+    val consignmentRepository = new ConsignmentRepository(db)
+
     val seriesService = new SeriesService(new SeriesRepository(db), uuidSource)
-    val consignmentService = new ConsignmentService(new ConsignmentRepository(db), new CurrentTimeSource, uuidSource)
+    val consignmentService = new ConsignmentService(consignmentRepository, new CurrentTimeSource, uuidSource)
     val transferAgreementService = new TransferAgreementService(new TransferAgreementRepository(db), uuidSource)
     val clientFileMetadataService = new ClientFileMetadataService(new ClientFileMetadataRepository(db), uuidSource)
-    val fileService = new FileService(new FileRepository(db), new CurrentTimeSource, uuidSource)
+    val fileService = new FileService(new FileRepository(db), consignmentRepository, new CurrentTimeSource, uuidSource)
+    val transferringBodyService = new TransferringBodyService(new TransferringBodyRepository(db))
+
     val context = ConsignmentApiContext(
       accessToken,
-      seriesService,
-      consignmentService,
-      transferAgreementService,
       clientFileMetadataService,
-      fileService
+      consignmentService,
+      fileService,
+      seriesService,
+      transferAgreementService,
+      transferringBodyService
     )
     Executor.execute(
       GraphQlTypes.schema,

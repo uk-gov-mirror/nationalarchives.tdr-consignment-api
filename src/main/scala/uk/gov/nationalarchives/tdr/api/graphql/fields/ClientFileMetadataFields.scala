@@ -6,6 +6,7 @@ import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
 import sangria.schema.{Argument, Field, InputObjectType, ListInputType, ListType, ObjectType, fields}
+import uk.gov.nationalarchives.tdr.api.auth.ValidateUserOwnsFiles
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 
@@ -37,6 +38,7 @@ object ClientFileMetadataFields {
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("addClientFileMetadata", ListType(ClientFileMetadataType),
       arguments=ClientFileMetadataInputArg :: Nil,
-      resolve = ctx => ctx.ctx.clientFileMetadataService.addClientFileMetadata(ctx.arg(ClientFileMetadataInputArg))
+      resolve = ctx => ctx.ctx.clientFileMetadataService.addClientFileMetadata(ctx.arg(ClientFileMetadataInputArg)),
+      tags=List(ValidateUserOwnsFiles)
     ))
 }
