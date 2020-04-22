@@ -88,4 +88,34 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
 
     response should be(None)
   }
+
+  "previousUploadToConsignment" should "return true when files already associated with provided consignment id" in {
+    val fixedUuidSource = new FixedUUIDSource()
+    val fileUuid1 = UUID.randomUUID()
+    val fileUuid2 = UUID.randomUUID()
+    val mockResponse: Future[Seq[UUID]] = Future.successful(Seq(fileUuid1, fileUuid2))
+    val consignmentRepoMock = mock[ConsignmentRepository]
+    when(consignmentRepoMock.getConsignmentFiles(any[UUID])).thenReturn(mockResponse)
+
+    val consignmentService: ConsignmentService = new ConsignmentService(consignmentRepoMock, FixedTimeSource, fixedUuidSource)
+    val response: Boolean = consignmentService.previousUploadToConsignment(UUID.randomUUID()).await()
+    verify(consignmentRepoMock, times(1)).getConsignmentFiles(any[UUID])
+
+    response should be(true)
+  }
+
+  "previousUploadToConsignment" should "return false when no files associated with provided consignment id" in {
+    val fixedUuidSource = new FixedUUIDSource()
+    val fileUuid1 = UUID.randomUUID()
+    val fileUuid2 = UUID.randomUUID()
+    val mockResponse: Future[Seq[UUID]] = Future.successful(Seq())
+    val consignmentRepoMock = mock[ConsignmentRepository]
+    when(consignmentRepoMock.getConsignmentFiles(any[UUID])).thenReturn(mockResponse)
+
+    val consignmentService: ConsignmentService = new ConsignmentService(consignmentRepoMock, FixedTimeSource, fixedUuidSource)
+    val response: Boolean = consignmentService.previousUploadToConsignment(UUID.randomUUID()).await()
+    verify(consignmentRepoMock, times(1)).getConsignmentFiles(any[UUID])
+
+    response should be(false)
+  }
 }

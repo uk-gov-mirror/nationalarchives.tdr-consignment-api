@@ -21,6 +21,14 @@ class ConsignmentRepository(db: Database) {
     db.run(query.result)
   }
 
+  def getConsignmentFiles(consignmentId: UUID): Future[Seq[UUID]] = {
+    val query = for {
+      (file, _) <- File.join(Consignment).on(_.consignmentid === _.consignmentid).filter(_._1.consignmentid === consignmentId)
+    } yield file.fileid
+
+    db.run(query.result)
+  }
+
   def getConsignmentsOfFiles(fileIds: Seq[UUID])
                             (implicit executionContext: ExecutionContext):Future[Seq[(UUID, ConsignmentRow)]] = {
     val query = for {

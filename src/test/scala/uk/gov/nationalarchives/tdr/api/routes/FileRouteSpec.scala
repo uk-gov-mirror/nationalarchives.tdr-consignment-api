@@ -86,6 +86,19 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
     response.errors.head.extensions.get.code should equal(expectedResponse.errors.head.extensions.get.code)
   }
 
+  "The api" should "throw an error if the consignment already has had files uploaded" in {
+    val sqlConsignment = s"insert into Consignment (SeriesId, UserId) VALUES (1,'$userId')"
+    val psConsignment: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sqlConsignment)
+    psConsignment.executeUpdate()
+    //Seed DB with initial file for consignment
+    runTestMutation("mutation_one_file", validUserToken())
+
+    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_error_previous_upload")
+    val response: GraphqlMutationData = runTestMutation("mutation_one_file", validUserToken())
+    response.errors.head.message should equal (expectedResponse.errors.head.message)
+    checkNumberOfFiles(1)
+  }
+
   private def checkFileExists(fileId: UUID) = {
     val sql = s"select * from File where FileId = ?"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
@@ -93,5 +106,13 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
     val rs: ResultSet = ps.executeQuery()
     rs.next()
     rs.getString("FileId") should equal(fileId.toString)
+  }
+
+  private def checkNumberOfFiles(expectedNumberOfFiles: Int) = {
+    val sql = s"select * from File"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    val rs: ResultSet = ps.executeQuery()
+    rs.last()
+    rs.getRow should equal(expectedNumberOfFiles)
   }
 }
