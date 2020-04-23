@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives.tdr.auth
+package uk.gov.nationalarchives.tdr.api.auth
 
 import java.util.UUID
 

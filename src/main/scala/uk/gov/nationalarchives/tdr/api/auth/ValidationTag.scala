@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives.tdr.auth
+package uk.gov.nationalarchives.tdr.api.auth
 
 import sangria.execution.{BeforeFieldResult, FieldTag}
 import sangria.schema.Context
