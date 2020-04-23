@@ -95,6 +95,7 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
 
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_error_previous_upload")
     val response: GraphqlMutationData = runTestMutation("mutation_one_file", validUserToken())
+    response.errors.head.extensions should equal(expectedResponse.errors.head.extensions)
     response.errors.head.message should equal (expectedResponse.errors.head.message)
     checkNumberOfFiles(1)
   }
