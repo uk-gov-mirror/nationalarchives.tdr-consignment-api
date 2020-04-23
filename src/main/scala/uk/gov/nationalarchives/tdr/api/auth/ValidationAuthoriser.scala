@@ -42,17 +42,6 @@ class ValidationAuthoriser(implicit executionContext: ExecutionContext)
         // remove it when we find a way to do authorisation in a completely async way in Sangria.
         Await.result(validationResult, 5 seconds)
       }
-//      case cs: ValidationTag => {
-//        val validationResult = cs.validate(ctx)
-//
-//        // Awaiting a Future is risky because the thread will block until the response is returned or the timeout is reached.
-//        // It could cause the API to be slow because akka-http cannot assign threads to new requests while this one is
-//        // blocked.
-//        //
-//        // We are only using Await because Sangria middleware does not support Futures like the main resolvers do. We should
-//        // remove it when we find a way to do authorisation in a completely async way in Sangria.
-//        Await.result(validationResult, 5 seconds)
-//      }
     }
 
     validationList.headOption.getOrElse(continue)
