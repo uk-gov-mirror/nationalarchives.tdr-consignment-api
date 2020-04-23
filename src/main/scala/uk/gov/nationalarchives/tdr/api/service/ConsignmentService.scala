@@ -24,9 +24,7 @@ class ConsignmentService(consignmentRepository: ConsignmentRepository, timeSourc
     consignments.map(rows => rows.headOption.map(row => Consignment(Some(row.consignmentid), row.userid, row.seriesid)))
   }
 
-  def previousUploadToConsignment(consignmentId: UUID): Future[Boolean] = {
-    consignmentRepository.getConsignmentFiles(consignmentId).map(r => {
-      r.nonEmpty
-    })
+  def consignmentHasFiles(consignmentId: UUID): Future[Boolean] = {
+    consignmentRepository.consignmentHasFiles(consignmentId)
   }
 }

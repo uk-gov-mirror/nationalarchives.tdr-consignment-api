@@ -119,19 +119,3 @@ object ValidateUserOwnsFiles extends AuthorisationTag {
       })
   }
 }
-
-case class ValidateNoPreviousUploadForConsignment[T](argument: Argument[T]) extends AuthorisationTag {
-  override def validate(ctx: Context[ConsignmentApiContext, _])
-                       (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
-    val arg: T = ctx.arg[T](argument.name)
-    val consignmentId: UUID = arg match {
-      case uoc: UserOwnsConsignment => uoc.consignmentId
-      case id: UUID => id
-    }
-
-    ctx.ctx.consignmentService.previousUploadToConsignment(consignmentId).map {
-      case true => throw AuthorisationException("Upload already occurred for consignment: " + consignmentId)
-      case false => continue
-    }
-  }
-}

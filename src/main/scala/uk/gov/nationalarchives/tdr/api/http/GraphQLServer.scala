@@ -11,7 +11,7 @@ import sangria.execution._
 import sangria.marshalling.sprayJson._
 import sangria.parser.QueryParser
 import spray.json.{JsObject, JsString, JsValue}
-import uk.gov.nationalarchives.tdr.api.auth.{AuthorisationException, ValidationAuthoriser}
+import uk.gov.nationalarchives.tdr.api.auth.{AuthorisationException, ValidationAuthoriser, ConsignmentStateException}
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.db.repository.{ClientFileMetadataRepository, ConsignmentRepository, SeriesRepository, TransferAgreementRepository, _}
 import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, ErrorCodes, GraphQlTypes}
@@ -27,6 +27,11 @@ object GraphQLServer {
   val exceptionHandler = ExceptionHandler {
     case (resultMarshaller, AuthorisationException(message)) => {
       val node = resultMarshaller.scalarNode(ErrorCodes.notAuthorised, "String", Set.empty)
+      val additionalFields = Map("code" -> node)
+      HandledException(message, additionalFields)
+    }
+    case (resultMarshaller, ConsignmentStateException(message)) => {
+      val node = resultMarshaller.scalarNode(ErrorCodes.invalidConsignmentState, "String", Set.empty)
       val additionalFields = Map("code" -> node)
       HandledException(message, additionalFields)
     }
