@@ -2,7 +2,7 @@ package uk.gov.nationalarchives.tdr.api.auth
 
 import java.util.UUID
 
-import sangria.execution.{BeforeFieldResult, FieldTag}
+import sangria.execution.{BeforeFieldResult}
 import sangria.schema.{Argument, Context}
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ClientFileMetadataFields.AddClientFileMetadataInput

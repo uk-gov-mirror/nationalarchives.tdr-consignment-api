@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.tdr.api.auth
 
-import sangria.execution.{BeforeFieldResult, FieldTag, Middleware, MiddlewareBeforeField, MiddlewareQueryContext}
+import sangria.execution.{BeforeFieldResult, Middleware, MiddlewareBeforeField, MiddlewareQueryContext}
 import sangria.schema.Context
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 
