@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives.tdr.api.auth
+package uk.gov.nationalarchives.tdr.auth
 
 import java.util.UUID
 
@@ -9,14 +9,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.validation.UserOwnsConsignment
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait ConsignmentStateTag extends FieldTag {
-  def validate(ctx: Context[ConsignmentApiContext, _])
-              (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]]
-
-  val continue: BeforeFieldResult[ConsignmentApiContext, Unit] = BeforeFieldResult(())
-}
-
-case class ValidateNoPreviousUploadForConsignment[T](argument: Argument[T]) extends ConsignmentStateTag {
+case class ValidateNoPreviousUploadForConsignment[T](argument: Argument[T]) extends ValidationTag {
   override def validate(ctx: Context[ConsignmentApiContext, _])
                        (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val arg: T = ctx.arg[T](argument.name)
