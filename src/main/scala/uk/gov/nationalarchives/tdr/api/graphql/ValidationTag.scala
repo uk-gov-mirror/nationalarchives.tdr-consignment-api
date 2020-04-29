@@ -1,8 +1,7 @@
-package uk.gov.nationalarchives.tdr.api.auth
+package uk.gov.nationalarchives.tdr.api.graphql
 
 import sangria.execution.{BeforeFieldResult, FieldTag}
 import sangria.schema.Context
-import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 
 import scala.concurrent.{ExecutionContext, Future}
 

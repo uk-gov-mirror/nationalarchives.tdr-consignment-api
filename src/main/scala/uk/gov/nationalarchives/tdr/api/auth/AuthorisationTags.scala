@@ -2,9 +2,9 @@ package uk.gov.nationalarchives.tdr.api.auth
 
 import java.util.UUID
 
-import sangria.execution.{BeforeFieldResult}
+import sangria.execution.{BeforeFieldResult, FieldTag}
 import sangria.schema.{Argument, Context}
-import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
+import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, ValidationTag}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ClientFileMetadataFields.AddClientFileMetadataInput
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.AddConsignmentInput
 import uk.gov.nationalarchives.tdr.api.graphql.validation.UserOwnsConsignment
@@ -12,7 +12,9 @@ import uk.gov.nationalarchives.tdr.api.graphql.validation.UserOwnsConsignment
 import scala.concurrent._
 import scala.language.postfixOps
 
-trait SyncAuthorisationTag extends ValidationTag {
+trait AuthorisationTag extends ValidationTag
+
+trait SyncAuthorisationTag extends AuthorisationTag {
   final def validate(ctx: Context[ConsignmentApiContext, _])
                     (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     Future.successful(validateSync(ctx))
@@ -36,7 +38,7 @@ object ValidateBody extends SyncAuthorisationTag {
   }
 }
 
-object ValidateSeries extends ValidationTag {
+object ValidateSeries extends AuthorisationTag {
   override def validate(ctx: Context[ConsignmentApiContext, _])
                        (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val token = ctx.ctx.accessToken
@@ -61,7 +63,7 @@ object ValidateSeries extends ValidationTag {
   }
 }
 
-case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends ValidationTag {
+case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends AuthorisationTag {
   override def validate(ctx: Context[ConsignmentApiContext, _])
                        (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val token = ctx.ctx.accessToken
@@ -89,7 +91,7 @@ case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends Validat
   }
 }
 
-object ValidateUserOwnsFiles extends ValidationTag {
+object ValidateUserOwnsFiles extends AuthorisationTag {
   override def validate(ctx: Context[ConsignmentApiContext, _])
                        (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val token = ctx.ctx.accessToken

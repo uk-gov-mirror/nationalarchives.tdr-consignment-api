@@ -1,15 +1,17 @@
-package uk.gov.nationalarchives.tdr.api.auth
+package uk.gov.nationalarchives.tdr.api.consignmentstatevalidation
 
 import java.util.UUID
 
-import sangria.execution.{BeforeFieldResult}
+import sangria.execution.BeforeFieldResult
 import sangria.schema.{Argument, Context}
-import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
+import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, ValidationTag}
 import uk.gov.nationalarchives.tdr.api.graphql.validation.UserOwnsConsignment
 
 import scala.concurrent.{ExecutionContext, Future}
 
-case class ValidateNoPreviousUploadForConsignment[T](argument: Argument[T]) extends ValidationTag {
+trait ConsignmentStateTag extends ValidationTag
+
+case class ValidateNoPreviousUploadForConsignment[T](argument: Argument[T]) extends ConsignmentStateTag {
   override def validate(ctx: Context[ConsignmentApiContext, _])
                        (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val arg: T = ctx.arg[T](argument.name)
