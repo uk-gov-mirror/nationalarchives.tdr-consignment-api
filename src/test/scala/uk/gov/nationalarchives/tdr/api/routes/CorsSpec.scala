@@ -3,11 +3,14 @@ package uk.gov.nationalarchives.tdr.api.routes
 import akka.http.scaladsl.model.HttpMethods.{GET, OPTIONS, POST}
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
+import com.typesafe.config.ConfigFactory
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import uk.gov.nationalarchives.tdr.api.http.Routes.route
+import uk.gov.nationalarchives.tdr.api.http.Routes
 
 class CorsSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest {
+
+  val route = new Routes(ConfigFactory.load()).route
 
   "the pre-flight request" should "allow requests from the frontend" in {
     Options("/graphql") ~> route ~> check {

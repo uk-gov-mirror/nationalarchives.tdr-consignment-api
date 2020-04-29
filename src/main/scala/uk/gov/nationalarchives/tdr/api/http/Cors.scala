@@ -1,17 +1,17 @@
 package uk.gov.nationalarchives.tdr.api.http
 
 import akka.http.scaladsl.model.HttpMethods.{GET, OPTIONS, POST}
-import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.model.headers._
-import akka.http.scaladsl.server.Directives._
-
-import akka.http.scaladsl.server.Directives.{complete, options, respondWithHeaders}
+import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
+import akka.http.scaladsl.server.Directives.{complete, options, respondWithHeaders, _}
 import akka.http.scaladsl.server.{Directive0, Route}
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.Config
 
 trait Cors {
 
-  val frontendUrl: String = ConfigFactory.load().getString("frontend.url")
+  def config: Config
+
+  val frontendUrl: String = config.getString("frontend.url")
 
   private def addAccessControlHeaders: Directive0 = {
     respondWithHeaders(

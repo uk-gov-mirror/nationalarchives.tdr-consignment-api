@@ -3,8 +3,8 @@ package uk.gov.nationalarchives.tdr.api.http
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.stream.Materializer
+import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
-import uk.gov.nationalarchives.tdr.api.http.Routes.route
 
 import scala.concurrent.Await
 import scala.language.postfixOps
@@ -21,7 +21,9 @@ object ApiServer extends App {
 
   scala.sys.addShutdownHook(() -> shutdown())
 
-  Http().bindAndHandle(route, "0.0.0.0", PORT)
+  val routes = new Routes(ConfigFactory.load())
+
+  Http().bindAndHandle(routes.route, "0.0.0.0", PORT)
   logger.info(s"open a browser with URL: http://localhost:$PORT")
 
 

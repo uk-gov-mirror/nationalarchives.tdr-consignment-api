@@ -13,15 +13,14 @@ import uk.gov.nationalarchives.tdr.keycloak.{KeycloakUtils, Token}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-
-object Routes extends Cors {
+class Routes(val config: Config) extends Cors {
 
   implicit val system: ActorSystem = ActorSystem("consignmentApi")
   implicit val executionContext: ExecutionContext = system.dispatcher
 
   val logger = Logger("ApiServer")
   val ttlSeconds: Int = 10
-  val url: String = ConfigFactory.load().getString("auth.url")
+  val url: String = config.getString("auth.url")
 
 
   def tokenAuthenticator(credentials: Credentials): Future[Option[Token]] = {
