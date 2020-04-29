@@ -17,20 +17,16 @@ trait Cors {
     respondWithHeaders(
       `Access-Control-Allow-Origin`(HttpOrigin(frontendUrl)),
       `Access-Control-Allow-Credentials`(true),
-      `Access-Control-Allow-Headers`("Authorization", "Content-Type", "X-Requested-With")
+      `Access-Control-Allow-Headers`("Authorization", "Content-Type", "X-Requested-With"),
+      `Access-Control-Allow-Methods`(OPTIONS, POST, GET)
     )
   }
 
   private def preflightRequestHandler: Route = options {
-    complete(HttpResponse(StatusCodes.OK)
-      .withHeaders(
-        `Access-Control-Allow-Methods`(OPTIONS, POST, GET)
-      )
-    )
+    complete(HttpResponse(StatusCodes.OK))
   }
 
   def corsHandler(r: Route): Route = addAccessControlHeaders {
     preflightRequestHandler ~ r
   }
-
 }
