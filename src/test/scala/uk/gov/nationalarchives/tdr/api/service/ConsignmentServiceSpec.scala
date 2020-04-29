@@ -19,7 +19,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
-
+  private val fixedFileUUID = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
 
   "createConsignment" should "create a consignment given correct arguments" in {
     val fixedUuidSource = new FixedUUIDSource()
@@ -91,30 +91,24 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
 
   "consignmentHasFiles" should "return true when files already associated with provided consignment id" in {
     val fixedUuidSource = new FixedUUIDSource()
-    val fileUuid1 = UUID.randomUUID()
-    val fileUuid2 = UUID.randomUUID()
     val mockResponse: Future[Boolean] = Future.successful(true)
     val consignmentRepoMock = mock[ConsignmentRepository]
-    when(consignmentRepoMock.consignmentHasFiles(any[UUID])).thenReturn(mockResponse)
+    when(consignmentRepoMock.consignmentHasFiles(fixedFileUUID)).thenReturn(mockResponse)
 
     val consignmentService: ConsignmentService = new ConsignmentService(consignmentRepoMock, FixedTimeSource, fixedUuidSource)
-    val response: Boolean = consignmentService.consignmentHasFiles(UUID.randomUUID()).await()
-    verify(consignmentRepoMock, times(1)).consignmentHasFiles(any[UUID])
+    val response: Boolean = consignmentService.consignmentHasFiles(fixedFileUUID).await()
 
     response should be(true)
   }
 
   "consignmentHasFiles" should "return false when no files associated with provided consignment id" in {
     val fixedUuidSource = new FixedUUIDSource()
-    val fileUuid1 = UUID.randomUUID()
-    val fileUuid2 = UUID.randomUUID()
     val mockResponse: Future[Boolean] = Future.successful(false)
     val consignmentRepoMock = mock[ConsignmentRepository]
-    when(consignmentRepoMock.consignmentHasFiles(any[UUID])).thenReturn(mockResponse)
+    when(consignmentRepoMock.consignmentHasFiles(fixedFileUUID)).thenReturn(mockResponse)
 
     val consignmentService: ConsignmentService = new ConsignmentService(consignmentRepoMock, FixedTimeSource, fixedUuidSource)
-    val response: Boolean = consignmentService.consignmentHasFiles(UUID.randomUUID()).await()
-    verify(consignmentRepoMock, times(1)).consignmentHasFiles(any[UUID])
+    val response: Boolean = consignmentService.consignmentHasFiles(fixedFileUUID).await()
 
     response should be(false)
   }
