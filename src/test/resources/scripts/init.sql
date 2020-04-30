@@ -56,5 +56,16 @@ CREATE TABLE IF NOT EXISTS File (
    PRIMARY KEY (FileId)
 );
 
+CREATE TABLE IF NOT EXISTS AVMetadata (
+    FileId uuid DEFAULT NULL,
+    Software varchar(255) DEFAULT NULL,
+    Value varchar(255) DEFAULT NULL,
+    SoftwareVersion varchar(255) DEFAULT NULL,
+    DatabaseVersion varchar(255) DEFAULT NULL,
+    Result varchar(255) DEFAULT NULL,
+    Datetime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (FileId)
+);
+
 DELETE from Body;
 INSERT INTO Body (BodyId, Name, Code, Description) VALUES ('6e3b76c4-1745-4467-8ac5-b4dd736e1b3e', 'Body', 'Code', 'Description'), ('645bee46-d738-439b-8007-2083bc983154', 'Body2', 'Code', 'Description');

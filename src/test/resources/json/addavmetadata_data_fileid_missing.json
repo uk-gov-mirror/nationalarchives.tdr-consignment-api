@@ -1,0 +1,1 @@
+{"data":null,"errors":[{"message":  "Field 'AddAVMetadataInput.fileId' of required type 'UUID!' was not provided. (line 1, column 46):\nmutation {addAVMetadata(addAVMetadataInput: [{softwareVersion: \"0.1\"}]) {fileId, softwareVersion}}\n                                             ^"}]}

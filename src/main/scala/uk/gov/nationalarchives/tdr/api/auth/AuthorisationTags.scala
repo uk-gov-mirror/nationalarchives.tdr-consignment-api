@@ -5,7 +5,6 @@ import java.util.UUID
 import sangria.execution.{BeforeFieldResult, FieldTag}
 import sangria.schema.{Argument, Context}
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
-import uk.gov.nationalarchives.tdr.api.graphql.fields.ClientFileMetadataFields.AddClientFileMetadataInput
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.AddConsignmentInput
 import uk.gov.nationalarchives.tdr.api.graphql.validation.{UserOwnsConsignment, UserOwnsFile}
 
@@ -102,12 +101,6 @@ case class ValidateUserOwnsFiles[T](argument: Argument[T]) extends Authorisation
     val token = ctx.ctx.accessToken
     val tokenUserId = token.userId.getOrElse(
       throw AuthorisationException(s"No user ID in token"))
-
-//    val arg: T = ctx.arg[T](argument.name)
-//    val fileId: UUID = arg match {
-//      case uof: UserOwnsFile => uof.fileId
-//      case id: UUID => id
-//    }
 
     val queryInput = ctx.arg[Seq[UserOwnsFile]](argument.name)
 
