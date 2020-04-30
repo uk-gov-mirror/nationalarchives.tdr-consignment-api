@@ -19,7 +19,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
-  private val fixedFileUUID = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
+  private val fixedConsignmentUUID = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
 
   "createConsignment" should "create a consignment given correct arguments" in {
     val fixedUuidSource = new FixedUUIDSource()
@@ -93,10 +93,10 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
     val fixedUuidSource = new FixedUUIDSource()
     val mockResponse: Future[Boolean] = Future.successful(true)
     val consignmentRepoMock = mock[ConsignmentRepository]
-    when(consignmentRepoMock.consignmentHasFiles(fixedFileUUID)).thenReturn(mockResponse)
+    when(consignmentRepoMock.consignmentHasFiles(fixedConsignmentUUID)).thenReturn(mockResponse)
 
     val consignmentService: ConsignmentService = new ConsignmentService(consignmentRepoMock, FixedTimeSource, fixedUuidSource)
-    val response: Boolean = consignmentService.consignmentHasFiles(fixedFileUUID).await()
+    val response: Boolean = consignmentService.consignmentHasFiles(fixedConsignmentUUID).await()
 
     response should be(true)
   }
@@ -105,10 +105,10 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
     val fixedUuidSource = new FixedUUIDSource()
     val mockResponse: Future[Boolean] = Future.successful(false)
     val consignmentRepoMock = mock[ConsignmentRepository]
-    when(consignmentRepoMock.consignmentHasFiles(fixedFileUUID)).thenReturn(mockResponse)
+    when(consignmentRepoMock.consignmentHasFiles(fixedConsignmentUUID)).thenReturn(mockResponse)
 
     val consignmentService: ConsignmentService = new ConsignmentService(consignmentRepoMock, FixedTimeSource, fixedUuidSource)
-    val response: Boolean = consignmentService.consignmentHasFiles(fixedFileUUID).await()
+    val response: Boolean = consignmentService.consignmentHasFiles(fixedConsignmentUUID).await()
 
     response should be(false)
   }

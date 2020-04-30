@@ -4,8 +4,7 @@ import sangria.execution.{BeforeFieldResult, Middleware, MiddlewareBeforeField, 
 import sangria.schema.Context
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 
-import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.ExecutionContext
 
 class ConsignmentStateValidator (implicit executionContext: ExecutionContext)
   extends Middleware[ConsignmentApiContext] with MiddlewareBeforeField[ConsignmentApiContext] {
@@ -23,15 +22,7 @@ class ConsignmentStateValidator (implicit executionContext: ExecutionContext)
                           ): BeforeFieldResult[ConsignmentApiContext, Unit] = {
     val validationList: Seq[BeforeFieldResult[ConsignmentApiContext, Unit]] = ctx.field.tags.map {
       case v: ConsignmentStateTag => {
-        val validationResult = v.validate(ctx)
-
-        // Awaiting a Future is risky because the thread will block until the response is returned or the timeout is reached.
-        // It could cause the API to be slow because akka-http cannot assign threads to new requests while this one is
-        // blocked.
-        //
-        // We are only using Await because Sangria middleware does not support Futures like the main resolvers do. We should
-        // remove it when we find a way to do authorisation in a completely async way in Sangria.
-        Await.result(validationResult, 5 seconds)
+        v.validate(ctx)
       }
       case _ => continue
     }

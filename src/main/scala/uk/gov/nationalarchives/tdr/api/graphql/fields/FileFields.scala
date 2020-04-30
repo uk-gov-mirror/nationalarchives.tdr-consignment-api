@@ -26,7 +26,7 @@ object FileFields {
       FileType,
       arguments = List(FileInputArg),
       resolve = ctx => ctx.ctx.fileService.addFile(ctx.arg(FileInputArg), ctx.ctx.accessToken.userId.map(id => UUID.fromString(id))),
-      tags=List(ValidateUserOwnsConsignment(FileInputArg), ValidateNoPreviousUploadForConsignment(FileInputArg))
+      tags=List(ValidateUserOwnsConsignment(FileInputArg), ValidateNoPreviousUploadForConsignment)
     )
   )
 }
