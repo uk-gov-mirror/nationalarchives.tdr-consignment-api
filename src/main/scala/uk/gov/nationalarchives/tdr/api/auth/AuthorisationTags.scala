@@ -7,7 +7,7 @@ import sangria.schema.{Argument, Context}
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ClientFileMetadataFields.AddClientFileMetadataInput
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.AddConsignmentInput
-import uk.gov.nationalarchives.tdr.api.graphql.validation.UserOwnsConsignment
+import uk.gov.nationalarchives.tdr.api.graphql.validation.{UserOwnsConsignment, UserOwnsFile}
 
 import scala.concurrent._
 import scala.language.postfixOps
@@ -96,14 +96,20 @@ case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends Authori
   }
 }
 
-object ValidateUserOwnsFiles extends AuthorisationTag {
+case class ValidateUserOwnsFiles[T](argument: Argument[T]) extends AuthorisationTag {
   override def validate(ctx: Context[ConsignmentApiContext, _])
                        (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val token = ctx.ctx.accessToken
     val tokenUserId = token.userId.getOrElse(
       throw AuthorisationException(s"No user ID in token"))
 
-    val queryInput = ctx.arg[Seq[AddClientFileMetadataInput]]("addClientFileMetadataInput")
+//    val arg: T = ctx.arg[T](argument.name)
+//    val fileId: UUID = arg match {
+//      case uof: UserOwnsFile => uof.fileId
+//      case id: UUID => id
+//    }
+
+    val queryInput = ctx.arg[Seq[UserOwnsFile]](argument.name)
 
     val fileIds = queryInput.map(_.fileId)
     ctx.ctx.fileService

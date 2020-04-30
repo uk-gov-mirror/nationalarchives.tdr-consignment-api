@@ -9,6 +9,7 @@ import sangria.schema.{Argument, Field, InputObjectType, ListInputType, ListType
 import uk.gov.nationalarchives.tdr.api.auth.ValidateUserOwnsFiles
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
+import uk.gov.nationalarchives.tdr.api.graphql.validation.UserOwnsFile
 
 object ClientFileMetadataFields {
   case class ClientFileMetadata(fileId: UUID,
@@ -28,7 +29,7 @@ object ClientFileMetadataFields {
                                         lastModified: Long,
                                         createdDate: Long,
                                         fileSize: Option[Long] = None,
-                                        datetime: Long)
+                                        datetime: Long) extends UserOwnsFile
 
   implicit val ClientFileMetadataType: ObjectType[Unit, ClientFileMetadata] = deriveObjectType[Unit, ClientFileMetadata]()
   implicit val AddClientFileMetadataInputType: InputObjectType[AddClientFileMetadataInput] = deriveInputObjectType[AddClientFileMetadataInput]()
@@ -39,6 +40,6 @@ object ClientFileMetadataFields {
     Field("addClientFileMetadata", ListType(ClientFileMetadataType),
       arguments=ClientFileMetadataInputArg :: Nil,
       resolve = ctx => ctx.ctx.clientFileMetadataService.addClientFileMetadata(ctx.arg(ClientFileMetadataInputArg)),
-      tags=List(ValidateUserOwnsFiles)
+      tags=List(ValidateUserOwnsFiles(ClientFileMetadataInputArg))
     ))
 }
