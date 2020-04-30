@@ -25,4 +25,16 @@ class CorsSpec extends AnyFlatSpec with Matchers with ScalatestRouteTest {
       header[`Access-Control-Allow-Methods`] should contain(`Access-Control-Allow-Methods`(OPTIONS, POST, GET))
     }
   }
+
+  "the pre-flight request" should "return the default origin if a different origin is given" in {
+    val frontendUrl = "https://some-frontend.example.com"
+
+    val testConfig = baseConfig.withValue("frontend.url", ConfigValueFactory.fromAnyRef(frontendUrl))
+    val route = new Routes(testConfig).route
+
+    val headers = List(Origin("https://some-other-domain.example.com"))
+    Options("/graphql").withHeaders(headers) ~> route ~> check {
+      header[`Access-Control-Allow-Origin`].map(_.value) should contain(frontendUrl)
+    }
+  }
 }
