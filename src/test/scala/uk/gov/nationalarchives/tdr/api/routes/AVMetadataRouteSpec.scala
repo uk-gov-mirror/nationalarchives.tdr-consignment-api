@@ -106,6 +106,14 @@ class AVMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest wit
     checkNoAVMetadataAdded()
   }
 
+  "addAVFileMetadata" should "throw an error if the file id datetime is not provided" in {
+    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_datetime_missing")
+    val response: GraphqlMutationData = runTestMutation("mutation_missingdatetime", validUserToken())
+
+    response.errors.head.message should equal (expectedResponse.errors.head.message)
+    checkNoAVMetadataAdded()
+  }
+
   private def createConsignment(consignmentId: UUID, userId: UUID): Unit = {
     val sql = s"insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES ('$consignmentId', 1, '$userId')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
