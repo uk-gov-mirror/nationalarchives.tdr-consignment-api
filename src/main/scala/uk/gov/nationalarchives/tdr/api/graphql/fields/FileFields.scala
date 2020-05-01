@@ -7,6 +7,7 @@ import sangria.macros.derive._
 import sangria.marshalling.circe._
 import sangria.schema.{Argument, Field, InputObjectType, ObjectType, fields}
 import uk.gov.nationalarchives.tdr.api.auth.ValidateUserOwnsConsignment
+import uk.gov.nationalarchives.tdr.api.consignmentstatevalidation.ValidateNoPreviousUploadForConsignment
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.validation.UserOwnsConsignment
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
@@ -25,7 +26,7 @@ object FileFields {
       FileType,
       arguments = List(FileInputArg),
       resolve = ctx => ctx.ctx.fileService.addFile(ctx.arg(FileInputArg), ctx.ctx.accessToken.userId.map(id => UUID.fromString(id))),
-      tags=List(ValidateUserOwnsConsignment(FileInputArg))
+      tags=List(ValidateUserOwnsConsignment(FileInputArg), ValidateNoPreviousUploadForConsignment)
     )
   )
 }

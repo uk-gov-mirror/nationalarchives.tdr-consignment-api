@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives.tdr.api.auth
+package uk.gov.nationalarchives.tdr.api.consignmentstatevalidation
 
 import sangria.execution.{BeforeFieldResult, Middleware, MiddlewareBeforeField, MiddlewareQueryContext}
 import sangria.schema.Context
@@ -6,7 +6,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 
 import scala.concurrent.ExecutionContext
 
-class ValidationAuthoriser(implicit executionContext: ExecutionContext)
+class ConsignmentStateValidator (implicit executionContext: ExecutionContext)
   extends Middleware[ConsignmentApiContext] with MiddlewareBeforeField[ConsignmentApiContext] {
 
   override type QueryVal = Unit
@@ -20,18 +20,9 @@ class ValidationAuthoriser(implicit executionContext: ExecutionContext)
                            mctx: MiddlewareQueryContext[ConsignmentApiContext, _, _],
                            ctx: Context[ConsignmentApiContext, _]
                           ): BeforeFieldResult[ConsignmentApiContext, Unit] = {
-
-    // All fields must have an authorisation tag defined. This means that if we forget to add authorisation, the
-    // query is blocked by default, which prevents some security bugs.
-    val isTopLevelField = ctx.path.path.length == 1
-    val fieldHasAuthTag = ctx.field.tags.exists(tag => tag.isInstanceOf[AuthorisationTag])
-    if (isTopLevelField && !fieldHasAuthTag) {
-      throw new AssertionError(s"Query '${ctx.field.name}' does not have any authorisation steps defined")
-    }
-
     val validationList: Seq[BeforeFieldResult[ConsignmentApiContext, Unit]] = ctx.field.tags.map {
-      case v: AuthorisationTag => {
-         v.validate(ctx)
+      case v: ConsignmentStateTag => {
+        v.validate(ctx)
       }
       case _ => continue
     }
@@ -40,4 +31,4 @@ class ValidationAuthoriser(implicit executionContext: ExecutionContext)
   }
 }
 
-case class AuthorisationException(message: String) extends Exception(message)
+case class ConsignmentStateException(message: String) extends Exception(message)

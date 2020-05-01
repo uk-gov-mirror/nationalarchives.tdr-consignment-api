@@ -2,24 +2,22 @@ package uk.gov.nationalarchives.tdr.api.auth
 
 import java.util.UUID
 
-import sangria.execution.{BeforeFieldResult, FieldTag}
+import sangria.execution.BeforeFieldResult
 import sangria.schema.{Argument, Context}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ClientFileMetadataFields.AddClientFileMetadataInput
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.AddConsignmentInput
+import uk.gov.nationalarchives.tdr.api.graphql.validation.{UserOwnsConsignment, UserOwnsFile}
+import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, ValidationTag}
 import uk.gov.nationalarchives.tdr.api.graphql.validation.{UserOwnsConsignment, UserOwnsFile}
 
 import scala.concurrent._
 import scala.language.postfixOps
 
-trait AuthorisationTag extends FieldTag {
-  def validate(ctx: Context[ConsignmentApiContext, _])
-              (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]]
-
-  val continue: BeforeFieldResult[ConsignmentApiContext, Unit] = BeforeFieldResult(())
-}
+trait AuthorisationTag extends ValidationTag
 
 trait SyncAuthorisationTag extends AuthorisationTag {
-  final def validate(ctx: Context[ConsignmentApiContext, _])
+  final def validateAsync(ctx: Context[ConsignmentApiContext, _])
                     (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     Future.successful(validateSync(ctx))
   }
@@ -43,7 +41,7 @@ object ValidateBody extends SyncAuthorisationTag {
 }
 
 object ValidateSeries extends AuthorisationTag {
-  override def validate(ctx: Context[ConsignmentApiContext, _])
+  override def validateAsync(ctx: Context[ConsignmentApiContext, _])
                        (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val token = ctx.ctx.accessToken
     val userBody = token.transferringBody.getOrElse(
@@ -68,7 +66,7 @@ object ValidateSeries extends AuthorisationTag {
 }
 
 case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends AuthorisationTag {
-  override def validate(ctx: Context[ConsignmentApiContext, _])
+  override def validateAsync(ctx: Context[ConsignmentApiContext, _])
                        (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val token = ctx.ctx.accessToken
     val userId = token.userId.getOrElse("")
@@ -96,7 +94,7 @@ case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends Authori
 }
 
 case class ValidateUserOwnsFiles[T](argument: Argument[T]) extends AuthorisationTag {
-  override def validate(ctx: Context[ConsignmentApiContext, _])
+  override def validateAsync(ctx: Context[ConsignmentApiContext, _])
                        (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val token = ctx.ctx.accessToken
     val tokenUserId = token.userId.getOrElse(
