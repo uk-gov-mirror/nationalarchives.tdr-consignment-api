@@ -15,7 +15,7 @@ class AVMetadataService(avMetadataRepository: AVMetadataRepository)
   def addAVMetadata(inputs: Seq[AddAVMetadataInput]): Future[Seq[AVMetadata]] = {
 
     val rows: Seq[AvmetadataRow] = inputs.map(i => AvmetadataRow(
-        Some(i.fileId),
+        i.fileId,
         i.software,
         i.value,
         i.softwareVersion,
@@ -27,7 +27,7 @@ class AVMetadataService(avMetadataRepository: AVMetadataRepository)
     avMetadataRepository.addAVMetadata(rows).map(r => {
       r.map(row => {
         AVMetadata(
-          row.fileid.get,
+          row.fileid,
           row.software,
           row.value,
           row.softwareversion,

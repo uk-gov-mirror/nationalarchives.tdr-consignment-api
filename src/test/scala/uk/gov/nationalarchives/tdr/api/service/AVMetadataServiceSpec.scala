@@ -24,7 +24,7 @@ class AVMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers 
     val dummyTimestamp = Timestamp.from(dummyInstant)
     val repositoryMock = mock[AVMetadataRepository]
     val mockResponse = Future.successful(Seq(AvmetadataRow(
-      Some(fixedFileUuid),
+      fixedFileUuid,
       Some("software"),
       Some("value"),
       Some("software version"),

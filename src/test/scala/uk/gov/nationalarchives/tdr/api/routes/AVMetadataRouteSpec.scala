@@ -76,6 +76,7 @@ class AVMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest wit
 
     response.errors should have size 1
     response.errors.head.extensions.get.code should equal("NOT_AUTHORISED")
+    checkNoAVMetadataAdded()
   }
 
   "addAVMetadata" should "not allow a user to add anti-virus metadata if they only own some of the files" in {
@@ -94,6 +95,7 @@ class AVMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest wit
 
     response.errors should have size 1
     response.errors.head.extensions.get.code should equal("NOT_AUTHORISED")
+    checkNoAVMetadataAdded()
   }
 
   "addAVFileMetadata" should "throw an error if the file id field is not provided" in {
@@ -101,6 +103,7 @@ class AVMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest wit
     val response: GraphqlMutationData = runTestMutation("mutation_missingfileid", validUserToken())
 
     response.errors.head.message should equal (expectedResponse.errors.head.message)
+    checkNoAVMetadataAdded()
   }
 
   private def createConsignment(consignmentId: UUID, userId: UUID): Unit = {
@@ -122,6 +125,10 @@ class AVMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest wit
     val rs: ResultSet = ps.executeQuery()
     rs.next()
     rs.getString("FileId") should equal(fileId.toString)
+  }
+
+  private def checkNoAVMetadataAdded(): Unit = {
+
   }
 
   private def resetDatabase(): Unit = {
