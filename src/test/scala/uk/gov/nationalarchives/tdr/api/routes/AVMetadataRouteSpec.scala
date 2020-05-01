@@ -128,7 +128,11 @@ class AVMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest wit
   }
 
   private def checkNoAVMetadataAdded(): Unit = {
-
+    val sql = "select count(*) from AVMetadata;"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    val rs: ResultSet = ps.executeQuery()
+    rs.last()
+    rs.getRow should equal(1)
   }
 
   private def resetDatabase(): Unit = {
