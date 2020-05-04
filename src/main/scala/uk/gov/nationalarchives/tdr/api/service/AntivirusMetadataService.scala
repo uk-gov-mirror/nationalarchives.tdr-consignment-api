@@ -4,15 +4,15 @@ import java.sql.Timestamp
 import java.time.Instant
 
 import uk.gov.nationalarchives.Tables.AvmetadataRow
-import uk.gov.nationalarchives.tdr.api.db.repository.AVMetadataRepository
-import uk.gov.nationalarchives.tdr.api.graphql.fields.AVMetadataFields.{AVMetadata, AddAVMetadataInput}
+import uk.gov.nationalarchives.tdr.api.db.repository.AntivirusMetadataRepository
+import uk.gov.nationalarchives.tdr.api.graphql.fields.AntivirusMetadataFields.{AntivirusMetadata, AddAntivirusMetadataInput}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AVMetadataService(avMetadataRepository: AVMetadataRepository)
-                       (implicit val executionContext: ExecutionContext) {
+class AntivirusMetadataService(antivirusMetadataRepository: AntivirusMetadataRepository)
+                              (implicit val executionContext: ExecutionContext) {
 
-  def addAVMetadata(inputs: Seq[AddAVMetadataInput]): Future[Seq[AVMetadata]] = {
+  def addAntivirusMetadata(inputs: Seq[AddAntivirusMetadataInput]): Future[Seq[AntivirusMetadata]] = {
 
     val rows: Seq[AvmetadataRow] = inputs.map(i => AvmetadataRow(
         i.fileId,
@@ -24,9 +24,9 @@ class AVMetadataService(avMetadataRepository: AVMetadataRepository)
         Timestamp.from(Instant.ofEpochMilli(i.datetime)
       )))
 
-    avMetadataRepository.addAVMetadata(rows).map(r => {
+    antivirusMetadataRepository.addAntivirusMetadata(rows).map(r => {
       r.map(row => {
-        AVMetadata(
+        AntivirusMetadata(
           row.fileid,
           row.software,
           row.value,

@@ -1,1 +1,1 @@
-{"query":"mutation {addAVMetadata(addAVMetadataInput: [{fileId: \"07a3a4bd-0281-4a6d-a4c1-8fa3239e1313\", softwareVersion: \"0.1\"}]) {fileId, softwareVersion}}"}
+{"query":"mutation {addAntivirusMetadata(addAntivirusMetadataInput: [{fileId: \"07a3a4bd-0281-4a6d-a4c1-8fa3239e1313\", softwareVersion: \"0.1\"}]) {fileId, softwareVersion}}"}

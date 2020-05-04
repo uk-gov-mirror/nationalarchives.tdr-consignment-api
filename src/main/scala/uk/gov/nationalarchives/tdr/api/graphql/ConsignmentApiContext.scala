@@ -9,4 +9,4 @@ case class ConsignmentApiContext(accessToken: Token,
                                  seriesService: SeriesService,
                                  transferAgreementService: TransferAgreementService,
                                  transferringBodyService: TransferringBodyService,
-                                 avMetadataService: AVMetadataService)
+                                 antivirusMetadataService: AntivirusMetadataService)

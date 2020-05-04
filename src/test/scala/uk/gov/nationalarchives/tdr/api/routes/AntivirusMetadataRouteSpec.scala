@@ -13,7 +13,7 @@ import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.utils.TestRequest
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
-class AVMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach  {
+class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach  {
 
   private val addAVMetadataJsonFilePrefix: String = "json/addavmetadata_"
 
@@ -21,8 +21,8 @@ class AVMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest wit
 
   val defaultFileId = UUID.fromString("07a3a4bd-0281-4a6d-a4c1-8fa3239e1313")
 
-  case class GraphqlMutationData(data: Option[AddAVMetadata], errors: List[GraphqlError] = Nil)
-  case class AVMetadata(
+  case class GraphqlMutationData(data: Option[AddAntivirusMetadata], errors: List[GraphqlError] = Nil)
+  case class AntivirusMetadata(
                                 fileId: UUID,
                                 software: Option[String] = None,
                                 value: Option[String] = None,
@@ -31,7 +31,7 @@ class AVMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest wit
                                 result: Option[String] = None,
                                 datetime: Long
                               )
-  case class AddAVMetadata(addAVMetadata: List[AVMetadata]) extends TestRequest
+  case class AddAntivirusMetadata(addAntivirusMetadata: List[AntivirusMetadata]) extends TestRequest
 
   override def beforeEach(): Unit = {
     resetDatabase()
@@ -42,31 +42,31 @@ class AVMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest wit
   val expectedMutationResponse: String => GraphqlMutationData =
     getDataFromFile[GraphqlMutationData](addAVMetadataJsonFilePrefix)
 
-  "addAVMetadata" should "return all requested fields from inserted anti-virus metadata object" in {
+  "addAntivirusMetadata" should "return all requested fields from inserted anti-virus metadata object" in {
     val consignmentId = UUID.fromString("eb197bfb-43f7-40ca-9104-8f6cbda88506")
     createConsignment(consignmentId, userId)
     createFile(defaultFileId, consignmentId)
 
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
-    response.data.get.addAVMetadata should equal(expectedResponse.data.get.addAVMetadata)
+    response.data.get.addAntivirusMetadata should equal(expectedResponse.data.get.addAntivirusMetadata)
 
-    checkAVMetadataExists(response.data.get.addAVMetadata.head.fileId)
+    checkAntivirusMetadataExists(response.data.get.addAntivirusMetadata.head.fileId)
   }
 
-  "addAVMetadata" should "return the expected data from inserted anti-virus metadata object" in {
+  "addAntivirusMetadata" should "return the expected data from inserted anti-virus metadata object" in {
     val consignmentId = UUID.fromString("eb197bfb-43f7-40ca-9104-8f6cbda88506")
     createConsignment(consignmentId, userId)
     createFile(defaultFileId, consignmentId)
 
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_some")
     val response: GraphqlMutationData = runTestMutation("mutation_somedata", validUserToken())
-    response.data.get.addAVMetadata should equal(expectedResponse.data.get.addAVMetadata)
+    response.data.get.addAntivirusMetadata should equal(expectedResponse.data.get.addAntivirusMetadata)
 
-    checkAVMetadataExists(response.data.get.addAVMetadata.head.fileId)
+    checkAntivirusMetadataExists(response.data.get.addAntivirusMetadata.head.fileId)
   }
 
-  "addAVMetadata" should "not allow a user to add anti-virus metadata to a file they do not own" in {
+  "addAntivirusMetadata" should "not allow a user to add anti-virus metadata to a file they do not own" in {
     val otherUserId = UUID.fromString("29f65c4e-0eb8-4719-afdb-ace1bcbae4b6")
     val consignmentId = UUID.fromString("eb197bfb-43f7-40ca-9104-8f6cbda88506")
     createConsignment(consignmentId, otherUserId)
@@ -76,10 +76,10 @@ class AVMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest wit
 
     response.errors should have size 1
     response.errors.head.extensions.get.code should equal("NOT_AUTHORISED")
-    checkNoAVMetadataAdded()
+    checkNoAntivirusMetadataAdded()
   }
 
-  "addAVMetadata" should "not allow a user to add anti-virus metadata if they only own some of the files" in {
+  "addAntivirusMetadata" should "not allow a user to add anti-virus metadata if they only own some of the files" in {
     val otherUserId = UUID.fromString("29f65c4e-0eb8-4719-afdb-ace1bcbae4b6")
     val otherUsersConsignmentId = UUID.fromString("eb197bfb-43f7-40ca-9104-8f6cbda88506")
     val otherUsersFileId = UUID.fromString("dd7a6739-2843-496a-8f17-4a2cfbe297f6")
@@ -95,23 +95,23 @@ class AVMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest wit
 
     response.errors should have size 1
     response.errors.head.extensions.get.code should equal("NOT_AUTHORISED")
-    checkNoAVMetadataAdded()
+    checkNoAntivirusMetadataAdded()
   }
 
-  "addAVFileMetadata" should "throw an error if the file id field is not provided" in {
+  "addAntivirusMetadata" should "throw an error if the file id field is not provided" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_fileid_missing")
     val response: GraphqlMutationData = runTestMutation("mutation_missingfileid", validUserToken())
 
     response.errors.head.message should equal (expectedResponse.errors.head.message)
-    checkNoAVMetadataAdded()
+    checkNoAntivirusMetadataAdded()
   }
 
-  "addAVFileMetadata" should "throw an error if the field datetime is not provided" in {
+  "addAntivirusMetadata" should "throw an error if the field datetime is not provided" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_datetime_missing")
     val response: GraphqlMutationData = runTestMutation("mutation_missingdatetime", validUserToken())
 
     response.errors.head.message should equal (expectedResponse.errors.head.message)
-    checkNoAVMetadataAdded()
+    checkNoAntivirusMetadataAdded()
   }
 
   private def createConsignment(consignmentId: UUID, userId: UUID): Unit = {
@@ -126,7 +126,7 @@ class AVMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest wit
     ps.executeUpdate()
   }
 
-  private def checkAVMetadataExists(fileId: UUID): Unit = {
+  private def checkAntivirusMetadataExists(fileId: UUID): Unit = {
     val sql = "select * from AVMetadata where FileId = ?;"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, fileId.toString)
@@ -135,7 +135,7 @@ class AVMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest wit
     rs.getString("FileId") should equal(fileId.toString)
   }
 
-  private def checkNoAVMetadataAdded(): Unit = {
+  private def checkNoAntivirusMetadataAdded(): Unit = {
     val sql = "select * from AVMetadata;"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     val rs: ResultSet = ps.executeQuery()
