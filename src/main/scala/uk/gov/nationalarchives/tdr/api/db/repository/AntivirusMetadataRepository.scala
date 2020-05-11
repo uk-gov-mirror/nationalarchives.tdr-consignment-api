@@ -7,9 +7,9 @@ import scala.concurrent.Future
 
 class AntivirusMetadataRepository(db: Database) {
   private val insertQuery = Avmetadata returning Avmetadata.map(_.fileid) into
-    ((avMetadata, fileid) => avMetadata.copy(fileid = fileid))
+    ((antivirusMetadata, fileid) => antivirusMetadata.copy(fileid = fileid))
 
-  def addAntivirusMetadata(avMetadataRows: Seq[AvmetadataRow]): Future[Seq[AvmetadataRow]] = {
-    db.run(insertQuery ++= avMetadataRows)
+  def addAntivirusMetadata(antivirusMetadataRows: Seq[AvmetadataRow]): Future[Seq[AvmetadataRow]] = {
+    db.run(insertQuery ++= antivirusMetadataRows)
   }
 }
