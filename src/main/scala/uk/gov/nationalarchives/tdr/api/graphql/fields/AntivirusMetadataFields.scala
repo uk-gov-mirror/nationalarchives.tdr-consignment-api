@@ -6,10 +6,9 @@ import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
 import sangria.schema.{Argument, Field, InputObjectType, ListInputType, ListType, ObjectType, fields}
-import uk.gov.nationalarchives.tdr.api.auth.ValidateUserOwnsFiles
+import uk.gov.nationalarchives.tdr.api.auth.ValidateHasAntiVirusMetadataAccess
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
-import uk.gov.nationalarchives.tdr.api.graphql.validation.UserOwnsFile
 
 object AntivirusMetadataFields {
   case class AntivirusMetadata(fileId: UUID,
@@ -26,7 +25,7 @@ object AntivirusMetadataFields {
                                        softwareVersion: Option[String] = None,
                                        databaseVersion: Option[String] = None,
                                        result: Option[String] = None,
-                                       datetime: Long) extends UserOwnsFile
+                                       datetime: Long)
 
   implicit val AntivirusMetadataType: ObjectType[Unit, AntivirusMetadata] = deriveObjectType[Unit, AntivirusMetadata]()
   implicit val AddAntivirusMetadataInputType: InputObjectType[AddAntivirusMetadataInput] = deriveInputObjectType[AddAntivirusMetadataInput]()
@@ -37,6 +36,6 @@ object AntivirusMetadataFields {
     Field("addAntivirusMetadata", ListType(AntivirusMetadataType),
       arguments=AntivirusMetadataInputArg :: Nil,
       resolve = ctx => ctx.ctx.antivirusMetadataService.addAntivirusMetadata(ctx.arg(AntivirusMetadataInputArg)),
-      tags=List(ValidateUserOwnsFiles(AntivirusMetadataInputArg))
+      tags=List(ValidateHasAntiVirusMetadataAccess)
     ))
 }

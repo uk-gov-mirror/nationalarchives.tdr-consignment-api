@@ -4,8 +4,9 @@ import java.util.UUID
 
 import sangria.execution.BeforeFieldResult
 import sangria.schema.{Argument, Context}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ClientFileMetadataFields.AddClientFileMetadataInput
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.AddConsignmentInput
-import uk.gov.nationalarchives.tdr.api.graphql.validation.{UserOwnsConsignment, UserOwnsFile}
+import uk.gov.nationalarchives.tdr.api.graphql.validation.UserOwnsConsignment
 import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, ValidationTag}
 
 import scala.concurrent._
@@ -90,14 +91,14 @@ case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends Authori
   }
 }
 
-case class ValidateUserOwnsFiles[T](argument: Argument[T]) extends AuthorisationTag {
+object ValidateUserOwnsFiles extends AuthorisationTag {
   override def validateAsync(ctx: Context[ConsignmentApiContext, _])
                        (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val token = ctx.ctx.accessToken
     val tokenUserId = token.userId.getOrElse(
       throw AuthorisationException(s"No user ID in token"))
 
-    val queryInput = ctx.arg[Seq[UserOwnsFile]](argument.name)
+    val queryInput = ctx.arg[Seq[AddClientFileMetadataInput]]("addClientFileMetadataInput")
 
     val fileIds = queryInput.map(_.fileId)
     ctx.ctx.fileService
@@ -111,5 +112,18 @@ case class ValidateUserOwnsFiles[T](argument: Argument[T]) extends Authorisation
             s"User '$tokenUserId' does not have permission to updatefiles: ${files.map(_.fileId)}")
         }
       })
+  }
+}
+
+object ValidateHasAntiVirusMetadataAccess extends SyncAuthorisationTag {
+  override def validateSync(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
+    val token = ctx.ctx.accessToken
+    val antivirusAccess = token.backendChecksRoles.contains("anti_virus")
+
+    if (antivirusAccess) {
+      continue
+    } else {
+      throw AuthorisationException("No access to anti-virus metadata")
+    }
   }
 }

@@ -47,6 +47,15 @@ object TestUtils  {
       .withClaim("user_id", userId)
       .build)
   )
+  def validBackendChecksToken(): OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
+    aTokenConfig()
+      .withResourceRole("tdr-backend-checks", "anti_virus").build
+  ))
+  def invalidBackendChecksToken(): OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
+    aTokenConfig()
+      .withResourceRole("tdr-backend-checks", "some_role").build
+  ))
+
   def invalidToken: OAuth2BearerToken = OAuth2BearerToken(testMock.getAccessToken(aTokenConfig().build))
 
   case class GraphqlError(message: String, extensions: Option[GraphqlErrorExtensions])
