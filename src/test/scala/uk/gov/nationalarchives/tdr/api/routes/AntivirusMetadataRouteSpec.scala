@@ -42,27 +42,27 @@ class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequ
   val expectedMutationResponse: String => GraphqlMutationData =
     getDataFromFile[GraphqlMutationData](addAVMetadataJsonFilePrefix)
 
-  "addAntivirusMetadata" should "return all requested fields from inserted anti-virus metadata object" in {
+  "addAntivirusMetadata" should "return all requested fields from inserted antivirus metadata object" in {
     seedDatabaseWithDefaultEntries()
 
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
-    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validBackendChecksToken())
+    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validBackendChecksToken("antivirus"))
     response.data.get.addAntivirusMetadata should equal(expectedResponse.data.get.addAntivirusMetadata)
 
     checkAntivirusMetadataExists(response.data.get.addAntivirusMetadata.head.fileId)
   }
 
-  "addAntivirusMetadata" should "return the expected data from inserted anti-virus metadata object" in {
+  "addAntivirusMetadata" should "return the expected data from inserted antivirus metadata object" in {
     seedDatabaseWithDefaultEntries()
 
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_some")
-    val response: GraphqlMutationData = runTestMutation("mutation_somedata", validBackendChecksToken())
+    val response: GraphqlMutationData = runTestMutation("mutation_somedata", validBackendChecksToken("antivirus"))
     response.data.get.addAntivirusMetadata should equal(expectedResponse.data.get.addAntivirusMetadata)
 
     checkAntivirusMetadataExists(response.data.get.addAntivirusMetadata.head.fileId)
   }
 
-  "addAntivirusMetadata" should "not allow updating of anti-virus metadata with incorrect authorisation" in {
+  "addAntivirusMetadata" should "not allow updating of antivirus metadata with incorrect authorisation" in {
     seedDatabaseWithDefaultEntries()
 
     val response: GraphqlMutationData = runTestMutation("mutation_somedata", invalidBackendChecksToken())
@@ -74,7 +74,7 @@ class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequ
 
   "addAntivirusMetadata" should "throw an error if the field file id is not provided" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_fileid_missing")
-    val response: GraphqlMutationData = runTestMutation("mutation_missingfileid", validBackendChecksToken())
+    val response: GraphqlMutationData = runTestMutation("mutation_missingfileid", validBackendChecksToken("antivirus"))
 
     response.errors.head.message should equal (expectedResponse.errors.head.message)
     checkNoAntivirusMetadataAdded()
@@ -82,7 +82,7 @@ class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequ
 
   "addAntivirusMetadata" should "throw an error if the field datetime is not provided" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_datetime_missing")
-    val response: GraphqlMutationData = runTestMutation("mutation_missingdatetime", validBackendChecksToken())
+    val response: GraphqlMutationData = runTestMutation("mutation_missingdatetime", validBackendChecksToken("antivirus"))
 
     response.errors.head.message should equal (expectedResponse.errors.head.message)
     checkNoAntivirusMetadataAdded()
