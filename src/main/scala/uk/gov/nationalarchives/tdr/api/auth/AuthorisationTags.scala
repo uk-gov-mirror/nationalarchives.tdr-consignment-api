@@ -12,7 +12,9 @@ import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, Validatio
 import scala.concurrent._
 import scala.language.postfixOps
 
-trait AuthorisationTag extends ValidationTag
+trait AuthorisationTag extends ValidationTag {
+  val antiVirusRole = "antivirus"
+}
 
 trait SyncAuthorisationTag extends AuthorisationTag {
   final def validateAsync(ctx: Context[ConsignmentApiContext, _])
@@ -112,5 +114,19 @@ object ValidateUserOwnsFiles extends AuthorisationTag {
             s"User '$tokenUserId' does not have permission to updatefiles: ${files.map(_.fileId)}")
         }
       })
+  }
+}
+
+object ValidateHasAntiVirusMetadataAccess extends SyncAuthorisationTag {
+  override def validateSync(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
+    val token = ctx.ctx.accessToken
+    val antivirusAccess = token.backendChecksRoles.contains(antiVirusRole)
+
+    if (antivirusAccess) {
+      continue
+    } else {
+      val tokenUserId = token.userId.getOrElse("")
+      throw AuthorisationException(s"User '$tokenUserId' does not have permission to update antivirus metadata")
+    }
   }
 }

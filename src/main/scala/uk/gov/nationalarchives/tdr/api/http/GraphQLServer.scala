@@ -74,6 +74,7 @@ object GraphQLServer {
     val clientFileMetadataService = new ClientFileMetadataService(new ClientFileMetadataRepository(db), uuidSource)
     val fileService = new FileService(new FileRepository(db), consignmentRepository, new CurrentTimeSource, uuidSource)
     val transferringBodyService = new TransferringBodyService(new TransferringBodyRepository(db))
+    val antivirusMetadataService = new AntivirusMetadataService(new AntivirusMetadataRepository(db))
 
     val context = ConsignmentApiContext(
       accessToken,
@@ -82,7 +83,8 @@ object GraphQLServer {
       fileService,
       seriesService,
       transferAgreementService,
-      transferringBodyService
+      transferringBodyService,
+      antivirusMetadataService
     )
     Executor.execute(
       GraphQlTypes.schema,

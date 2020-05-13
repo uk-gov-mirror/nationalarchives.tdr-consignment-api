@@ -10,7 +10,8 @@ object GraphQlTypes {
     ConsignmentFields.mutationFields ++
     TransferAgreementFields.mutationFields ++
     ClientFileMetadataFields.mutationFields ++
-    FileFields.mutationFields
+    FileFields.mutationFields ++
+    AntivirusMetadataFields.mutationFields
   )
 
   val schema: Schema[ConsignmentApiContext, Unit] = Schema(QueryType, Some(MutationType))
