@@ -26,7 +26,9 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     val fixedUserId = UUID.fromString("61b49923-daf7-4140-98f1-58ba6cbed61f")
     val metadataRepositoryMock = mock[FileMetadataRepository]
     val propertyRepositoryMock = mock[FilePropertyRepository]
-    val mockMetadataResponse = Future.successful(Seq(FilemetadataRow(UUID.randomUUID(), Some(fixedFileUuid), Some(fixedPropertyId), Some("value"), Timestamp.from(FixedTimeSource.now), fixedUserId)))
+    val mockMetadataResponse = Future.successful(
+      Seq(FilemetadataRow(UUID.randomUUID(), Some(fixedFileUuid), Some(fixedPropertyId), Some("value"), Timestamp.from(FixedTimeSource.now), fixedUserId))
+    )
     val mockPropertyResponse = Future.successful(Some(FilepropertyRow(fixedPropertyId, Some("Name"), Some("Description"), Some("ShortName"))))
     val fixedUUIDSource = new FixedUUIDSource()
     val metadataId: UUID = fixedUUIDSource.uuid
@@ -57,7 +59,9 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     val dummyTimestamp = Timestamp.from(Instant.now())
     val metadataRepositoryMock = mock[FileMetadataRepository]
     val propertyRepositoryMock = mock[FilePropertyRepository]
-    val mockMetadataResponse = Future.successful(Seq(FilemetadataRow(UUID.randomUUID(), Some(fixedFileUuid), Some(fixedPropertyId), Some(value), dummyTimestamp, fixedUserId)))
+    val mockMetadataResponse = Future.successful(
+      Seq(FilemetadataRow(UUID.randomUUID(), Some(fixedFileUuid), Some(fixedPropertyId), Some(value), dummyTimestamp, fixedUserId))
+    )
     val mockPropertyResponse = Future.successful(Some(FilepropertyRow(fixedPropertyId, Some("Name"), Some("Description"), Some("ShortName"))))
     val fixedUUIDSource = new FixedUUIDSource()
     val propertyName = "PropertyName"
@@ -66,7 +70,8 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     when(propertyRepositoryMock.getPropertyByName(any[String])).thenReturn(mockPropertyResponse)
 
     val service = new FileMetadataService(metadataRepositoryMock, propertyRepositoryMock, FixedTimeSource, fixedUUIDSource)
-    val result: Seq[FileMetadataFields.FileMetadata] = service.addFileMetadata(AddFileMetadataInput(propertyName, List(FileMetadataValues(fixedFileUuid, "value"))), Some(fixedUserId)).await()
+    val result: Seq[FileMetadataFields.FileMetadata] =
+      service.addFileMetadata(AddFileMetadataInput(propertyName, List(FileMetadataValues(fixedFileUuid, "value"))), Some(fixedUserId)).await()
 
     result.length should equal(1)
     val response = result(0)
@@ -99,7 +104,10 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     when(propertyRepositoryMock.getPropertyByName(any[String])).thenReturn(mockPropertyResponse)
 
     val service = new FileMetadataService(metadataRepositoryMock, propertyRepositoryMock, FixedTimeSource, fixedUUIDSource)
-    val result: Seq[FileMetadataFields.FileMetadata] = service.addFileMetadata(AddFileMetadataInput(propertyName, List(FileMetadataValues(fixedFileUuid, value), FileMetadataValues(secondFixedFileUuid, anotherValue))), Some(fixedUserId)).await()
+    val result: Seq[FileMetadataFields.FileMetadata] = service.addFileMetadata(
+      AddFileMetadataInput(propertyName,
+        List(FileMetadataValues(fixedFileUuid, value), FileMetadataValues(secondFixedFileUuid, anotherValue))), Some(fixedUserId)
+    ).await()
 
     result.length should equal(2)
     val firstResponse = result(0)

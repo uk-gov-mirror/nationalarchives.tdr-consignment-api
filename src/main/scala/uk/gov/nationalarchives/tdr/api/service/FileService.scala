@@ -29,7 +29,7 @@ class FileService(
       .map(_.map(consignmentByFile => FileOwnership(consignmentByFile._1, consignmentByFile._2.userid)))
   }
 
-  def findNonExistentFiles(fileIds: Seq[UUID]) = {
+  def findNonExistentFiles(fileIds: Seq[UUID]): Future[Seq[UUID]] = {
     fileRepository.filesExist(fileIds).map(result => {
       fileIds.filter(id => {
         !result.map(_.fileid).contains(id)

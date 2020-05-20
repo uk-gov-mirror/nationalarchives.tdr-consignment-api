@@ -101,8 +101,12 @@ object TestUtils  {
   }
 
   def createFile(fileId: UUID, consignmentId: UUID): Unit = {
-    val sql = s"insert into File (FileId, ConsignmentId, UserId, Datetime) VALUES ('$fileId', '$consignmentId', '$userId', '${Timestamp.from(FixedTimeSource.now)}')"
+    val sql = s"insert into File (FileId, ConsignmentId, UserId, Datetime) VALUES (?, ?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, fileId.toString)
+    ps.setString(2, consignmentId.toString)
+    ps.setString(3, userId.toString)
+    ps.setTimestamp(4, Timestamp.from(FixedTimeSource.now))
     ps.executeUpdate()
   }
 

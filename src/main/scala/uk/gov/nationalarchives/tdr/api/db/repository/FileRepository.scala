@@ -15,7 +15,7 @@ class FileRepository(db: Database) {
     db.run(insertQuery ++= fileRows)
   }
 
-  def filesExist(fileIds: Seq[UUID]) = {
+  def filesExist(fileIds: Seq[UUID]): Future[Seq[FileRow]] = {
     val query = File.filter(_.fileid inSet(fileIds))
     db.run(query.result)
   }
