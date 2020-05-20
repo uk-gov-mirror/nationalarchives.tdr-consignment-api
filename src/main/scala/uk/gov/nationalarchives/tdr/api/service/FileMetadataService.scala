@@ -17,15 +17,15 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository, filePr
     getFileProperty(addFileMetadataInput.filePropertyName).flatMap(property => {
       val metadataRows: Seq[FilemetadataRow] = addFileMetadataInput.fileMetadataValues.map(metadataValues => {
         FilemetadataRow(uuidSource.uuid,
-          Some(metadataValues.fileId),
-          property.map(_.propertyid),
-          Some(metadataValues.value),
+          metadataValues.fileId,
+          property.map(_.propertyid).get,
+          metadataValues.value,
           Timestamp.from(timeSource.now),
           userId.get)
       })
       fileMetadataRepository.addFileMetadata(metadataRows).map(rows => {
         rows.map(row => {
-          FileMetadata(addFileMetadataInput.filePropertyName, row.fileid.get, row.value.get)
+          FileMetadata(addFileMetadataInput.filePropertyName, row.fileid, row.value)
         })
       })
     })
