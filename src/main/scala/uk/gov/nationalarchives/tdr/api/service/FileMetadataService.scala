@@ -13,9 +13,9 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository, filePr
                           timeSource: TimeSource, uuidSource: UUIDSource)(implicit val ec: ExecutionContext) {
 
   def addFileMetadata(addFileMetadataInput: AddFileMetadataInput, userId: Option[UUID]): Future[Seq[FileMetadata]] = {
-    filePropertyRepository.getPropertyByName(addFileMetadataInput.filePropertyName).flatMap(property => {
+    getFileProperty(addFileMetadataInput.filePropertyName).flatMap(property => {
       val metadataRows: Seq[FilemetadataRow] = addFileMetadataInput.fileMetadataValues.map(metadataValues => {
-        FilemetadataRow(uuidSource.uuid, Some(metadataValues.fileId), property.headOption.map(_.propertyid), Some(metadataValues.value),Timestamp.from(timeSource.now), userId.get)
+        FilemetadataRow(uuidSource.uuid, Some(metadataValues.fileId), property.map(_.propertyid), Some(metadataValues.value),Timestamp.from(timeSource.now), userId.get)
       })
       fileMetadataRepository.addFileMetadata(metadataRows).map(rows => {
         rows.map(row => {
@@ -23,6 +23,10 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository, filePr
         })
       })
     })
+  }
+
+  def getFileProperty(filePropertyName: String) = {
+    filePropertyRepository.getPropertyByName(filePropertyName)
   }
 
 }
