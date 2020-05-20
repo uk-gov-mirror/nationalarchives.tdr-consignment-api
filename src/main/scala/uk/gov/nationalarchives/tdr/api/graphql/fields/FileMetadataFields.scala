@@ -7,6 +7,7 @@ import sangria.macros.derive.{deriveInputObjectType, deriveObjectType}
 import sangria.marshalling.circe._
 import sangria.schema.{Argument, Field, InputObjectType, ListType, ObjectType, fields}
 import uk.gov.nationalarchives.tdr.api.auth.ValidateHasChecksumMetadataAccess
+import uk.gov.nationalarchives.tdr.api.consignmentstatevalidation.{ValidateFilesExistForMetadata, ValidateFilePropertyExists}
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 
@@ -27,6 +28,6 @@ object FileMetadataFields {
     Field("addFileMetadata", ListType(FileMetadataType),
       arguments=FileMetadataInputArg :: Nil,
       resolve = ctx => ctx.ctx.fileMetadataService.addFileMetadata(ctx.arg(FileMetadataInputArg), ctx.ctx.accessToken.userId.map(id => UUID.fromString(id))),
-      tags=List(ValidateHasChecksumMetadataAccess)
+      tags=List(ValidateHasChecksumMetadataAccess, ValidateFilesExistForMetadata, ValidateFilePropertyExists)
     ))
 }
