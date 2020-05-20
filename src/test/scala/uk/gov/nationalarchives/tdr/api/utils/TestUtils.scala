@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.tdr.api.utils
 
-import java.sql.PreparedStatement
+import java.sql.{PreparedStatement, Timestamp}
 import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
@@ -11,7 +11,6 @@ import com.tngtech.keycloakmock.api.TokenConfig.aTokenConfig
 import io.circe.Decoder
 import io.circe.parser.decode
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils.userId
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -102,7 +101,7 @@ object TestUtils  {
   }
 
   def createFile(fileId: UUID, consignmentId: UUID): Unit = {
-    val sql = s"insert into File (FileId, ConsignmentId) VALUES ('$fileId', '$consignmentId')"
+    val sql = s"insert into File (FileId, ConsignmentId, UserId, Datetime) VALUES ('$fileId', '$consignmentId', '$userId', '${Timestamp.from(FixedTimeSource.now)}')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.executeUpdate()
   }

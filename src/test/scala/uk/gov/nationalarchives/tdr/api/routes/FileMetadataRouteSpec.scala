@@ -33,22 +33,19 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
 
   override def beforeEach(): Unit = {
     resetDatabase()
-  }
-
-  "addFileMetadata" should "return all requested fields from inserted file metadata object" in {
     seedDatabaseWithDefaultEntries()
     createFileProperty
+  }
 
+  "addFileMetadata" should "return all requested fields from inserted checksum file metadata object" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validBackendChecksToken("checksum"))
     response.data.get.addFileMetadata should equal(expectedResponse.data.get.addFileMetadata)
 
     checkFileMetadataExists(response.data.get.addFileMetadata.head.fileId)
   }
-  
+
   "addFileMetadata" should "add multiple metadata entries for multiple files" in {
-    seedDatabaseWithDefaultEntries()
-    createFileProperty
     createFile(UUID.fromString("208bcd34-294e-47c2-8b3d-22bf4ab1af68"), UUID.fromString("eb197bfb-43f7-40ca-9104-8f6cbda88506"))
 
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_multiple")
@@ -61,9 +58,15 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
   }
 
   "addFileMetadata" should "not allow updating of file metadata with incorrect authorisation" in {
-    seedDatabaseWithDefaultEntries()
-
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", invalidBackendChecksToken())
+
+    response.errors should have size 1
+    response.errors.head.extensions.get.code should equal("NOT_AUTHORISED")
+    checkNoFileMetadataAdded()
+  }
+
+  "addFileMetadata" should "not allow updating of file metadata with incorrect client role" in {
+    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validBackendChecksToken("antivirus"))
 
     response.errors should have size 1
     response.errors.head.extensions.get.code should equal("NOT_AUTHORISED")
@@ -78,9 +81,47 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
     checkNoFileMetadataAdded()
   }
 
-  //Missing values
-  //Unknown fileId
-  //Unknown file property
+  "addFileMetadata" should "throw an error if the field file id is not provided" in {
+    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_fileid_missing")
+    val response: GraphqlMutationData = runTestMutation("mutation_missingfileid", validBackendChecksToken("checksum"))
+
+    response.errors.head.message should equal (expectedResponse.errors.head.message)
+    checkNoFileMetadataAdded()
+  }
+
+  "addFileMetadata" should "throw an error if the value is not provided" in {
+    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_value_missing")
+    val response: GraphqlMutationData = runTestMutation("mutation_missingvalue", validBackendChecksToken("checksum"))
+
+    response.errors.head.message should equal (expectedResponse.errors.head.message)
+    checkNoFileMetadataAdded()
+  }
+
+  "addFileMetadata" should "throw an error if the file id does not exist" in {
+    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_fileid_not_exists")
+    val response: GraphqlMutationData = runTestMutation("mutation_fileidnotexists", validBackendChecksToken("checksum"))
+
+    response.errors.head.message should equal (expectedResponse.errors.head.message)
+    checkNoFileMetadataAdded()
+  }
+
+  "addFileMetadata" should "throw an error if one file id does not exist and one does" in {
+    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_one_fileid_not_exists")
+    val response: GraphqlMutationData = runTestMutation("mutation_onefileidnotexists", validBackendChecksToken("checksum"))
+
+    response.errors.head.message should equal (expectedResponse.errors.head.message)
+    checkNoFileMetadataAdded()
+  }
+
+  "addFileMetadata" should "throw an error if the file property does not exist" in {
+    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_incorrect_property")
+    val response: GraphqlMutationData = runTestMutation("mutation_incorrectproperty", validBackendChecksToken("checksum"))
+
+    response.errors.head.message should equal (expectedResponse.errors.head.message)
+    checkNoFileMetadataAdded()
+  }
+
+
 
   private def checkFileMetadataExists(fileId: UUID): Unit = {
     val sql = "select * from FileMetadata where FileId = ?;"
