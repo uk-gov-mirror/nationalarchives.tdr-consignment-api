@@ -122,8 +122,6 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
     checkNoFileMetadataAdded()
   }
 
-
-
   private def checkFileMetadataExists(fileId: UUID): Unit = {
     val sql = "select * from FileMetadata where FileId = ?;"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)

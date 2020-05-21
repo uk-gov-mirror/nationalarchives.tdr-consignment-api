@@ -110,7 +110,4 @@ object TestUtils  {
     ps.setTimestamp(4, Timestamp.from(FixedTimeSource.now))
     ps.executeUpdate()
   }
-
-
-
 }
