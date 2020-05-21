@@ -37,6 +37,7 @@ object TestUtils  {
   }
 
   val userId = UUID.fromString("4ab14990-ed63-4615-8336-56fbb9960300")
+  val backendChecksUser = UUID.fromString("6847253d-b9c6-4ea9-b3c9-57542b8c6375")
 
   def validUserToken(body: String = "Body"): OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
     aTokenConfig()
@@ -54,7 +55,7 @@ object TestUtils  {
   def validBackendChecksToken(role: String): OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
     aTokenConfig()
       .withResourceRole("tdr-backend-checks", role)
-      .withClaim("user_id", userId)
+      .withClaim("user_id", backendChecksUser)
       .build
   ))
   def invalidBackendChecksToken(): OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
