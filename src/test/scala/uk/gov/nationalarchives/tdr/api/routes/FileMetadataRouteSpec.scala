@@ -106,9 +106,10 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
   }
 
   "addFileMetadata" should "throw an error if one file id does not exist and one does" in {
+    val fileId = UUID.fromString("208bcd34-294e-47c2-8b3d-22bf4ab1af68")
+    createFile(fileId, UUID.fromString("eb197bfb-43f7-40ca-9104-8f6cbda88506"))
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_one_fileid_not_exists")
     val response: GraphqlMutationData = runTestMutation("mutation_onefileidnotexists", validBackendChecksToken("checksum"))
-
     response.errors.head.message should equal (expectedResponse.errors.head.message)
     checkNoFileMetadataAdded()
   }

@@ -1,1 +1,1 @@
-{"data": null,"errors": [{ "message": "File property name IncorrectProperty does not exist", "locations": [{"column": 47,"line": 1} ]}]}
+{"data": null,"errors": [{ "message": "The property does not exist", "locations": [{"column": 47,"line": 1} ]}]}

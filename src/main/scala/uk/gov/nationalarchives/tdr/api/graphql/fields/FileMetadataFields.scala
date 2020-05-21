@@ -28,6 +28,6 @@ object FileMetadataFields {
     Field("addFileMetadata", ListType(FileMetadataType),
       arguments=FileMetadataInputArg :: Nil,
       resolve = ctx => ctx.ctx.fileMetadataService.addFileMetadata(ctx.arg(FileMetadataInputArg), ctx.ctx.accessToken.userId.map(id => UUID.fromString(id))),
-      tags=List(ValidateHasChecksumMetadataAccess, ValidateFilesExistForMetadata, ValidateFilePropertyExists)
+      tags=List(ValidateHasChecksumMetadataAccess)
     ))
 }
