@@ -1,4 +1,7 @@
+library("tdr-jenkinslib")
+
 def versionTag = "v${env.BUILD_NUMBER}"
+def repo = "tdr-consignment-api"
 
 pipeline {
   agent none
@@ -11,6 +14,9 @@ pipeline {
             }
         }
         steps {
+            script {
+                tdr.reportStartOfBuildToGitHub(repo)
+            }
             checkout scm
             sh 'sbt -no-colors test scalastyle test:scalastyle'
         }
@@ -69,6 +75,22 @@ pipeline {
                 wait: false)
           }
         }
+      }
+    }
+  }
+  post {
+    failure {
+        node('master') {
+            script {
+                tdr.reportFailedBuildToGitHub(repo)
+            }
+        }
+    }
+    success {
+      node('master') {
+            script {
+                tdr.reportSuccessfulBuildToGitHub(repo)
+            }
       }
     }
   }
