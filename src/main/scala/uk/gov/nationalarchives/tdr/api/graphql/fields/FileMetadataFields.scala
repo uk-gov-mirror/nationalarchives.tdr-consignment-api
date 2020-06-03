@@ -5,11 +5,10 @@ import java.util.UUID
 import io.circe.generic.auto._
 import sangria.macros.derive.{deriveInputObjectType, deriveObjectType}
 import sangria.marshalling.circe._
-import sangria.schema.{Argument, Field, InputObjectType, ListType, ObjectType, fields}
+import sangria.schema.{Argument, Field, InputObjectType, ObjectType, fields}
 import uk.gov.nationalarchives.tdr.api.auth.ValidateHasChecksumMetadataAccess
-import uk.gov.nationalarchives.tdr.api.consignmentstatevalidation.{ValidateFilesExistForMetadata, ValidateFilePropertyExists}
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
-import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
+import FieldTypes._
 
 object FileMetadataFields {
 

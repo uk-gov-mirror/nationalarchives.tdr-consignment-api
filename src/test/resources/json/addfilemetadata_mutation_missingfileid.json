@@ -1,1 +1,1 @@
-{"query":  "mutation{addFileMetadata(addFileMetadataInput:{filePropertyName:\"ServerSideChecksum\",fileMetadataValues:[{value:\"value\"}]}){filePropertyName,fileId,value}}"}
+{"query":  "mutation{addFileMetadata(addFileMetadataInput:{filePropertyName:\"ServerSideChecksum\",value:\"value\"}){filePropertyName,fileId,value}}"}
