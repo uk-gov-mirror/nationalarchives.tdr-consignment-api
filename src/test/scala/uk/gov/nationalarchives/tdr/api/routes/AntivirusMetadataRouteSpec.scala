@@ -29,7 +29,7 @@ class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequ
                                 result: Option[String] = None,
                                 datetime: Long
                               )
-  case class AddAntivirusMetadata(addAntivirusMetadata: List[AntivirusMetadata]) extends TestRequest
+  case class AddAntivirusMetadata(addAntivirusMetadata: AntivirusMetadata) extends TestRequest
 
   override def beforeEach(): Unit = {
     resetDatabase()
@@ -47,7 +47,7 @@ class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequ
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validBackendChecksToken("antivirus"))
     response.data.get.addAntivirusMetadata should equal(expectedResponse.data.get.addAntivirusMetadata)
 
-    checkAntivirusMetadataExists(response.data.get.addAntivirusMetadata.head.fileId)
+    checkAntivirusMetadataExists(response.data.get.addAntivirusMetadata.fileId)
   }
 
   "addAntivirusMetadata" should "return the expected data from inserted antivirus metadata object" in {
@@ -57,7 +57,7 @@ class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequ
     val response: GraphqlMutationData = runTestMutation("mutation_somedata", validBackendChecksToken("antivirus"))
     response.data.get.addAntivirusMetadata should equal(expectedResponse.data.get.addAntivirusMetadata)
 
-    checkAntivirusMetadataExists(response.data.get.addAntivirusMetadata.head.fileId)
+    checkAntivirusMetadataExists(response.data.get.addAntivirusMetadata.fileId)
   }
 
   "addAntivirusMetadata" should "not allow updating of antivirus metadata with incorrect authorisation" in {
