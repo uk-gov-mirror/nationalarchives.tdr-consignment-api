@@ -9,7 +9,7 @@ class AntivirusMetadataRepository(db: Database) {
   private val insertQuery = Avmetadata returning Avmetadata.map(_.fileid) into
     ((antivirusMetadata, fileid) => antivirusMetadata.copy(fileid = fileid))
 
-  def addAntivirusMetadata(antivirusMetadataRows: Seq[AvmetadataRow]): Future[Seq[AvmetadataRow]] = {
-    db.run(insertQuery ++= antivirusMetadataRows)
+  def addAntivirusMetadata(antivirusMetadataRow: AvmetadataRow): Future[AvmetadataRow] = {
+    db.run(insertQuery += antivirusMetadataRow)
   }
 }
