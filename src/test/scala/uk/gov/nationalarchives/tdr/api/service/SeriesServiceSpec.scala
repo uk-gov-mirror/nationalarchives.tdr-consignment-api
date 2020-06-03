@@ -4,6 +4,7 @@ import java.util.UUID
 
 import org.mockito.ArgumentMatchers._
 import org.mockito.MockitoSugar
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.SeriesRow
@@ -14,7 +15,7 @@ import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
+class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with ScalaFutures {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
 
   "getSeries" should "return the specfic series for a body if one is provided" in {
@@ -22,7 +23,7 @@ class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     val repoMock = setupSeriesResponses
 
     val seriesService: SeriesService = new SeriesService(repoMock, fixedUuidSource)
-    val seriesResponse: Seq[SeriesFields.Series] = seriesService.getSeries("1").await()
+    val seriesResponse: Seq[SeriesFields.Series] = seriesService.getSeries("1").futureValue
 
     verify(repoMock, times(1)).getSeries(anyString())
     seriesResponse.length should equal(1)

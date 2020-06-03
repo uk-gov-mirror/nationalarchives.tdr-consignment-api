@@ -6,6 +6,7 @@ import java.util.UUID
 
 import org.mockito.ArgumentMatchers._
 import org.mockito.MockitoSugar
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.AvmetadataRow
@@ -15,7 +16,7 @@ import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AntivirusMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
+class AntivirusMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with ScalaFutures {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
 
   "addAntivirusMetadata" should "create anti-virus metadata given the correct arguments" in {
@@ -44,7 +45,7 @@ class AntivirusMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
       Some("database version"),
       Some("result"),
       dummyInstant.toEpochMilli
-    )).await()
+    )).futureValue
 
     result.fileId shouldBe fixedFileUuid
     result.software.get shouldBe "software"

@@ -6,6 +6,7 @@ import java.util.UUID
 
 import org.mockito.ArgumentMatchers._
 import org.mockito.MockitoSugar
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.ClientfilemetadataRow
@@ -16,7 +17,7 @@ import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
+class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with ScalaFutures {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
 
   "addClientFileMetadata" should "create client file metadata given correct arguments" in {
@@ -50,7 +51,7 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
       dummyInstant.toEpochMilli,
       dummyInstant.toEpochMilli,
       Some(dummyFileSize),
-      dummyInstant.toEpochMilli))).await()
+      dummyInstant.toEpochMilli))).futureValue
 
     result.length shouldBe 1
     val r: ClientFileMetadata = result.head

@@ -20,11 +20,6 @@ object TestUtils  {
 
   val defaultFileId = UUID.fromString("07a3a4bd-0281-4a6d-a4c1-8fa3239e1313")
 
-  implicit class AwaitFuture[T](future: Future[T]) {
-    def await(timeout: Duration = 2.seconds): T = {
-      Await.result(future, timeout)
-    }
-  }
   private val tdrPort: Int = 8000
   private val testPort: Int = 8001
   private val tdrMock: KeycloakVerificationMock = createServer("tdr", tdrPort)
