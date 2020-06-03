@@ -14,18 +14,16 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 object FileMetadataFields {
 
   case class FileMetadata(filePropertyName: String, fileId: UUID, value: String)
-  case class FileMetadataValues(fileId: UUID, value: String)
-  case class AddFileMetadataInput(filePropertyName: String, fileMetadataValues: List[FileMetadataValues])
+  case class AddFileMetadataInput(filePropertyName: String, fileId: UUID, value: String)
 
   implicit val FileMetadataType: ObjectType[Unit, FileMetadata] = deriveObjectType[Unit, FileMetadata]()
 
   implicit val AddFileMetadataInputType: InputObjectType[AddFileMetadataInput] = deriveInputObjectType[AddFileMetadataInput]()
-  implicit val FileMetadataValuesType: InputObjectType[FileMetadataValues] = deriveInputObjectType[FileMetadataValues]()
 
   val FileMetadataInputArg = Argument("addFileMetadataInput", AddFileMetadataInputType)
 
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
-    Field("addFileMetadata", ListType(FileMetadataType),
+    Field("addFileMetadata", FileMetadataType,
       arguments=FileMetadataInputArg :: Nil,
       resolve = ctx => ctx.ctx.fileMetadataService.addFileMetadata(ctx.arg(FileMetadataInputArg), ctx.ctx.accessToken.userId.map(id => UUID.fromString(id))),
       tags=List(ValidateHasChecksumMetadataAccess)

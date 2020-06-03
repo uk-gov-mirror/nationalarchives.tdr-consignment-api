@@ -10,7 +10,7 @@ class FileMetadataRepository(db: Database) {
     ((fileMetadata, fileid) => fileMetadata.copy(fileid = fileid))
 
 
-  def addFileMetadata(fileMetadataRows: Seq[FilemetadataRow]): Future[Seq[FilemetadataRow]] = {
-    db.run(insertQuery ++= fileMetadataRows)
+  def addFileMetadata(fileMetadataRows: FilemetadataRow): Future[FilemetadataRow] = {
+    db.run(insertQuery += fileMetadataRows)
   }
 }
