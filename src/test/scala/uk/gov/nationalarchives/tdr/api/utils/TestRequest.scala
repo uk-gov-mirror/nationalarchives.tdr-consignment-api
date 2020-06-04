@@ -1,8 +1,5 @@
 package uk.gov.nationalarchives.tdr.api.utils
 
-import java.sql.PreparedStatement
-import java.util.UUID
-
 import akka.http.scaladsl.model.ContentTypes
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import akka.http.scaladsl.testkit.ScalatestRouteTest
@@ -11,9 +8,8 @@ import com.typesafe.config.ConfigFactory
 import io.circe.Decoder
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.http.Routes
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils.{unmarshalResponse, userId}
+import uk.gov.nationalarchives.tdr.api.utils.TestUtils.unmarshalResponse
 
 import scala.io.Source.fromResource
 import scala.reflect.ClassTag
@@ -31,4 +27,5 @@ trait TestRequest extends AnyFlatSpec with ScalatestRouteTest with Matchers {
       responseAs[A]
     }
   }
+
 }
