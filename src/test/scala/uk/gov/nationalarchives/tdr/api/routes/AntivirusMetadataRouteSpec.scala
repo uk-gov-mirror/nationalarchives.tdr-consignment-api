@@ -19,8 +19,6 @@ class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequ
 
   implicit val customConfig: Configuration = Configuration.default.withDefaults
 
-  val defaultFileId = UUID.fromString("07a3a4bd-0281-4a6d-a4c1-8fa3239e1313")
-
   case class GraphqlMutationData(data: Option[AddAntivirusMetadata], errors: List[GraphqlError] = Nil)
   case class AntivirusMetadata(
                                 fileId: UUID,
@@ -86,24 +84,6 @@ class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequ
 
     response.errors.head.message should equal (expectedResponse.errors.head.message)
     checkNoAntivirusMetadataAdded()
-  }
-
-  private def seedDatabaseWithDefaultEntries(): Unit = {
-    val consignmentId = UUID.fromString("eb197bfb-43f7-40ca-9104-8f6cbda88506")
-    createConsignment(consignmentId, userId)
-    createFile(defaultFileId, consignmentId)
-  }
-
-  private def createConsignment(consignmentId: UUID, userId: UUID): Unit = {
-    val sql = s"insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES ('$consignmentId', 1, '$userId')"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.executeUpdate()
-  }
-
-  private def createFile(fileId: UUID, consignmentId: UUID): Unit = {
-    val sql = s"insert into File (FileId, ConsignmentId) VALUES ('$fileId', '$consignmentId')"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.executeUpdate()
   }
 
   private def checkAntivirusMetadataExists(fileId: UUID): Unit = {

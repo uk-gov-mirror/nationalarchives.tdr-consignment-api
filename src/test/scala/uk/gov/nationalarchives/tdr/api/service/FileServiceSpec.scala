@@ -6,6 +6,7 @@ import java.util.UUID
 
 import org.mockito.ArgumentMatchers.any
 import org.mockito.{ArgumentCaptor, MockitoSugar}
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.{ConsignmentRow, FileRow}
@@ -16,7 +17,7 @@ import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
+class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with ScalaFutures {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
 
   "createFile" should "create a file given correct arguments" in {
@@ -29,7 +30,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     val mockResponse = Future.successful(List(FileRow(fileId, consignmentId, uuid, Timestamp.from(Instant.now))))
     when(fileRepositoryMock.addFiles(any[List[FileRow]])).thenReturn(mockResponse)
     val fileService = new FileService(fileRepositoryMock, consignmentRepositoryMock, FixedTimeSource, fixedUuidSource)
-    val result: Files = fileService.addFile(AddFilesInput(consignmentId, 1),Some(uuid)).await()
+    val result: Files = fileService.addFile(AddFilesInput(consignmentId, 1),Some(uuid)).futureValue
 
     result.fileIds shouldBe List(fileId)
   }
@@ -54,7 +55,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
 
     when(fileRepositoryMock.addFiles(captor.capture())).thenReturn(mockResponse)
     val fileService = new FileService(fileRepositoryMock, consignmentRepositoryMock, FixedTimeSource, fixedUuidSource)
-    val result: Files = fileService.addFile(AddFilesInput(consignmentUuid, 3),Some(userUuid)).await()
+    val result: Files = fileService.addFile(AddFilesInput(consignmentUuid, 3),Some(userUuid)).futureValue
 
     captor.getAllValues.size should equal(1)
     captor.getAllValues.get(0).length should equal(3)
@@ -78,7 +79,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     val mockResponse = Future.successful(List(FileRow(fileUuid, consignmentUuid, userId, Timestamp.from(FixedTimeSource.now))))
     when(fileRepositoryMock.addFiles(captor.capture())).thenReturn(mockResponse)
 
-    fileService.addFile(AddFilesInput(consignmentUuid, 1),Some(userId)).await()
+    fileService.addFile(AddFilesInput(consignmentUuid, 1),Some(userId)).futureValue
 
     verify(fileRepositoryMock).addFiles(expectedRow)
     captor.getAllValues.size should equal(1)
@@ -106,7 +107,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
     when(consignmentRepositoryMock.getConsignmentsOfFiles(Seq(fileId1)))
       .thenReturn(Future.successful(Seq((fileId1, consignment1), (fileId2, consignment2))))
 
-    val owners = fileService.getOwnersOfFiles(Seq(fileId1)).await()
+    val owners = fileService.getOwnersOfFiles(Seq(fileId1)).futureValue
 
     owners should have size 2
 

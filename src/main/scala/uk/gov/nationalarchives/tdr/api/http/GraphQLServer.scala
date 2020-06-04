@@ -1,5 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.http
 
+import java.sql.SQLException
+
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
@@ -15,6 +17,7 @@ import uk.gov.nationalarchives.tdr.api.auth.{AuthorisationException, ValidationA
 import uk.gov.nationalarchives.tdr.api.consignmentstatevalidation.{ConsignmentStateException, ConsignmentStateValidator}
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.db.repository.{ClientFileMetadataRepository, ConsignmentRepository, SeriesRepository, TransferAgreementRepository, _}
+import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
 import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, ErrorCodes, GraphQlTypes}
 import uk.gov.nationalarchives.tdr.api.service._
 import uk.gov.nationalarchives.tdr.keycloak.Token
@@ -36,6 +39,10 @@ object GraphQLServer {
       val additionalFields = Map("code" -> node)
       HandledException(message, additionalFields)
     }
+    case (resultMarshaller, InputDataException(message)) =>
+      val node = resultMarshaller.scalarNode(ErrorCodes.invalidInputData, "String", Set.empty)
+      val additionalFields = Map("code" -> node)
+      HandledException(message, additionalFields)
   }
 
   def endpoint(requestJSON: JsValue, accessToken: Token)(implicit ec: ExecutionContext): Route = {
@@ -75,6 +82,7 @@ object GraphQLServer {
     val fileService = new FileService(new FileRepository(db), consignmentRepository, new CurrentTimeSource, uuidSource)
     val transferringBodyService = new TransferringBodyService(new TransferringBodyRepository(db))
     val antivirusMetadataService = new AntivirusMetadataService(new AntivirusMetadataRepository(db))
+    val fileMetadataService = new FileMetadataService(new FileMetadataRepository(db), new FilePropertyRepository(db), new CurrentTimeSource, uuidSource)
 
     val context = ConsignmentApiContext(
       accessToken,
@@ -84,7 +92,8 @@ object GraphQLServer {
       seriesService,
       transferAgreementService,
       transferringBodyService,
-      antivirusMetadataService
+      antivirusMetadataService,
+      fileMetadataService
     )
     Executor.execute(
       GraphQlTypes.schema,

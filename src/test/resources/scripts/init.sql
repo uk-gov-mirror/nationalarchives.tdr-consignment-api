@@ -67,5 +67,32 @@ CREATE TABLE IF NOT EXISTS AVMetadata (
     PRIMARY KEY (FileId)
 );
 
+CREATE TABLE IF NOT EXISTS FileProperty (
+    PropertyId uuid,
+    Name varchar(255),
+    Description varchar(255),
+    Shortname varchar(255),
+    PRIMARY KEY (PropertyId)
+);
+
+CREATE TABLE IF NOT EXISTS FileMetadata (
+    MetadataId uuid,
+    FileId uuid not null,
+    PropertyId uuid not null,
+    Value varchar(255) not null,
+    Datetime timestamp not null DEFAULT CURRENT_TIMESTAMP,
+    UserId uuid NOT NULL,
+    PRIMARY KEY (MetadataId)
+);
+
+ ALTER TABLE FileMetadata
+    ADD FOREIGN KEY (FileId)
+    REFERENCES File(FileId);
+
+ALTER TABLE FileMetadata
+    ADD FOREIGN KEY (PropertyId)
+    REFERENCES FileProperty(PropertyId);
+
+
 DELETE from Body;
 INSERT INTO Body (BodyId, Name, Code, Description) VALUES ('6e3b76c4-1745-4467-8ac5-b4dd736e1b3e', 'Body', 'Code', 'Description'), ('645bee46-d738-439b-8007-2083bc983154', 'Body2', 'Code', 'Description');
