@@ -12,29 +12,31 @@ import scala.concurrent.{ExecutionContext, Future}
 class AntivirusMetadataService(antivirusMetadataRepository: AntivirusMetadataRepository)
                               (implicit val executionContext: ExecutionContext) {
 
-  def addAntivirusMetadata(inputs: Seq[AddAntivirusMetadataInput]): Future[Seq[AntivirusMetadata]] = {
+  def addAntivirusMetadata(input: AddAntivirusMetadataInput): Future[AntivirusMetadata] = {
 
-    val rows: Seq[AvmetadataRow] = inputs.map(i => AvmetadataRow(
-        i.fileId,
-        i.software,
-        i.value,
-        i.softwareVersion,
-        i.databaseVersion,
-        i.result,
-        Timestamp.from(Instant.ofEpochMilli(i.datetime)
-      )))
+    val inputRow = AvmetadataRow(
+      input.fileId,
+      input.software,
+      input.value,
+      input.softwareVersion,
+      input.databaseVersion,
+      input.result,
+      Timestamp.from(Instant.ofEpochMilli(input.datetime)))
 
-    antivirusMetadataRepository.addAntivirusMetadata(rows).map(r => {
-      r.map(row => {
-        AntivirusMetadata(
-          row.fileid,
-          row.software,
-          row.value,
-          row.softwareversion,
-          row.databaseversion,
-          row.result,
-          row.datetime.getTime
-        )
-      })
+    antivirusMetadataRepository.addAntivirusMetadata(inputRow).map(row => {
+      AntivirusMetadata(
+        row.fileid,
+        row.software,
+        row.value,
+        row.softwareversion,
+        row.databaseversion,
+        row.result,
+        row.datetime.getTime
+      )
     })
-}}
+  }
+
+
+
+
+}

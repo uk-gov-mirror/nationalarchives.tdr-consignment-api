@@ -30,10 +30,10 @@ object AntivirusMetadataFields {
   implicit val AntivirusMetadataType: ObjectType[Unit, AntivirusMetadata] = deriveObjectType[Unit, AntivirusMetadata]()
   implicit val AddAntivirusMetadataInputType: InputObjectType[AddAntivirusMetadataInput] = deriveInputObjectType[AddAntivirusMetadataInput]()
 
-  val AntivirusMetadataInputArg = Argument("addAntivirusMetadataInput", ListInputType(AddAntivirusMetadataInputType))
+  val AntivirusMetadataInputArg = Argument("addAntivirusMetadataInput", AddAntivirusMetadataInputType)
 
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
-    Field("addAntivirusMetadata", ListType(AntivirusMetadataType),
+    Field("addAntivirusMetadata", AntivirusMetadataType,
       arguments=AntivirusMetadataInputArg :: Nil,
       resolve = ctx => ctx.ctx.antivirusMetadataService.addAntivirusMetadata(ctx.arg(AntivirusMetadataInputArg)),
       tags=List(ValidateHasAntiVirusMetadataAccess)

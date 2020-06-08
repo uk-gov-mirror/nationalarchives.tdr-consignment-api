@@ -1,5 +1,6 @@
 package uk.gov.nationalarchives.tdr.api.utils
 
+import java.sql.{PreparedStatement, Timestamp}
 import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
@@ -9,6 +10,7 @@ import com.tngtech.keycloakmock.api.KeycloakVerificationMock
 import com.tngtech.keycloakmock.api.TokenConfig.aTokenConfig
 import io.circe.Decoder
 import io.circe.parser.decode
+import uk.gov.nationalarchives.tdr.api.db.DbConnection
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -16,11 +18,8 @@ import scala.io.Source.fromResource
 
 object TestUtils  {
 
-  implicit class AwaitFuture[T](future: Future[T]) {
-    def await(timeout: Duration = 2.seconds): T = {
-      Await.result(future, timeout)
-    }
-  }
+  val defaultFileId = UUID.fromString("07a3a4bd-0281-4a6d-a4c1-8fa3239e1313")
+
   private val tdrPort: Int = 8000
   private val testPort: Int = 8001
   private val tdrMock: KeycloakVerificationMock = createServer("tdr", tdrPort)
@@ -33,6 +32,7 @@ object TestUtils  {
   }
 
   val userId = UUID.fromString("4ab14990-ed63-4615-8336-56fbb9960300")
+  val backendChecksUser = UUID.fromString("6847253d-b9c6-4ea9-b3c9-57542b8c6375")
 
   def validUserToken(body: String = "Body"): OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
     aTokenConfig()
@@ -49,7 +49,9 @@ object TestUtils  {
   )
   def validBackendChecksToken(role: String): OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
     aTokenConfig()
-      .withResourceRole("tdr-backend-checks", role).build
+      .withResourceRole("tdr-backend-checks", role)
+      .withClaim("user_id", backendChecksUser)
+      .build
   ))
   def invalidBackendChecksToken(): OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
     aTokenConfig()
@@ -82,5 +84,25 @@ object TestUtils  {
     }
   })
 
+  def seedDatabaseWithDefaultEntries(): Unit = {
+    val consignmentId = UUID.fromString("eb197bfb-43f7-40ca-9104-8f6cbda88506")
+    createConsignment(consignmentId, userId)
+    createFile(defaultFileId, consignmentId)
+  }
 
+  def createConsignment(consignmentId: UUID, userId: UUID): Unit = {
+    val sql = s"insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES ('$consignmentId', 1, '$userId')"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.executeUpdate()
+  }
+
+  def createFile(fileId: UUID, consignmentId: UUID): Unit = {
+    val sql = s"insert into File (FileId, ConsignmentId, UserId, Datetime) VALUES (?, ?, ?, ?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, fileId.toString)
+    ps.setString(2, consignmentId.toString)
+    ps.setString(3, userId.toString)
+    ps.setTimestamp(4, Timestamp.from(FixedTimeSource.now))
+    ps.executeUpdate()
+  }
 }

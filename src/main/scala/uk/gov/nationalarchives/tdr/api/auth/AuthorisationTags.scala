@@ -14,6 +14,7 @@ import scala.language.postfixOps
 
 trait AuthorisationTag extends ValidationTag {
   val antiVirusRole = "antivirus"
+  val checksumRole = "checksum"
 }
 
 trait SyncAuthorisationTag extends AuthorisationTag {
@@ -127,6 +128,20 @@ object ValidateHasAntiVirusMetadataAccess extends SyncAuthorisationTag {
     } else {
       val tokenUserId = token.userId.getOrElse("")
       throw AuthorisationException(s"User '$tokenUserId' does not have permission to update antivirus metadata")
+    }
+  }
+}
+
+object ValidateHasChecksumMetadataAccess extends SyncAuthorisationTag {
+  override def validateSync(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
+    val token = ctx.ctx.accessToken
+    val checksumAccess = token.backendChecksRoles.contains(checksumRole)
+
+    if (checksumAccess) {
+      continue
+    } else {
+      val tokenUserId = token.userId.getOrElse("")
+      throw AuthorisationException(s"User '$tokenUserId' does not have permission to update checksum metadata")
     }
   }
 }

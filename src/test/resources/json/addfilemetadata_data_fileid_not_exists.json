@@ -1,0 +1,2 @@
+{"data": null,"errors": [{ "message": "Referential integrity constraint violation: \"CONSTRAINT_A36: PUBLIC.FileMetadata FOREIGN KEY(FileId) REFERENCES PUBLIC.File(FileId) ('28f78f42-0f77-4384-bcdb-04d85100171e')\"; SQL statement:\ninsert into \"FileMetadata\" (\"MetadataId\",\"FileId\",\"PropertyId\",\"Value\",\"Datetime\",\"UserId\")  values (?,?,?,?,?,?) [23506-200]", "locations": [{"column": 47,"line": 1} ]}]}
+

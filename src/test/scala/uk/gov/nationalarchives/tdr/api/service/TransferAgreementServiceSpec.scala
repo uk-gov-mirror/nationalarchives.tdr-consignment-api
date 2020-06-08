@@ -4,6 +4,7 @@ import java.util.UUID
 
 import org.mockito.ArgumentMatchers._
 import org.mockito.MockitoSugar
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.TransferagreementRow
@@ -14,7 +15,7 @@ import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
+class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with ScalaFutures {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
   val fixedUuidSource = new FixedUUIDSource()
 
@@ -37,7 +38,7 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
       Some(true),
       Some(true),
       Some(true),
-      Some(true))).await()
+      Some(true))).futureValue
 
     result.consignmentId shouldBe consignmentUuid
     result.allCrownCopyright.get shouldBe true

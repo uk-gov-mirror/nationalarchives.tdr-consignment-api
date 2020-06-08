@@ -6,6 +6,7 @@ import java.util.UUID
 
 import org.mockito.ArgumentMatchers._
 import org.mockito.MockitoSugar
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.AvmetadataRow
@@ -15,7 +16,7 @@ import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AntivirusMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers {
+class AntivirusMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with ScalaFutures {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
 
   "addAntivirusMetadata" should "create anti-virus metadata given the correct arguments" in {
@@ -23,7 +24,7 @@ class AntivirusMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
     val dummyInstant = Instant.now()
     val dummyTimestamp = Timestamp.from(dummyInstant)
     val repositoryMock = mock[AntivirusMetadataRepository]
-    val mockResponse = Future.successful(Seq(AvmetadataRow(
+    val mockResponse = Future.successful(AvmetadataRow(
       fixedFileUuid,
       Some("software"),
       Some("value"),
@@ -31,12 +32,12 @@ class AntivirusMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
       Some("database version"),
       Some("result"),
       dummyTimestamp
-    )))
+    ))
 
-    when(repositoryMock.addAntivirusMetadata(any[Seq[AvmetadataRow]])).thenReturn(mockResponse)
+    when(repositoryMock.addAntivirusMetadata(any[AvmetadataRow])).thenReturn(mockResponse)
 
     val service: AntivirusMetadataService = new AntivirusMetadataService(repositoryMock)
-    val result = service.addAntivirusMetadata(Seq(AddAntivirusMetadataInput(
+    val result = service.addAntivirusMetadata(AddAntivirusMetadataInput(
       fixedFileUuid,
       Some("software"),
       Some("value"),
@@ -44,16 +45,14 @@ class AntivirusMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
       Some("database version"),
       Some("result"),
       dummyInstant.toEpochMilli
-    ))).await()
+    )).futureValue
 
-    result.length shouldBe 1
-    val r = result.head
-    r.fileId shouldBe fixedFileUuid
-    r.software.get shouldBe "software"
-    r.value.get shouldBe "value"
-    r.softwareVersion.get shouldBe "software version"
-    r.databaseVersion.get shouldBe "database version"
-    r.result.get shouldBe "result"
-    r.datetime shouldBe dummyInstant.toEpochMilli
+    result.fileId shouldBe fixedFileUuid
+    result.software.get shouldBe "software"
+    result.value.get shouldBe "value"
+    result.softwareVersion.get shouldBe "software version"
+    result.databaseVersion.get shouldBe "database version"
+    result.result.get shouldBe "result"
+    result.datetime shouldBe dummyInstant.toEpochMilli
   }
 }
