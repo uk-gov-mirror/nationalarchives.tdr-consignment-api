@@ -1,53 +1,9 @@
 library("tdr-jenkinslib")
 
-pipeline {
-  agent {
-    label "master"
-  }
-  parameters {
-    choice(name: "STAGE", choices: ["intg", "staging", "prod"], description: "The stage you are building the api for")
-    string(name: "TO_DEPLOY", description: "The git tag, branch or commit reference to deploy, e.g. 'v123'")
-  }
-  stages {
-    stage("Docker") {
-      agent {
-        label "master"
-      }
-      steps {
-        script {
-          docker.withRegistry('', 'docker') {
-            sh "docker pull nationalarchives/consignment-api:${params.TO_DEPLOY}"
-            sh "docker tag nationalarchives/consignment-api:${params.TO_DEPLOY} nationalarchives/consignment-api:${params.STAGE}"
-            sh "docker push nationalarchives/consignment-api:${params.STAGE}"
-
-            slackSend color: "good", message: "*Consignment API* :whale: The '${params.TO_DEPLOY}' image has been tagged with '${params.STAGE}' in Docker Hub", channel: "#tdr-releases"
-          }
-        }
-      }
-    }
-    stage("Update ECS container") {
-        agent {
-            ecs {
-                inheritFrom "aws"
-                taskrole "arn:aws:iam::${env.MANAGEMENT_ACCOUNT}:role/TDRJenkinsNodeRole${params.STAGE.capitalize()}"
-            }
-        }
-        steps {
-            script {
-                def accountNumber = tdr.getAccountNumberFromStage(params.STAGE)
-                sh "python3 /update_service.py ${accountNumber} ${params.STAGE} consignmentapi"
-                slackSend color: "good", message: "*Consignment API* :arrow_up: The app has been updated in ECS in the *${params.STAGE}* environment", channel: "#tdr-releases"
-            }
-        }
-    }
-  }
-  post {
-      success {
-        script {
-          if (params.STAGE == "intg"){
-              tdr.runEndToEndTests(300, params.STAGE, BUILD_URL)
-          }
-        }
-      }
-    }
-}
+standardDeployJob(
+    IMAGE_NAME: "consignment-api",
+    TO_DEPLOY: params.TO_DEPLOY,
+    ECS_SERVICE: "consignmentapi",
+    STAGE: params.STAGE,
+    TEST_DELAY_SECONDS: 300
+)
