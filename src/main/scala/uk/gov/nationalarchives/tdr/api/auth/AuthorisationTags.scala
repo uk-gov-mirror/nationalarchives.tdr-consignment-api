@@ -88,7 +88,7 @@ case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends Authori
         if (consignment.get.userid.toString == userId) {
           continue
         } else {
-          throw AuthorisationException("User does not own consignment")
+          throw AuthorisationException(s"User '$userId' does not own consignment '$consignmentId'")
         }
       })
   }
