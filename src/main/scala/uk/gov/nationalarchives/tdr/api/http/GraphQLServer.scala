@@ -12,6 +12,7 @@ import sangria.ast.Document
 import sangria.execution._
 import sangria.marshalling.sprayJson._
 import sangria.parser.QueryParser
+import sangria.schema.Schema
 import spray.json.{JsObject, JsString, JsValue}
 import uk.gov.nationalarchives.tdr.api.auth.{AuthorisationException, ValidationAuthoriser}
 import uk.gov.nationalarchives.tdr.api.consignmentstatevalidation.{ConsignmentStateException, ConsignmentStateValidator}
@@ -45,7 +46,7 @@ object GraphQLServer {
       HandledException(message, additionalFields)
   }
 
-  def endpoint(requestJSON: JsValue, accessToken: Token)(implicit ec: ExecutionContext): Route = {
+  def endpoint(requestJSON: JsValue, accessToken: Token, schema: Schema[ConsignmentApiContext, Unit])(implicit ec: ExecutionContext): Route = {
 
     val JsObject(fields) = requestJSON
 
@@ -60,14 +61,14 @@ object GraphQLServer {
           case Some(obj: JsObject) => obj
           case _ => JsObject.empty
         }
-        complete(executeGraphQLQuery(queryAst, operation, variables, accessToken))
+        complete(executeGraphQLQuery(queryAst, operation, variables, accessToken, schema))
       case Failure(error) =>
         complete(BadRequest, JsObject("error" -> JsString(error.getMessage)))
     }
 
   }
 
-  private def executeGraphQLQuery(query: Document, operation: Option[String], vars: JsObject, accessToken: Token)
+  private def executeGraphQLQuery(query: Document, operation: Option[String], vars: JsObject, accessToken: Token, schema: Schema[ConsignmentApiContext, Unit])
                                  (implicit ec: ExecutionContext): Future[(StatusCode with Serializable, JsValue)] = {
     val uuidSourceClass: Class[_] = Class.forName(ConfigFactory.load().getString("source.uuid"))
     val uuidSource: UUIDSource = uuidSourceClass.getDeclaredConstructor().newInstance().asInstanceOf[UUIDSource]
@@ -96,7 +97,7 @@ object GraphQLServer {
       fileMetadataService
     )
     Executor.execute(
-      GraphQlTypes.schema,
+      schema,
       query,  context,
       variables = vars,
       operationName = operation,

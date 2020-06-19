@@ -9,7 +9,9 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.directives.Credentials
 import com.typesafe.config._
 import com.typesafe.scalalogging.Logger
+import sangria.schema.Schema
 import spray.json.JsValue
+import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, GraphQlTypes}
 import uk.gov.nationalarchives.tdr.keycloak.{KeycloakUtils, Token}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -34,15 +36,21 @@ class Routes(val config: Config) extends Cors {
   }
 
   val route: Route =
+    graphqlRoute("graphql", GraphQlTypes.userSchema) ~
+    graphqlRoute("admin", GraphQlTypes.adminSchema) ~
+      (get & path("healthcheck")) {
+      complete(StatusCodes.OK)
+    }
+
+  private def graphqlRoute(urlPath: String, schema: Schema[ConsignmentApiContext, Unit]) = {
     optionalHeaderValueByType[Origin](()) { originHeader =>
-      corsHandler((post & path("graphql")) {
+      corsHandler((post & path(urlPath)) {
         authenticateOAuth2Async("tdr", tokenAuthenticator) { accessToken =>
           entity(as[JsValue]) { requestJson =>
-            GraphQLServer.endpoint(requestJson, accessToken)
+            GraphQLServer.endpoint(requestJson, accessToken, schema)
           }
         }
       }, originHeader)
-    } ~ (get & path("healthcheck")) {
-      complete(StatusCodes.OK)
     }
+  }
 }

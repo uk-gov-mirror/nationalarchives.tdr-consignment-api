@@ -36,7 +36,7 @@ class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequ
   }
 
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData =
-    runTestRequest[GraphqlMutationData](addAVMetadataJsonFilePrefix)
+    runTestRequest[GraphqlMutationData](addAVMetadataJsonFilePrefix, "/admin")
   val expectedMutationResponse: String => GraphqlMutationData =
     getDataFromFile[GraphqlMutationData](addAVMetadataJsonFilePrefix)
 

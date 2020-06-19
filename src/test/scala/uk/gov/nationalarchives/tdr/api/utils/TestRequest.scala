@@ -18,12 +18,12 @@ trait TestRequest extends AnyFlatSpec with ScalatestRouteTest with Matchers {
 
   val route = new Routes(ConfigFactory.load()).route
 
-  def runTestRequest[A](prefix: String)(queryFileName: String, token: OAuth2BearerToken)
+  def runTestRequest[A](prefix: String, urlPath: String = "/graphql")(queryFileName: String, token: OAuth2BearerToken)
                        (implicit decoder: Decoder[A], classTag: ClassTag[A])
   : A = {
     implicit val unmarshaller: FromResponseUnmarshaller[A] = unmarshalResponse[A]()
     val query: String = fromResource(prefix + s"$queryFileName.json").mkString
-    Post("/graphql").withEntity(ContentTypes.`application/json`, query) ~> addCredentials(token) ~> route ~> check {
+    Post(urlPath).withEntity(ContentTypes.`application/json`, query) ~> addCredentials(token) ~> route ~> check {
       responseAs[A]
     }
   }

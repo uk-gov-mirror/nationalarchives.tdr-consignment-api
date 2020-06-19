@@ -26,7 +26,7 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
   case class AddFileMetadata(addFileMetadata: FileMetadata)
 
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData =
-    runTestRequest[GraphqlMutationData](addFileMetadataJsonFilePrefix)
+    runTestRequest[GraphqlMutationData](addFileMetadataJsonFilePrefix, "/admin")
 
   val expectedMutationResponse: String => GraphqlMutationData =
     getDataFromFile[GraphqlMutationData](addFileMetadataJsonFilePrefix)
