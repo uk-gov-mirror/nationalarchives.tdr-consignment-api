@@ -59,7 +59,7 @@ pipeline {
             script {
               docker.withRegistry('', 'docker') {
                 docker.build("nationalarchives/consignment-api:${versionTag}").push()
-                slackSend color: "good", message: "*Consignment API* :whale: Pushed version ${versionTag} to Docker Hub", channel: "#tdr-releases"
+                tdr.postToDaTdrSlackChannel(colour: "good", message:  "*Consignment API* :whale: Pushed version ${versionTag} to Docker Hub")
               }
             }
           }
