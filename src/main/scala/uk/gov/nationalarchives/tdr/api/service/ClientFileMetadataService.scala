@@ -1,11 +1,12 @@
 package uk.gov.nationalarchives.tdr.api.service
 
-import java.sql.Timestamp
+import java.sql.{SQLException, Timestamp}
 import java.time.Instant
 import java.util.UUID
 
 import uk.gov.nationalarchives.Tables.ClientfilemetadataRow
 import uk.gov.nationalarchives.tdr.api.db.repository.ClientFileMetadataRepository
+import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ClientFileMetadataFields.{AddClientFileMetadataInput, ClientFileMetadata}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -14,7 +15,10 @@ class ClientFileMetadataService(clientFileMetadataRepository: ClientFileMetadata
                                (implicit val executionContext: ExecutionContext) {
 
   def getClientFileMetadata(fileId: UUID): Future[ClientFileMetadata] = {
-    clientFileMetadataRepository.getClientFileMetadata(fileId).map(_.head).map(rowToOutput)
+    clientFileMetadataRepository.getClientFileMetadata(fileId).map(_.head).map(rowToOutput).recover {
+      case nse: NoSuchElementException => throw InputDataException(s"Could not find metadata for file $fileId")
+      case e: SQLException => throw InputDataException(e.getLocalizedMessage)
+    }
   }
 
   def addClientFileMetadata(inputs: Seq[AddClientFileMetadataInput]): Future[Seq[ClientFileMetadata]] = {

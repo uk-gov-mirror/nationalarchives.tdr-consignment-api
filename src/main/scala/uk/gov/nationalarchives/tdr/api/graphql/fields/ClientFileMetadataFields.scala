@@ -34,19 +34,19 @@ object ClientFileMetadataFields {
   implicit val AddClientFileMetadataInputType: InputObjectType[AddClientFileMetadataInput] = deriveInputObjectType[AddClientFileMetadataInput]()
 
   val ClientFileMetadataInputArg = Argument("addClientFileMetadataInput", ListInputType(AddClientFileMetadataInputType))
-  val FileIdArg = Argument("consignmentid", UuidType)
+  val FileIdArg = Argument("fileId", UuidType)
 
   val queryFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("getClientFileMetadata", ClientFileMetadataType,
       arguments=FileIdArg :: Nil,
       resolve = ctx => ctx.ctx.clientFileMetadataService.getClientFileMetadata(ctx.arg(FileIdArg)),
-      tags=List(ValidateUserOwnsFiles)
+      tags=ValidateUserOwnsFiles(FileIdArg) :: Nil
     ))
 
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("addClientFileMetadata", ListType(ClientFileMetadataType),
       arguments=ClientFileMetadataInputArg :: Nil,
       resolve = ctx => ctx.ctx.clientFileMetadataService.addClientFileMetadata(ctx.arg(ClientFileMetadataInputArg)),
-      tags=List(ValidateUserOwnsFiles)
+      tags=List(ValidateUserOwnsFiles(ClientFileMetadataInputArg))
     ))
 }
