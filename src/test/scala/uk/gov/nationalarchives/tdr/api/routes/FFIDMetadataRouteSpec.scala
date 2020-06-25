@@ -12,7 +12,7 @@ import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FFIDMetadataFields.FFIDMetadata
 import uk.gov.nationalarchives.tdr.api.utils.TestRequest
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils.{GraphqlError, getDataFromFile, invalidBackendChecksToken, seedDatabaseWithDefaultEntries, validBackendChecksToken}
+import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 class FFIDMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach {
 
