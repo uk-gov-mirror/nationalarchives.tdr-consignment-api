@@ -2,6 +2,7 @@ package uk.gov.nationalarchives.tdr.api.service
 
 import java.sql.Timestamp
 import java.time.Instant
+import java.util.UUID
 
 import uk.gov.nationalarchives.Tables.ClientfilemetadataRow
 import uk.gov.nationalarchives.tdr.api.db.repository.ClientFileMetadataRepository
@@ -11,6 +12,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ClientFileMetadataService(clientFileMetadataRepository: ClientFileMetadataRepository, uuidSource: UUIDSource)
                                (implicit val executionContext: ExecutionContext) {
+
+  def getClientFileMetadata(fileId: UUID): Future[ClientFileMetadata] = {
+    clientFileMetadataRepository.getClientFileMetadata(fileId).map(_.head).map(rowToOutput)
+  }
 
   def addClientFileMetadata(inputs: Seq[AddClientFileMetadataInput]): Future[Seq[ClientFileMetadata]] = {
 
@@ -26,18 +31,21 @@ class ClientFileMetadataService(clientFileMetadataRepository: ClientFileMetadata
       Timestamp.from(Instant.ofEpochMilli(i.datetime))))
 
     clientFileMetadataRepository.addClientFileMetadata(rows).map(r => {
-      r.map(row => {
-        ClientFileMetadata(
-          row.fileid,
-          row.originalpath,
-          row.checksum,
-          row.checksumtype,
-          row.lastmodified.getTime,
-          row.createddate.getTime,
-          row.filesize,
-          row.datetime.getTime,
-          row.clientfilemetadataid
-        )
-      })
+      r.map(rowToOutput)
     })
-}}
+  }
+
+  private def rowToOutput(row: ClientfilemetadataRow): ClientFileMetadata = {
+    ClientFileMetadata(
+      row.fileid,
+      row.originalpath,
+      row.checksum,
+      row.checksumtype,
+      row.lastmodified.getTime,
+      row.createddate.getTime,
+      row.filesize,
+      row.datetime.getTime,
+      row.clientfilemetadataid
+    )
+  }
+}

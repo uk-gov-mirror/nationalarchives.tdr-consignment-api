@@ -105,6 +105,14 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
     response.errors.head.message should equal (expectedResponse.errors.head.message)
   }
 
+  "getClientFileMetadata" should "return the requested fields" in {
+    createClientFileMetadata(defaultFileId)
+  }
+
+  "getClientFileMetadata" should "throw an error if the file id does not exist" in {
+
+  }
+
   private def createConsignment(consignmentId: UUID, userId: UUID): Unit = {
     val sql = s"insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES ('$consignmentId', 1, '$userId')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
@@ -114,6 +122,21 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
   private def createFile(fileId: UUID, consignmentId: UUID): Unit = {
     val sql = s"insert into File (FileId, ConsignmentId) VALUES ('$fileId', '$consignmentId')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.executeUpdate()
+  }
+
+  private def createClientFileMetadata(fileId: UUID): Unit = {
+    val sql = s"insert into ClientFileMetadata (FileId,OriginalPath,Checksum,ChecksumType,LastModified,CreatedDate,Filesize,Datetime,ClientFileMetadataId) VALUES (?,?,?,?,?,?,?,?,?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, fileId.toString)
+    ps.setString(2, "originalPath")
+    ps.setString(3, "checksum")
+    ps.setString(4, "checksumType")
+    ps.setString(5, "1")
+    ps.setString(6, "1")
+    ps.setString(7, "1")
+    ps.setString(8, "1")
+    ps.setString(9, UUID.randomUUID.toString)
     ps.executeUpdate()
   }
 
