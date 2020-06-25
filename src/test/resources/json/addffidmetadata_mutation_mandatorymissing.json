@@ -1,0 +1,1 @@
+{"query":  "mutation { addFFIDMetadata(addFFIDMetadataInput:  { extension: \"txt\"  }) { fileId software softwareVersion binarySignatureFileVersion containerSignatureFileVersion method extension identificationBasis puid datetime } }"}

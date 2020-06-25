@@ -92,6 +92,23 @@ CREATE TABLE IF NOT EXISTS FileMetadata (
 ALTER TABLE FileMetadata
     ADD FOREIGN KEY (PropertyId)
     REFERENCES FileProperty(PropertyId);
+    
+CREATE TABLE IF NOT EXISTS FFIDMetadata (
+    FileId uuid NOT NULL,
+    Software varchar(255) not null,
+    SoftwareVersion varchar(255) not null,
+    BinarySignatureFileVersion varchar(255) not null,
+    ContainerSignatureFileVersion varchar(255) not null,
+    Method varchar(255) not null,
+    Extension varchar(255),
+    IdentificationBasis varchar(255) not null,
+    PUID varchar(255) not null,
+    Datetime timestamp not null
+);
+
+ ALTER TABLE FFIDMetadata
+    ADD FOREIGN KEY (FileId)
+    REFERENCES File(FileId);
 
 
 DELETE from Body;
