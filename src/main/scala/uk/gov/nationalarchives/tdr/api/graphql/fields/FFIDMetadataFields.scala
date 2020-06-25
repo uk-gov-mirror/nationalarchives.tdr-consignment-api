@@ -11,8 +11,8 @@ import uk.gov.nationalarchives.tdr.api.auth.ValidateHasFFIDMetadataAccess
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 
 object FFIDMetadataFields {
-  case class FFIDMetadata(fileId: UUID, software: String, softwareVersion: String, binarySignatureFileVersion: String, containerSignatureFileVersion: String, method: String, extension: Option[String] = None, identificationBasis: String, puid: String, datetime: Long)
-  case class FFIDMetadataInput(fileId: UUID, software: String, softwareVersion: String, binarySignatureFileVersion: String, containerSignatureFileVersion: String, method: String, extension: Option[String] = None, identificationBasis: String, puid: String, datetime: Long)
+  case class FFIDMetadata(fileId: UUID, software: String, softwareVersion: String, binarySignatureFileVersion: String, containerSignatureFileVersion: String, method: String, extension: Option[String] = None, identificationBasis: String, puid: Option[String], datetime: Long)
+  case class FFIDMetadataInput(fileId: UUID, software: String, softwareVersion: String, binarySignatureFileVersion: String, containerSignatureFileVersion: String, method: String, extension: Option[String] = None, identificationBasis: String, puid: Option[String], datetime: Long)
     implicit val AddFFFIDMetadataInputType: InputObjectType[FFIDMetadataInput] = deriveInputObjectType[FFIDMetadataInput]()
     implicit val FFIDMetadataType: ObjectType[Unit, FFIDMetadata] = deriveObjectType[Unit, FFIDMetadata]()
 

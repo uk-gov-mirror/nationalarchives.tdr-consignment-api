@@ -1,16 +1,1 @@
-{
-  "data": {
-    "addFFIDMetadata": {
-      "fileId": "eb197bfb-43f7-40ca-9104-8f6cbda88506",
-      "method": "pronom",
-      "softwareVersion": "1.8.0",
-      "datetime": 1593088166,
-      "puid": "x-fmt/111",
-      "software": "pronom",
-      "identificationBasis": "Some basis",
-      "containerSignatureFileVersion": "container-signature-20200121.xml",
-      "binarySignatureFileVersion": "DROID_SignatureFile_V96.xml",
-      "extension": "txt"
-    }
-  }
-}
+{"data":{"addFileMetadata":{"filePropertyName":"ServerSideChecksum","fileId":"07a3a4bd-0281-4a6d-a4c1-8fa3239e1313","value":"value"}}}
