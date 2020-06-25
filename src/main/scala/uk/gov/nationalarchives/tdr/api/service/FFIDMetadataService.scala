@@ -12,9 +12,27 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class FFIDMetadataService(ffidMetadataRespoitory: FFIDMetadataRepository)(implicit val executionContext: ExecutionContext) {
   def addFFIDMetadata(ffidMetadata: FFIDMetadataInput): Future[FFIDMetadata] = {
-    val row = FfidmetadataRow(ffidMetadata.fileId, ffidMetadata.software, ffidMetadata.softwareVersion, ffidMetadata.binarySignatureFileVersion, ffidMetadata.containerSignatureFileVersion, ffidMetadata.method, ffidMetadata.extension, ffidMetadata.identificationBasis, ffidMetadata.puid, Timestamp.from(Instant.ofEpochMilli(ffidMetadata.datetime)))
+    val row = FfidmetadataRow(ffidMetadata.fileId,
+      ffidMetadata.software,
+      ffidMetadata.softwareVersion,
+      ffidMetadata.binarySignatureFileVersion,
+      ffidMetadata.containerSignatureFileVersion,
+      ffidMetadata.method,
+      ffidMetadata.extension,
+      ffidMetadata.identificationBasis,
+      ffidMetadata.puid,
+      Timestamp.from(Instant.ofEpochMilli(ffidMetadata.datetime)))
     ffidMetadataRespoitory.addFFIDMetadata(row).map(r => FFIDMetadata(
-      r.fileid, r.software, r.softwareversion, r.binarysignaturefileversion, r.containersignaturefileversion, r.method, r.extension, r.identificationbasis, r.puid, r.datetime.getTime
+      r.fileid,
+      r.software,
+      r.softwareversion,
+      r.binarysignaturefileversion,
+      r.containersignaturefileversion,
+      r.method,
+      r.extension,
+      r.identificationbasis,
+      r.puid,
+      r.datetime.getTime
     )).recover {
       case e: SQLException => throw InputDataException(e.getLocalizedMessage)
     }
