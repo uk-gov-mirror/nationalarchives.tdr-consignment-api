@@ -6,7 +6,7 @@ import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
 import sangria.schema.{Argument, Field, InputObjectType, ListInputType, ListType, ObjectType, fields}
-import uk.gov.nationalarchives.tdr.api.auth.ValidateUserOwnsFiles
+import uk.gov.nationalarchives.tdr.api.auth.{ValidateHasFFIDMetadataAccess, ValidateUserOwnsFiles}
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 
@@ -40,7 +40,8 @@ object ClientFileMetadataFields {
     Field("getClientFileMetadata", ClientFileMetadataType,
       arguments=FileIdArg :: Nil,
       resolve = ctx => ctx.ctx.clientFileMetadataService.getClientFileMetadata(ctx.arg(FileIdArg)),
-      tags=ValidateUserOwnsFiles(FileIdArg) :: Nil
+      tags=ValidateHasFFIDMetadataAccess :: Nil
+      //We're only using this for the file metadata api update lambda for now. This check can be changed if we use it anywhere else
     ))
 
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
