@@ -1,8 +1,6 @@
 package uk.gov.nationalarchives.tdr.api.service
 
 import java.sql.Timestamp
-import java.time.Instant
-import java.time.temporal.ChronoField
 import java.util.UUID
 
 import org.mockito.ArgumentMatchers._
@@ -16,6 +14,7 @@ import uk.gov.nationalarchives.Tables
 import uk.gov.nationalarchives.Tables.FfidmetadataRow
 import uk.gov.nationalarchives.tdr.api.db.repository.FFIDMetadataRepository
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FFIDMetadataFields.FFIDMetadataInput
+import uk.gov.nationalarchives.tdr.api.utils.FixedTimeSource
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -25,27 +24,23 @@ class FFIDMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
   "addFFIDMetadata" should "call the repository with the correct values" in {
     val fixedFileUuid = UUID.fromString("07a3a4bd-0281-4a6d-a4c1-8fa3239e1313")
     val repositoryMock = mock[FFIDMetadataRepository]
-    val dummyInstant = Instant.now().getLong(ChronoField.MICRO_OF_SECOND)
-    val dummyTimestamp = Timestamp.from(Instant.ofEpochMilli(dummyInstant))
     val captor: ArgumentCaptor[FfidmetadataRow] =  ArgumentCaptor.forClass(classOf[FfidmetadataRow])
-    val mockRow: nationalarchives.Tables.FfidmetadataRow = getMockRow(fixedFileUuid, dummyTimestamp)
+    val mockRow: nationalarchives.Tables.FfidmetadataRow = getMockRow(fixedFileUuid, Timestamp.from(FixedTimeSource.now))
     val mockResponse = Future(mockRow)
     when(repositoryMock.addFFIDMetadata(captor.capture())).thenReturn(mockResponse)
-    val service = new FFIDMetadataService(repositoryMock)
-    service.addFFIDMetadata(getMetadataInput(fixedFileUuid, dummyTimestamp))
+    val service = new FFIDMetadataService(repositoryMock, FixedTimeSource)
+    service.addFFIDMetadata(getMetadataInput(fixedFileUuid))
     captor.getValue should equal(mockRow)
   }
 
   "addFFIDMetadata" should "create ffid metadata given the correct arguments" in {
     val fixedFileUuid = UUID.fromString("07a3a4bd-0281-4a6d-a4c1-8fa3239e1313")
     val repositoryMock = mock[FFIDMetadataRepository]
-    val dummyInstant = Instant.now().getLong(ChronoField.MICRO_OF_SECOND)
-    val dummyTimestamp = Timestamp.from(Instant.ofEpochMilli(dummyInstant))
-    val mockRow: Tables.FfidmetadataRow = getMockRow(fixedFileUuid, dummyTimestamp)
+    val mockRow: Tables.FfidmetadataRow = getMockRow(fixedFileUuid, Timestamp.from(FixedTimeSource.now))
     val mockResponse = Future(mockRow)
     when(repositoryMock.addFFIDMetadata(any[FfidmetadataRow])).thenReturn(mockResponse)
-    val service = new FFIDMetadataService(repositoryMock)
-    val result = service.addFFIDMetadata(getMetadataInput(fixedFileUuid, dummyTimestamp)).futureValue
+    val service = new FFIDMetadataService(repositoryMock, FixedTimeSource)
+    val result = service.addFFIDMetadata(getMetadataInput(fixedFileUuid)).futureValue
     result.fileId shouldEqual fixedFileUuid
     result.software shouldEqual "software"
     result.softwareVersion shouldEqual "softwareVersion"
@@ -55,10 +50,10 @@ class FFIDMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     result.extension.get shouldEqual "ext"
     result.identificationBasis shouldEqual "identificationBasis"
     result.puid.get shouldEqual "puid"
-    result.datetime shouldEqual dummyInstant
+    result.datetime shouldEqual Timestamp.from(FixedTimeSource.now).getTime
   }
 
-  private def getMetadataInput(fixedFileUuid: UUID, dummyTimestamp: Timestamp) = {
+  private def getMetadataInput(fixedFileUuid: UUID) = {
     FFIDMetadataInput(
       fixedFileUuid,
       "software",
@@ -68,8 +63,7 @@ class FFIDMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
       "method",
       Some("ext"),
       "identificationBasis",
-      Some("puid"),
-      dummyTimestamp.getTime
+      Some("puid")
     )
   }
 

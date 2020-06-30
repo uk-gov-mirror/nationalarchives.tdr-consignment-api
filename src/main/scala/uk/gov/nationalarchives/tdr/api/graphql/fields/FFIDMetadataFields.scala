@@ -29,8 +29,7 @@ object FFIDMetadataFields {
                                method: String,
                                extension: Option[String] = None,
                                identificationBasis: String,
-                               puid: Option[String],
-                               datetime: Long)
+                               puid: Option[String])
     implicit val AddFFFIDMetadataInputType: InputObjectType[FFIDMetadataInput] = deriveInputObjectType[FFIDMetadataInput]()
     implicit val FFIDMetadataType: ObjectType[Unit, FFIDMetadata] = deriveObjectType[Unit, FFIDMetadata]()
 

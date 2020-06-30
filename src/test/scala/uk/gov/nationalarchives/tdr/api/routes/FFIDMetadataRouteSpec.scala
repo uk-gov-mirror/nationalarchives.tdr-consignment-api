@@ -37,7 +37,19 @@ class FFIDMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
   "addFFIDMetadata" should "return all requested fields from inserted file format object" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validBackendChecksToken("file_format"))
-    response.data.get.addFFIDMetadata should equal(expectedResponse.data.get.addFFIDMetadata)
+    val metadata: FFIDMetadata = response.data.get.addFFIDMetadata
+    val expectedMetadata = expectedResponse.data.get.addFFIDMetadata
+
+    metadata.fileId should equal(expectedMetadata.fileId)
+    metadata.software should equal(expectedMetadata.software)
+    metadata.softwareVersion should equal(expectedMetadata.softwareVersion)
+    metadata.binarySignatureFileVersion should equal(expectedMetadata.binarySignatureFileVersion)
+    metadata.containerSignatureFileVersion should equal(expectedMetadata.containerSignatureFileVersion)
+    metadata.method should equal(expectedMetadata.method)
+    metadata.extension should equal(expectedMetadata.extension)
+    metadata.identificationBasis should equal(expectedMetadata.identificationBasis)
+    metadata.puid should equal(expectedMetadata.puid)
+
 
     checkFFIDMetadataExists(response.data.get.addFFIDMetadata.fileId)
   }

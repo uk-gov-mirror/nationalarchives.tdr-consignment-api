@@ -10,7 +10,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class FFIDMetadataService(ffidMetadataRespoitory: FFIDMetadataRepository)(implicit val executionContext: ExecutionContext) {
+class FFIDMetadataService(ffidMetadataRespoitory: FFIDMetadataRepository, timeSource: TimeSource)(implicit val executionContext: ExecutionContext) {
   def addFFIDMetadata(ffidMetadata: FFIDMetadataInput): Future[FFIDMetadata] = {
     val row = FfidmetadataRow(ffidMetadata.fileId,
       ffidMetadata.software,
@@ -21,7 +21,7 @@ class FFIDMetadataService(ffidMetadataRespoitory: FFIDMetadataRepository)(implic
       ffidMetadata.extension,
       ffidMetadata.identificationBasis,
       ffidMetadata.puid,
-      Timestamp.from(Instant.ofEpochMilli(ffidMetadata.datetime)))
+      Timestamp.from(timeSource.now))
     ffidMetadataRespoitory.addFFIDMetadata(row).map(r => FFIDMetadata(
       r.fileid,
       r.software,
