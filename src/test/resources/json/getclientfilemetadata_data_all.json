@@ -1,0 +1,15 @@
+{
+  "data": {
+    "getClientFileMetadata": {
+      "fileId": "07a3a4bd-0281-4a6d-a4c1-8fa3239e1313",
+      "lastModified": 1593099474635,
+      "datetime": 1593099474635,
+      "originalPath": "originalPath",
+      "checksum": "checksum",
+      "fileSize": 1,
+      "checksumType": "checksumType",
+      "createdDate": 1593099474635,
+      "clientFileMetadataId": "bec43fb9-7f3a-4a4c-aa4a-fef14d22ff9a"
+    }
+  }
+}

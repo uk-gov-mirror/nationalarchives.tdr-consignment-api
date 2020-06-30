@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.tdr.api.routes
 
-import java.sql.{PreparedStatement, ResultSet}
+import java.sql.{PreparedStatement, ResultSet, Timestamp}
 import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
@@ -10,18 +10,20 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.utils.TestRequest
+import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, TestRequest}
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach  {
 
   private val addClientFileMetadataJsonFilePrefix: String = "json/addclientfilemetadata_"
+  private val getClientFileMetadataJsonFilePrefix: String = "json/getclientfilemetadata_"
 
   implicit val customConfig: Configuration = Configuration.default.withDefaults
 
-  val defaultFileId = UUID.fromString("07a3a4bd-0281-4a6d-a4c1-8fa3239e1313")
+  val defaultFileId: UUID = UUID.fromString("07a3a4bd-0281-4a6d-a4c1-8fa3239e1313")
 
   case class GraphqlMutationData(data: Option[AddClientFileMetadata], errors: List[GraphqlError] = Nil)
+  case class GraphqlQueryData(data: Option[GetClientFileMetadata], errors: List[GraphqlError] = Nil)
   case class ClientFileMetadata(
                                 fileId: Option[UUID],
                                 originalPath: Option[String] = None,
@@ -34,6 +36,7 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
                                 clientFileMetadataId: Option[UUID] = None
                               )
   case class AddClientFileMetadata(addClientFileMetadata: List[ClientFileMetadata]) extends TestRequest
+  case class GetClientFileMetadata(getClientFileMetadata: ClientFileMetadata) extends TestRequest
 
   override def beforeEach(): Unit = {
     resetDatabase()
@@ -43,6 +46,10 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
     runTestRequest[GraphqlMutationData](addClientFileMetadataJsonFilePrefix)
   val expectedMutationResponse: String => GraphqlMutationData =
     getDataFromFile[GraphqlMutationData](addClientFileMetadataJsonFilePrefix)
+  val runTestQuery: (String, OAuth2BearerToken) => GraphqlQueryData =
+    runTestRequest[GraphqlQueryData](getClientFileMetadataJsonFilePrefix)
+  val expectedQueryResponse: String => GraphqlQueryData =
+    getDataFromFile[GraphqlQueryData](getClientFileMetadataJsonFilePrefix)
 
   "addClientFileMetadata" should "return all requested fields from inserted Client File metadata object" in {
     val consignmentId = UUID.fromString("eb197bfb-43f7-40ca-9104-8f6cbda88506")
@@ -107,10 +114,31 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
 
   "getClientFileMetadata" should "return the requested fields" in {
     createClientFileMetadata(defaultFileId)
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_all")
+    val response: GraphqlQueryData = runTestQuery("query_alldata", validBackendChecksToken("file_format"))
+    val responseData: ClientFileMetadata = response.data.get.getClientFileMetadata
+    val expectedData = expectedResponse.data.get.getClientFileMetadata
+    responseData.fileId should equal(expectedData.fileId)
+    responseData.originalPath should equal(expectedData.originalPath)
+    responseData.checksum should equal(expectedData.checksum)
+    responseData.checksumType should equal(expectedData.checksumType)
+    responseData.fileSize should equal(expectedData.fileSize)
   }
 
   "getClientFileMetadata" should "throw an error if the file id does not exist" in {
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_fileid_not_exists")
+    val response: GraphqlQueryData = runTestQuery("query_fileidnotexists", validBackendChecksToken("file_format"))
 
+    response.errors.head.message should equal (expectedResponse.errors.head.message)
+    response.errors.head.extensions.get.code should equal(expectedResponse.errors.head.extensions.get.code)
+  }
+
+  "getClientFileMetadata" should "throw an error if the user does not have the file format role" in {
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_no_file_format_role")
+    val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())
+
+    response.errors.head.message should equal (expectedResponse.errors.head.message)
+    response.errors.head.extensions.get.code should equal(expectedResponse.errors.head.extensions.get.code)
   }
 
   private def createConsignment(consignmentId: UUID, userId: UUID): Unit = {
@@ -132,10 +160,10 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
     ps.setString(2, "originalPath")
     ps.setString(3, "checksum")
     ps.setString(4, "checksumType")
-    ps.setString(5, "1")
-    ps.setString(6, "1")
+    ps.setTimestamp(5, Timestamp.from(FixedTimeSource.now))
+    ps.setTimestamp(6, Timestamp.from(FixedTimeSource.now))
     ps.setString(7, "1")
-    ps.setString(8, "1")
+    ps.setTimestamp(8, Timestamp.from(FixedTimeSource.now))
     ps.setString(9, UUID.randomUUID.toString)
     ps.executeUpdate()
   }

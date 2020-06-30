@@ -1,0 +1,20 @@
+{
+  "data": null,
+  "errors": [
+    {
+      "message": "User '4ab14990-ed63-4615-8336-56fbb9960300' does not have permission to update file format metadata",
+      "path": [
+        "getClientFileMetadata"
+      ],
+      "locations": [
+        {
+          "column": 9,
+          "line": 1
+        }
+      ],
+      "extensions": {
+        "code": "NOT_AUTHORISED"
+      }
+    }
+  ]
+}
