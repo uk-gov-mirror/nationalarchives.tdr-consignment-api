@@ -48,6 +48,6 @@ object ClientFileMetadataFields {
     Field("addClientFileMetadata", ListType(ClientFileMetadataType),
       arguments=ClientFileMetadataInputArg :: Nil,
       resolve = ctx => ctx.ctx.clientFileMetadataService.addClientFileMetadata(ctx.arg(ClientFileMetadataInputArg)),
-      tags=List(ValidateUserOwnsFiles(ClientFileMetadataInputArg))
+      tags=List(ValidateUserOwnsFiles)
     ))
 }

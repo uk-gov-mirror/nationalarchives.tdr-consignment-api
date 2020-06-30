@@ -153,8 +153,10 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
     ps.executeUpdate()
   }
 
+  // scalastyle:off magic.number
   private def createClientFileMetadata(fileId: UUID): Unit = {
-    val sql = s"insert into ClientFileMetadata (FileId,OriginalPath,Checksum,ChecksumType,LastModified,CreatedDate,Filesize,Datetime,ClientFileMetadataId) VALUES (?,?,?,?,?,?,?,?,?)"
+    val sql = s"insert into ClientFileMetadata (FileId,OriginalPath,Checksum,ChecksumType,LastModified,CreatedDate,Filesize,Datetime,ClientFileMetadataId) " +
+      s"VALUES (?,?,?,?,?,?,?,?,?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, fileId.toString)
     ps.setString(2, "originalPath")

@@ -3,6 +3,7 @@ package uk.gov.nationalarchives.tdr.api.db.repository
 import java.util.UUID
 
 import slick.jdbc.PostgresProfile.api._
+import uk.gov.nationalarchives.Tables
 import uk.gov.nationalarchives.Tables.{Clientfilemetadata, ClientfilemetadataRow}
 
 import scala.concurrent.Future
@@ -15,7 +16,7 @@ class ClientFileMetadataRepository(db: Database) {
     db.run(insertQuery ++= clientFileMetadataRows)
   }
 
-  def getClientFileMetadata(fileId: UUID) = {
+  def getClientFileMetadata(fileId: UUID): Future[Seq[ClientfilemetadataRow]] = {
     val query = Clientfilemetadata.filter(_.fileid === fileId)
     db.run(query.result)
   }

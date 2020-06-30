@@ -95,18 +95,16 @@ case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends Authori
   }
 }
 
-case class ValidateUserOwnsFiles[T](argument: Argument[T]) extends AuthorisationTag {
+object ValidateUserOwnsFiles extends AuthorisationTag {
   override def validateAsync(ctx: Context[ConsignmentApiContext, _])
                        (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val token = ctx.ctx.accessToken
     val tokenUserId = token.userId.getOrElse(
       throw AuthorisationException(s"No user ID in token"))
 
-    val arg: T = ctx.arg[T](argument.name)
-    val fileIds: Seq[UUID] = arg match {
-      case acfm: Seq[AddClientFileMetadataInput] => acfm.map(_.fileId)
-      case id: UUID => Seq(id)
-    }
+    val queryInput = ctx.arg[Seq[AddClientFileMetadataInput]]("addClientFileMetadataInput")
+
+    val fileIds = queryInput.map(_.fileId)
     ctx.ctx.fileService
       .getOwnersOfFiles(fileIds)
       .map(fileOwnership => {
