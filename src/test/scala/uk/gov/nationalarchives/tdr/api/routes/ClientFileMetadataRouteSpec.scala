@@ -115,7 +115,7 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
   "getClientFileMetadata" should "return the requested fields" in {
     createClientFileMetadata(defaultFileId)
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_all")
-    val response: GraphqlQueryData = runTestQuery("query_alldata", validBackendChecksToken("file_format"))
+    val response: GraphqlQueryData = runTestQuery("query_alldata", validBackendChecksToken("client_file_metadata"))
     val responseData: ClientFileMetadata = response.data.get.getClientFileMetadata
     val expectedData = expectedResponse.data.get.getClientFileMetadata
     responseData.fileId should equal(expectedData.fileId)
