@@ -5,12 +5,16 @@
       "method": "pronom",
       "softwareVersion": "1.8.0",
       "datetime": 1593507071091,
-      "puid": "x-fmt/111",
       "software": "pronom",
-      "identificationBasis": "Some basis",
+      "matches": [
+        {
+          "puid": "x-fmt/111",
+          "identificationBasis": "Some basis",
+          "extension": "txt"
+        }
+      ],
       "containerSignatureFileVersion": "container-signature-20200121.xml",
-      "binarySignatureFileVersion": "DROID_SignatureFile_V96.xml",
-      "extension": "txt"
+      "binarySignatureFileVersion": "DROID_SignatureFile_V96.xml"
     }
   }
 }

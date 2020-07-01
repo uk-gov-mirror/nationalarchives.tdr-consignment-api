@@ -1,1 +1,37 @@
-{"data":null,"errors":[{"message":"Field 'FFIDMetadataInput.fileId' of required type 'UUID!' was not provided. (line 1, column 51):\nmutation { addFFIDMetadata(addFFIDMetadataInput:  { extension: \"txt\"  }) { fileId software softwareVersion binarySignatureFileVersion containerSignatureFileVersion method extension identificationBasis puid datetime } }\n                                                  ^","extensions":null},{"message":"Field 'FFIDMetadataInput.software' of required type 'String!' was not provided. (line 1, column 51):\nmutation { addFFIDMetadata(addFFIDMetadataInput:  { extension: \"txt\"  }) { fileId software softwareVersion binarySignatureFileVersion containerSignatureFileVersion method extension identificationBasis puid datetime } }\n                                                  ^","extensions":null},{"message":"Field 'FFIDMetadataInput.softwareVersion' of required type 'String!' was not provided. (line 1, column 51):\nmutation { addFFIDMetadata(addFFIDMetadataInput:  { extension: \"txt\"  }) { fileId software softwareVersion binarySignatureFileVersion containerSignatureFileVersion method extension identificationBasis puid datetime } }\n                                                  ^","extensions":null},{"message":"Field 'FFIDMetadataInput.binarySignatureFileVersion' of required type 'String!' was not provided. (line 1, column 51):\nmutation { addFFIDMetadata(addFFIDMetadataInput:  { extension: \"txt\"  }) { fileId software softwareVersion binarySignatureFileVersion containerSignatureFileVersion method extension identificationBasis puid datetime } }\n                                                  ^","extensions":null},{"message":"Field 'FFIDMetadataInput.containerSignatureFileVersion' of required type 'String!' was not provided. (line 1, column 51):\nmutation { addFFIDMetadata(addFFIDMetadataInput:  { extension: \"txt\"  }) { fileId software softwareVersion binarySignatureFileVersion containerSignatureFileVersion method extension identificationBasis puid datetime } }\n                                                  ^","extensions":null},{"message":"Field 'FFIDMetadataInput.method' of required type 'String!' was not provided. (line 1, column 51):\nmutation { addFFIDMetadata(addFFIDMetadataInput:  { extension: \"txt\"  }) { fileId software softwareVersion binarySignatureFileVersion containerSignatureFileVersion method extension identificationBasis puid datetime } }\n                                                  ^","extensions":null},{"message":"Field 'FFIDMetadataInput.identificationBasis' of required type 'String!' was not provided. (line 1, column 51):\nmutation { addFFIDMetadata(addFFIDMetadataInput:  { extension: \"txt\"  }) { fileId software softwareVersion binarySignatureFileVersion containerSignatureFileVersion method extension identificationBasis puid datetime } }\n                                                  ^","extensions":null}]}
+{
+  "data": null,
+  "errors": [
+    {
+      "message": "Field 'FFIDMetadataInput.fileId' of required type 'UUID!' was not provided. (line 1, column 51):\nmutation { addFFIDMetadata(addFFIDMetadataInput:  { extension: \"txt\"  }) { fileId  } }\n                                                  ^",
+      "extensions": null
+    },
+    {
+      "message": "Field 'FFIDMetadataInput.software' of required type 'String!' was not provided. (line 1, column 51):\nmutation { addFFIDMetadata(addFFIDMetadataInput:  { extension: \"txt\"  }) { fileId  } }\n                                                  ^",
+      "extensions": null
+    },
+    {
+      "message": "Field 'FFIDMetadataInput.softwareVersion' of required type 'String!' was not provided. (line 1, column 51):\nmutation { addFFIDMetadata(addFFIDMetadataInput:  { extension: \"txt\"  }) { fileId  } }\n                                                  ^",
+      "extensions": null
+    },
+    {
+      "message": "Field 'FFIDMetadataInput.binarySignatureFileVersion' of required type 'String!' was not provided. (line 1, column 51):\nmutation { addFFIDMetadata(addFFIDMetadataInput:  { extension: \"txt\"  }) { fileId  } }\n                                                  ^",
+      "extensions": null
+    },
+    {
+      "message": "Field 'FFIDMetadataInput.containerSignatureFileVersion' of required type 'String!' was not provided. (line 1, column 51):\nmutation { addFFIDMetadata(addFFIDMetadataInput:  { extension: \"txt\"  }) { fileId  } }\n                                                  ^",
+      "extensions": null
+    },
+    {
+      "message": "Field 'FFIDMetadataInput.method' of required type 'String!' was not provided. (line 1, column 51):\nmutation { addFFIDMetadata(addFFIDMetadataInput:  { extension: \"txt\"  }) { fileId  } }\n                                                  ^",
+      "extensions": null
+    },
+    {
+      "message": "Field 'FFIDMetadataInput.matches' of required type '[FFIDMetadataInputMatches!]!' was not provided. (line 1, column 51):\nmutation { addFFIDMetadata(addFFIDMetadataInput:  { extension: \"txt\"  }) { fileId  } }\n                                                  ^",
+      "extensions": null
+    },
+    {
+      "message": "Field 'extension' is not defined by type 'FFIDMetadataInput'. (line 1, column 53):\nmutation { addFFIDMetadata(addFFIDMetadataInput:  { extension: \"txt\"  }) { fileId  } }\n                                                    ^",
+      "extensions": null
+    }
+  ]
+}

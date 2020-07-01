@@ -46,9 +46,13 @@ class FFIDMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
     metadata.binarySignatureFileVersion should equal(expectedMetadata.binarySignatureFileVersion)
     metadata.containerSignatureFileVersion should equal(expectedMetadata.containerSignatureFileVersion)
     metadata.method should equal(expectedMetadata.method)
-    metadata.extension should equal(expectedMetadata.extension)
-    metadata.identificationBasis should equal(expectedMetadata.identificationBasis)
-    metadata.puid should equal(expectedMetadata.puid)
+
+    metadata.matches.size should equal(1)
+    val matches = metadata.matches.head
+    val expectedMatches = expectedMetadata.matches.head
+    matches.extension should equal(expectedMatches.extension)
+    matches.identificationBasis should equal(expectedMatches.identificationBasis)
+    matches.puid should equal(expectedMatches.puid)
 
 
     checkFFIDMetadataExists(response.data.get.addFFIDMetadata.fileId)
@@ -70,6 +74,9 @@ class FFIDMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
     checkNoFFIDMetadataAdded()
   }
 
+  import io.circe.generic.auto._
+  import io.circe.syntax._
+
   "addFFIDMetadata" should "throw an error if manadatory fields are missing" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_mandatory_missing")
     val response: GraphqlMutationData = runTestMutation("mutation_mandatorymissing", validBackendChecksToken("file_format"))
@@ -80,7 +87,7 @@ class FFIDMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
   "addFFIDMetadata" should "throw an error if the file id does not exist" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_fileid_not_exists")
     val response: GraphqlMutationData = runTestMutation("mutation_fileidnotexists", validBackendChecksToken("file_format"))
-
+    println(response.asJson)
     response.errors.head.message should equal (expectedResponse.errors.head.message)
     checkNoFFIDMetadataAdded()
   }
@@ -96,6 +103,7 @@ class FFIDMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
   }
 
   private def resetDatabase(): Unit = {
+    DbConnection.db.source.createConnection().prepareStatement("delete from FFIDMetadataMatches").executeUpdate()
     DbConnection.db.source.createConnection().prepareStatement("delete from FFIDMetadata").executeUpdate()
     DbConnection.db.source.createConnection().prepareStatement("delete from File").executeUpdate()
     DbConnection.db.source.createConnection().prepareStatement("delete from Consignment").executeUpdate()

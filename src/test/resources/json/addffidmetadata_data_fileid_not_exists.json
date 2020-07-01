@@ -1,19 +1,10 @@
 {
-  "data": null,
-  "errors": [
+  "data" : null,
+  "errors" : [
     {
-      "message": "Referential integrity constraint violation: \"CONSTRAINT_C: PUBLIC.FFIDMetadata FOREIGN KEY(FileId) REFERENCES PUBLIC.File(FileId) ('16b8c5f9-9d72-4d12-af06-4c2749823ebd')\"; SQL statement:\ninsert into \"FFIDMetadata\" (\"FileId\",\"Software\",\"SoftwareVersion\",\"BinarySignatureFileVersion\",\"ContainerSignatureFileVersion\",\"Method\",\"Extension\",\"IdentificationBasis\",\"PUID\",\"Datetime\")  values (?,?,?,?,?,?,?,?,?,?) [23506-200]",
-      "path": [
-        "addFFIDMetadata"
-      ],
-      "locations": [
-        {
-          "column": 5,
-          "line": 2
-        }
-      ],
-      "extensions": {
-        "code": "INVALID_INPUT_DATA"
+      "message" : "Referential integrity constraint violation: \"CONSTRAINT_C5: PUBLIC.FFIDMetadata FOREIGN KEY(FileId) REFERENCES PUBLIC.File(FileId) ('16b8c5f9-9d72-4d12-af06-4c2749823ebd')\"; SQL statement:\ninsert into \"FFIDMetadata\" (\"FFIDMetadataId\",\"FileId\",\"Software\",\"SoftwareVersion\",\"Datetime\",\"BinarySignatureFileVersion\",\"ContainerSignatureFileVersion\",\"Method\")  values (?,?,?,?,?,?,?,?) [23506-200]",
+      "extensions" : {
+        "code" : "INVALID_INPUT_DATA"
       }
     }
   ]
