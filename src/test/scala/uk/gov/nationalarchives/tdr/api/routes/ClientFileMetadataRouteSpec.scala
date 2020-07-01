@@ -127,7 +127,7 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
 
   "getClientFileMetadata" should "throw an error if the file id does not exist" in {
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_fileid_not_exists")
-    val response: GraphqlQueryData = runTestQuery("query_fileidnotexists", validBackendChecksToken("file_format"))
+    val response: GraphqlQueryData = runTestQuery("query_fileidnotexists", validBackendChecksToken("client_file_metadata"))
 
     response.errors.head.message should equal (expectedResponse.errors.head.message)
     response.errors.head.extensions.get.code should equal(expectedResponse.errors.head.extensions.get.code)
