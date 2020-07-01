@@ -74,9 +74,6 @@ class FFIDMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
     checkNoFFIDMetadataAdded()
   }
 
-  import io.circe.generic.auto._
-  import io.circe.syntax._
-
   "addFFIDMetadata" should "throw an error if manadatory fields are missing" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_mandatory_missing")
     val response: GraphqlMutationData = runTestMutation("mutation_mandatorymissing", validBackendChecksToken("file_format"))
@@ -87,7 +84,6 @@ class FFIDMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
   "addFFIDMetadata" should "throw an error if the file id does not exist" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_fileid_not_exists")
     val response: GraphqlMutationData = runTestMutation("mutation_fileidnotexists", validBackendChecksToken("file_format"))
-    println(response.asJson)
     response.errors.head.message should equal (expectedResponse.errors.head.message)
     checkNoFFIDMetadataAdded()
   }
