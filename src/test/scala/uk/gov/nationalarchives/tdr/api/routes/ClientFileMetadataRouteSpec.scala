@@ -169,6 +169,7 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
     ps.setString(9, UUID.randomUUID.toString)
     ps.executeUpdate()
   }
+  // scalastyle:on magic.number
 
   private def checkClientFileMetadataExists(clientFileMetadataId: UUID): Unit = {
     val sql = "select * from ClientFileMetadata where ClientFileMetadataId = ?;"
