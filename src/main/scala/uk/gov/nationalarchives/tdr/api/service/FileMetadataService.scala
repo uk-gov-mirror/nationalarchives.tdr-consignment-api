@@ -25,9 +25,9 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository, filePr
           userId.get)
 
         fileMetadataRepository.addFileMetadata(row).map(r => FileMetadata(property.name.get, r.fileid, r.value)).recover {
-          case e: SQLException => throw InputDataException(e.getLocalizedMessage, e)
+          case e: SQLException => throw InputDataException(e.getLocalizedMessage, Some(e))
         }
-      case None => throw InputDataException(s"The property does not exist")
+      case None => throw InputDataException(s"The property does not exist", Option.empty)
     }
   }
 

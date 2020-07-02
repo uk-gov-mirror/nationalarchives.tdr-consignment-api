@@ -16,8 +16,8 @@ class ClientFileMetadataService(clientFileMetadataRepository: ClientFileMetadata
 
   def getClientFileMetadata(fileId: UUID): Future[ClientFileMetadata] = {
     clientFileMetadataRepository.getClientFileMetadata(fileId).map(_.head).map(rowToOutput).recover {
-      case nse: NoSuchElementException => throw InputDataException(s"Could not find metadata for file $fileId", nse)
-      case e: SQLException => throw InputDataException(e.getLocalizedMessage, e)
+      case nse: NoSuchElementException => throw InputDataException(s"Could not find metadata for file $fileId", Some(nse))
+      case e: SQLException => throw InputDataException(e.getLocalizedMessage, Some(e))
     }
   }
 
