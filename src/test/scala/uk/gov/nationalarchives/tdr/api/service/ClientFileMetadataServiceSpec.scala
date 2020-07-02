@@ -6,15 +6,13 @@ import java.util.UUID
 
 import org.mockito.ArgumentMatchers._
 import org.mockito.MockitoSugar
-import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.ClientfilemetadataRow
 import uk.gov.nationalarchives.tdr.api.db.repository.ClientFileMetadataRepository
-import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ClientFileMetadataFields.{AddClientFileMetadataInput, ClientFileMetadata}
 import uk.gov.nationalarchives.tdr.api.utils.FixedUUIDSource
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 import scala.concurrent.{ExecutionContext, Future}
 
