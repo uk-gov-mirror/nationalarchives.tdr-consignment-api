@@ -39,7 +39,7 @@ object GraphQLServer {
       val additionalFields = Map("code" -> node)
       HandledException(message, additionalFields)
     }
-    case (resultMarshaller, InputDataException(message)) =>
+    case (resultMarshaller, InputDataException(message, _)) =>
       val node = resultMarshaller.scalarNode(ErrorCodes.invalidInputData, "String", Set.empty)
       val additionalFields = Map("code" -> node)
       HandledException(message, additionalFields)

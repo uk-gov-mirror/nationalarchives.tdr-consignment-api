@@ -15,6 +15,7 @@ import scala.language.postfixOps
 trait AuthorisationTag extends ValidationTag {
   val antiVirusRole = "antivirus"
   val checksumRole = "checksum"
+  val clientFileMetadataRole = "client_file_metadata"
   val fileFormatRole = "file_format"
 }
 
@@ -147,11 +148,25 @@ object ValidateHasChecksumMetadataAccess extends SyncAuthorisationTag {
   }
 }
 
+object ValidateHasClientFileMetadataAccess extends SyncAuthorisationTag {
+  override def validateSync(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
+    val token = ctx.ctx.accessToken
+    val clientFileMetadataAccess = token.backendChecksRoles.contains(clientFileMetadataRole)
+    val fileId = ctx.arg[UUID]("fileId")
+
+    if (clientFileMetadataAccess) {
+      continue
+    } else {
+      val tokenUserId = token.userId.getOrElse("")
+      throw AuthorisationException(s"User '$tokenUserId' does not have permission to access the client file metadata for file $fileId")
+    }
+  }
+}
+
 object ValidateHasFFIDMetadataAccess extends SyncAuthorisationTag {
   override def validateSync(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
     val token = ctx.ctx.accessToken
     val fileFormatAccess = token.backendChecksRoles.contains(fileFormatRole)
-
     if (fileFormatAccess) {
       continue
     } else {

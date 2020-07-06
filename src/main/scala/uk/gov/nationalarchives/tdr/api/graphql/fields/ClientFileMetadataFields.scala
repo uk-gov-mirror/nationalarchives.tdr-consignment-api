@@ -6,7 +6,7 @@ import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
 import sangria.schema.{Argument, Field, InputObjectType, ListInputType, ListType, ObjectType, fields}
-import uk.gov.nationalarchives.tdr.api.auth.ValidateUserOwnsFiles
+import uk.gov.nationalarchives.tdr.api.auth.{ValidateHasClientFileMetadataAccess, ValidateUserOwnsFiles}
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 
@@ -34,6 +34,15 @@ object ClientFileMetadataFields {
   implicit val AddClientFileMetadataInputType: InputObjectType[AddClientFileMetadataInput] = deriveInputObjectType[AddClientFileMetadataInput]()
 
   val ClientFileMetadataInputArg = Argument("addClientFileMetadataInput", ListInputType(AddClientFileMetadataInputType))
+  val FileIdArg = Argument("fileId", UuidType)
+
+  val queryFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
+    Field("getClientFileMetadata", ClientFileMetadataType,
+      arguments=FileIdArg :: Nil,
+      resolve = ctx => ctx.ctx.clientFileMetadataService.getClientFileMetadata(ctx.arg(FileIdArg)),
+      tags=ValidateHasClientFileMetadataAccess :: Nil
+      //We're only using this for the file metadata api update lambda for now. This check can be changed if we use it anywhere else
+    ))
 
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("addClientFileMetadata", ListType(ClientFileMetadataType),
