@@ -15,6 +15,7 @@ import uk.gov.nationalarchives.tdr.api.consignmentstatevalidation
 import uk.gov.nationalarchives.tdr.api.consignmentstatevalidation.ConsignmentStateException
 import uk.gov.nationalarchives.tdr.api.db.repository.{AntivirusMetadataRepository, FileRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.AntivirusMetadataFields.AddAntivirusMetadataInput
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.ConsignmentFileMetadataProgress
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -60,7 +61,7 @@ class AntivirusMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
     result.datetime shouldBe dummyInstant.toEpochMilli
   }
 
-  "getAntivirusProgress" should "return correct total and processed files given controlled data" in {
+  "getFileMetadataProgress" should "return correct total and processed files given controlled data" in {
     val avRepositoryMock = mock[AntivirusMetadataRepository]
     val fileRepositoryMock = mock[FileRepository]
     val service: AntivirusMetadataService = new AntivirusMetadataService(avRepositoryMock, fileRepositoryMock)
@@ -71,7 +72,7 @@ class AntivirusMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
     when(fileRepositoryMock.countFilesInConsignment(consignmentId)).thenReturn(Future.successful(totalFiles))
     when(fileRepositoryMock.countProcessedFilesInConsignment(consignmentId)).thenReturn(Future.successful(processedFiles))
 
-    val progress: AntivirusMetadataProgress =  service.getAntivirusProgress(consignmentId).futureValue
+    val progress: ConsignmentFileMetadataProgress =  service.getFileMetadataProgress(consignmentId).futureValue
 
     progress.processedFiles shouldBe processedFiles
     progress.totalFiles shouldBe totalFiles

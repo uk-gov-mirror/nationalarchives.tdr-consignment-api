@@ -13,8 +13,10 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 object ConsignmentFields {
   case class Consignment(consignmentid: Option[UUID] = None, userid: UUID, seriesid: UUID)
   case class AddConsignmentInput(seriesid: UUID)
+  case class ConsignmentFileMetadataProgress(processedFiles: Int, totalFiles: Int)
 
   implicit val ConsignmentType: ObjectType[Unit, Consignment] = deriveObjectType[Unit, Consignment]()
+  implicit val ConsignmentFileMetadataProgressType: ObjectType[Unit, ConsignmentFileMetadataProgress] = deriveObjectType[Unit, ConsignmentFileMetadataProgress]()
   implicit val AddConsignmentInputType: InputObjectType[AddConsignmentInput] = deriveInputObjectType[AddConsignmentInput]()
 
   val ConsignmentInputArg = Argument("addConsignmentInput", AddConsignmentInputType)
@@ -25,7 +27,12 @@ object ConsignmentFields {
       arguments=ConsignmentIdArg :: Nil,
       resolve = ctx => ctx.ctx.consignmentService.getConsignment(ctx.arg(ConsignmentIdArg)),
       tags=List(ValidateUserOwnsConsignment(ConsignmentIdArg))
-     )
+     ),
+    Field("getConsignmentFileMetadataProgress", OptionType(ConsignmentFileMetadataProgressType),
+      arguments=ConsignmentIdArg :: Nil,
+      resolve = ctx => ctx.ctx.antivirusMetadataService.getFileMetadataProgress(ctx.arg(ConsignmentIdArg)),
+      tags=List(ValidateUserOwnsConsignment(ConsignmentIdArg))
+    )
   )
 
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
