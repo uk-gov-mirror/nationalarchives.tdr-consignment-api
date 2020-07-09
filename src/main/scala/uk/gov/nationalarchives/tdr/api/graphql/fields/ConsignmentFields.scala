@@ -16,7 +16,8 @@ object ConsignmentFields {
   case class ConsignmentFileMetadataProgress(processedFiles: Int, totalFiles: Int)
 
   implicit val ConsignmentType: ObjectType[Unit, Consignment] = deriveObjectType[Unit, Consignment]()
-  implicit val ConsignmentFileMetadataProgressType: ObjectType[Unit, ConsignmentFileMetadataProgress] = deriveObjectType[Unit, ConsignmentFileMetadataProgress]()
+  implicit val ConsignmentFileMetadataProgressType: ObjectType[Unit, ConsignmentFileMetadataProgress] =
+    deriveObjectType[Unit, ConsignmentFileMetadataProgress]()
   implicit val AddConsignmentInputType: InputObjectType[AddConsignmentInput] = deriveInputObjectType[AddConsignmentInput]()
 
   val ConsignmentInputArg = Argument("addConsignmentInput", AddConsignmentInputType)
