@@ -1,6 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.utils
 
 import java.sql.{PreparedStatement, Timestamp}
+import java.time.Instant
 import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
@@ -10,13 +11,15 @@ import com.tngtech.keycloakmock.api.KeycloakVerificationMock
 import com.tngtech.keycloakmock.api.TokenConfig.aTokenConfig
 import io.circe.Decoder
 import io.circe.parser.decode
+import org.postgresql.shaded.com.ongres.scram.common.stringprep.StringPreparation
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
+import uk.gov.nationalarchives.tdr.api.graphql.fields.AntivirusMetadataFields.{AddAntivirusMetadataInput, AntivirusMetadata}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.io.Source.fromResource
 
-object TestUtils  {
+object TestUtils {
 
   val defaultFileId = UUID.fromString("07a3a4bd-0281-4a6d-a4c1-8fa3239e1313")
 
@@ -41,18 +44,21 @@ object TestUtils  {
       .withClaim("user_id", userId)
       .build)
   )
+
   def validUserTokenNoBody: OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
     aTokenConfig()
       .withResourceRole("tdr", "tdr_user")
       .withClaim("user_id", userId)
       .build)
   )
+
   def validBackendChecksToken(role: String): OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
     aTokenConfig()
       .withResourceRole("tdr-backend-checks", role)
       .withClaim("user_id", backendChecksUser)
       .build
   ))
+
   def invalidBackendChecksToken(): OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
     aTokenConfig()
       .withResourceRole("tdr-backend-checks", "some_role").build
@@ -103,6 +109,15 @@ object TestUtils  {
     ps.setString(2, consignmentId.toString)
     ps.setString(3, userId.toString)
     ps.setTimestamp(4, Timestamp.from(FixedTimeSource.now))
+    ps.executeUpdate()
+  }
+
+  def addAntivirusMetadata(fileId: String, consignmentId: String): Unit = {
+    val sql = s"insert into AVMetadata (FileId, Result, Datetime) VALUES (?, ?, ?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, s"${fileId}")
+    ps.setString(2, consignmentId)
+    ps.setTimestamp(3, Timestamp.from(FixedTimeSource.now))
     ps.executeUpdate()
   }
 }

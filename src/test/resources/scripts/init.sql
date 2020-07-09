@@ -63,8 +63,7 @@ CREATE TABLE IF NOT EXISTS AVMetadata (
     SoftwareVersion varchar(255) DEFAULT NULL,
     DatabaseVersion varchar(255) DEFAULT NULL,
     Result varchar(255) DEFAULT NULL,
-    Datetime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (FileId)
+    Datetime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS FileProperty (
