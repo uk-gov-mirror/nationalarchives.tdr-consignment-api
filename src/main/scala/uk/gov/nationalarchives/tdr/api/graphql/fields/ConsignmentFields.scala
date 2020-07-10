@@ -5,9 +5,9 @@ import java.util.UUID
 import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
-import sangria.schema.{Argument, Field, InputObjectType, LongType, ObjectType, OptionType, IntType, fields}
+import sangria.schema.{Argument, Field, InputObjectType, IntType, LongType, ObjectType, OptionType, fields}
 import uk.gov.nationalarchives.tdr.api.auth.{ValidateSeries, ValidateUserOwnsConsignment}
-import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
+import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, DeferTotalFiles}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 
 object ConsignmentFields {
@@ -21,12 +21,11 @@ object ConsignmentFields {
       Field("consignmentid", OptionType(UuidType), resolve = _.value.consignmentid),
       Field("userid", UuidType, resolve = _.value.userid),
       Field("seriesid", UuidType, resolve = _.value.seriesid),
-      Field("totalFiles", IntType, resolve = _.value.totalFiles)
-//      Field(
-//        "fileStatus",
-//        FileStatusType,
-//        resolve = context => DeferFileStatus(context.value.id)
-//      ),
+      Field(
+        "totalFiles",
+        IntType,
+        resolve = context => DeferTotalFiles(context.value.consignmentid)
+      ),
     )
   )
 

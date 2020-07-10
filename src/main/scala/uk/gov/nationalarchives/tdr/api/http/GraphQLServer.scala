@@ -18,7 +18,7 @@ import uk.gov.nationalarchives.tdr.api.consignmentstatevalidation.{ConsignmentSt
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.db.repository.{ClientFileMetadataRepository, ConsignmentRepository, SeriesRepository, TransferAgreementRepository, _}
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
-import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, ErrorCodes, GraphQlTypes}
+import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, DeferredResolver, ErrorCodes, GraphQlTypes}
 import uk.gov.nationalarchives.tdr.api.service._
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
@@ -100,6 +100,7 @@ object GraphQLServer {
       query,  context,
       variables = vars,
       operationName = operation,
+      deferredResolver = new DeferredResolver,
       middleware = new ValidationAuthoriser :: new ConsignmentStateValidator :: Nil,
       exceptionHandler = exceptionHandler
     ).map(OK -> _)
