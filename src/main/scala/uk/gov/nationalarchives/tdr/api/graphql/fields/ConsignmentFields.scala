@@ -11,7 +11,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 
 object ConsignmentFields {
-  case class Consignment(consignmentid: Option[UUID] = None, userid: UUID, seriesid: UUID)
+  case class Consignment(consignmentid: Option[UUID] = None, userid: UUID, seriesid: UUID, totalFiles: Int)
   case class AddConsignmentInput(seriesid: UUID)
   case class ConsignmentFileMetadataProgress(processedFiles: Int, totalFiles: Int)
 
