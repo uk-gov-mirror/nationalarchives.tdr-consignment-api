@@ -1,7 +1,6 @@
 package uk.gov.nationalarchives.tdr.api.utils
 
 import java.sql.{PreparedStatement, Timestamp}
-import java.time.Instant
 import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
@@ -11,12 +10,9 @@ import com.tngtech.keycloakmock.api.KeycloakVerificationMock
 import com.tngtech.keycloakmock.api.TokenConfig.aTokenConfig
 import io.circe.Decoder
 import io.circe.parser.decode
-import org.postgresql.shaded.com.ongres.scram.common.stringprep.StringPreparation
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.graphql.fields.AntivirusMetadataFields.{AddAntivirusMetadataInput, AntivirusMetadata}
 
-import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import scala.io.Source.fromResource
 
 object TestUtils {
@@ -112,11 +108,11 @@ object TestUtils {
     ps.executeUpdate()
   }
 
-  def addAntivirusMetadata(fileId: String, consignmentId: String): Unit = {
+  def addAntivirusMetadata(fileId: String): Unit = {
     val sql = s"insert into AVMetadata (FileId, Result, Datetime) VALUES (?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, s"${fileId}")
-    ps.setString(2, consignmentId)
+    ps.setString(2, "Result of AVMetadata processing")
     ps.setTimestamp(3, Timestamp.from(FixedTimeSource.now))
     ps.executeUpdate()
   }

@@ -75,9 +75,9 @@ class FileRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers {
     TestUtils.createFile(UUID.fromString(fileThreeId), UUID.fromString(consignmentTwo))
 
 //  Then need to add data to the AVMetadata repository for these files
-    TestUtils.addAntivirusMetadata(fileOneId, consignmentOne)
-    TestUtils.addAntivirusMetadata(fileTwoId, consignmentOne)
-    TestUtils.addAntivirusMetadata(fileThreeId, consignmentTwo)
+    TestUtils.addAntivirusMetadata(fileOneId)
+    TestUtils.addAntivirusMetadata(fileTwoId)
+    TestUtils.addAntivirusMetadata(fileThreeId)
 
     val avMetadataFiles = fileRepository.countProcessedFilesInConsignment(UUID.fromString(consignmentOne)).futureValue
 
@@ -90,18 +90,14 @@ class FileRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers {
     val consignmentId = "c6f78fef-704a-46a8-82c0-afa465199e65"
     val fileOneId = "20e0676a-f0a1-4051-9540-e7df1344ac10"
     val fileTwoId = "b5111f11-4dca-4f92-8239-505da567b9df"
-    var count = 0
 
     TestUtils.createConsignment(UUID.fromString(consignmentId), userId)
     TestUtils.createFile(UUID.fromString(fileOneId), UUID.fromString(consignmentId))
     TestUtils.createFile(UUID.fromString(fileTwoId), UUID.fromString(consignmentId))
 
-    while (count < 7) {
-      TestUtils.addAntivirusMetadata(fileOneId, consignmentId)
-      count = count + 1
-    }
+    (1 to 7).foreach { _ => TestUtils.addAntivirusMetadata(fileOneId)}
 
-    TestUtils.addAntivirusMetadata(fileTwoId, consignmentId)
+    TestUtils.addAntivirusMetadata(fileTwoId)
     val avMetadataFiles = fileRepository.countProcessedFilesInConsignment(UUID.fromString(consignmentId)).futureValue
 
     avMetadataFiles shouldBe 2
