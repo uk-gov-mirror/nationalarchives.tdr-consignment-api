@@ -25,7 +25,6 @@ import uk.gov.nationalarchives.tdr.keycloak.Token
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-
 object GraphQLServer {
 
   val exceptionHandler = ExceptionHandler {

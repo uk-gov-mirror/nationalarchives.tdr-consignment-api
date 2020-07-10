@@ -5,7 +5,7 @@ import java.util.UUID
 import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
-import sangria.schema.{Argument, Field, InputObjectType, LongType, ObjectType, OptionType, fields}
+import sangria.schema.{Argument, Field, InputObjectType, LongType, ObjectType, OptionType, IntType, fields}
 import uk.gov.nationalarchives.tdr.api.auth.{ValidateSeries, ValidateUserOwnsConsignment}
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
@@ -15,7 +15,21 @@ object ConsignmentFields {
   case class AddConsignmentInput(seriesid: UUID)
   case class ConsignmentFileMetadataProgress(processedFiles: Int, totalFiles: Int)
 
-  implicit val ConsignmentType: ObjectType[Unit, Consignment] = deriveObjectType[Unit, Consignment]()
+  implicit private val ConsignmentType: ObjectType[Unit, Consignment] = ObjectType(
+    "Consignment",
+    fields[Unit, Consignment](
+      Field("consignmentid", OptionType(UuidType), resolve = _.value.consignmentid),
+      Field("userid", UuidType, resolve = _.value.userid),
+      Field("seriesid", UuidType, resolve = _.value.seriesid),
+      Field("totalFiles", IntType, resolve = _.value.totalFiles)
+//      Field(
+//        "fileStatus",
+//        FileStatusType,
+//        resolve = context => DeferFileStatus(context.value.id)
+//      ),
+    )
+  )
+
   implicit val ConsignmentFileMetadataProgressType: ObjectType[Unit, ConsignmentFileMetadataProgress] =
     deriveObjectType[Unit, ConsignmentFileMetadataProgress]()
   implicit val AddConsignmentInputType: InputObjectType[AddConsignmentInput] = deriveInputObjectType[AddConsignmentInput]()

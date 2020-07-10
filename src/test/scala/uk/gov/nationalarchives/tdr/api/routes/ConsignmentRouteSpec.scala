@@ -27,7 +27,6 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     conn.close()
   }
 
-
   case class GraphqlQueryData(data: Option[GetConsignment], errors: List[GraphqlError] = Nil)
   case class GraphqlMutationData(data: Option[AddConsignment], errors: List[GraphqlError] = Nil)
   case class Consignment(consignmentid: Option[UUID] = None, userid: Option[UUID] = None, seriesid: Option[UUID] = None, totalFiles: Option[Int])
