@@ -2,10 +2,10 @@ package uk.gov.nationalarchives.tdr.api.db.repository
 
 import java.util.UUID
 
-import org.scalatest.flatspec.AnyFlatSpec
-import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
@@ -102,5 +102,4 @@ class FileRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers {
 
     avMetadataFiles shouldBe 2
   }
-
 }

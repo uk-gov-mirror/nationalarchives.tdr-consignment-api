@@ -9,14 +9,11 @@ import org.mockito.MockitoSugar
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import uk.gov.nationalarchives.Tables
 import uk.gov.nationalarchives.Tables.AvmetadataRow
-import uk.gov.nationalarchives.tdr.api.consignmentstatevalidation
-import uk.gov.nationalarchives.tdr.api.consignmentstatevalidation.ConsignmentStateException
 import uk.gov.nationalarchives.tdr.api.db.repository.{AntivirusMetadataRepository, FileRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.AntivirusMetadataFields.AddAntivirusMetadataInput
-import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.ConsignmentFileMetadataProgress
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AntivirusProgress, FileCheckProgress}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -61,20 +58,17 @@ class AntivirusMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
     result.datetime shouldBe dummyInstant.toEpochMilli
   }
 
-  "getFileMetadataProgress" should "return correct total and processed files given controlled data" in {
+  "getFileMetadataProgress" should "return total processed files" in {
     val avRepositoryMock = mock[AntivirusMetadataRepository]
     val fileRepositoryMock = mock[FileRepository]
     val service: AntivirusMetadataService = new AntivirusMetadataService(avRepositoryMock, fileRepositoryMock)
     val consignmentId = UUID.fromString("3c8da55a-bca0-4cd8-8efb-fb2d316e88ee")
-    val totalFiles = 1035
     val processedFiles = 78
 
-    when(fileRepositoryMock.countFilesInConsignment(consignmentId)).thenReturn(Future.successful(totalFiles))
     when(fileRepositoryMock.countProcessedFilesInConsignment(consignmentId)).thenReturn(Future.successful(processedFiles))
 
-    val progress: ConsignmentFileMetadataProgress =  service.getFileMetadataProgress(consignmentId).futureValue
+    val progress: FileCheckProgress =  service.getFileMetadataProgress(consignmentId).futureValue
 
-    progress.processedFiles shouldBe processedFiles
-    progress.totalFiles shouldBe totalFiles
+    progress.antivirusProgress.processedFiles shouldBe processedFiles
   }
 }
