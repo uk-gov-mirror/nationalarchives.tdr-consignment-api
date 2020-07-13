@@ -1,7 +1,5 @@
 package uk.gov.nationalarchives.tdr.api.http
 
-import java.sql.SQLException
-
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
@@ -76,7 +74,7 @@ object GraphQLServer {
     val fileRepository = new FileRepository(db)
 
     val seriesService = new SeriesService(new SeriesRepository(db), uuidSource)
-    val consignmentService = new ConsignmentService(consignmentRepository, fileRepository, new CurrentTimeSource, uuidSource)
+    val consignmentService = new ConsignmentService(consignmentRepository, new CurrentTimeSource, uuidSource)
     val transferAgreementService = new TransferAgreementService(new TransferAgreementRepository(db), uuidSource)
     val clientFileMetadataService = new ClientFileMetadataService(new ClientFileMetadataRepository(db), uuidSource)
     val fileService = new FileService(fileRepository, consignmentRepository, new CurrentTimeSource, uuidSource)

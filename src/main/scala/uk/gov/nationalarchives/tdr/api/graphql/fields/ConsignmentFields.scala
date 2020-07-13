@@ -5,15 +5,21 @@ import java.util.UUID
 import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
-import sangria.schema.{Argument, Field, InputObjectType, IntType, LongType, ObjectType, OptionType, fields}
+import sangria.schema.{Argument, Field, InputObjectType, IntType, ObjectType, OptionType, fields}
 import uk.gov.nationalarchives.tdr.api.auth.{ValidateSeries, ValidateUserOwnsConsignment}
-import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, DeferTotalFiles}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
+import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, DeferFileProgress, DeferTotalFiles}
 
 object ConsignmentFields {
-  case class Consignment(consignmentid: Option[UUID] = None, userid: UUID, seriesid: UUID, totalFiles: Int)
+  case class Consignment(consignmentid: Option[UUID] = None, userid: UUID, seriesid: UUID)
   case class AddConsignmentInput(seriesid: UUID)
-  case class ConsignmentFileMetadataProgress(processedFiles: Int, totalFiles: Int)
+  case class AntivirusProgress(processedFiles: Int)
+  case class FileCheckProgress(antivirusProgress: AntivirusProgress)
+
+  implicit val FileCheckProgressType: ObjectType[Unit, FileCheckProgress] =
+    deriveObjectType[Unit, FileCheckProgress]()
+  implicit val AntivirusProgressType: ObjectType[Unit, AntivirusProgress] =
+    deriveObjectType[Unit, AntivirusProgress]()
 
   implicit private val ConsignmentType: ObjectType[Unit, Consignment] = ObjectType(
     "Consignment",
@@ -26,11 +32,14 @@ object ConsignmentFields {
         IntType,
         resolve = context => DeferTotalFiles(context.value.consignmentid)
       ),
+      Field(
+        "fileCheckProgress",
+        FileCheckProgressType,
+        resolve = context => DeferFileProgress(context.value.consignmentid)
+      )
     )
   )
 
-  implicit val ConsignmentFileMetadataProgressType: ObjectType[Unit, ConsignmentFileMetadataProgress] =
-    deriveObjectType[Unit, ConsignmentFileMetadataProgress]()
   implicit val AddConsignmentInputType: InputObjectType[AddConsignmentInput] = deriveInputObjectType[AddConsignmentInput]()
 
   val ConsignmentInputArg = Argument("addConsignmentInput", AddConsignmentInputType)
@@ -41,12 +50,7 @@ object ConsignmentFields {
       arguments=ConsignmentIdArg :: Nil,
       resolve = ctx => ctx.ctx.consignmentService.getConsignment(ctx.arg(ConsignmentIdArg)),
       tags=List(ValidateUserOwnsConsignment(ConsignmentIdArg))
-     ),
-    Field("getConsignmentFileMetadataProgress", OptionType(ConsignmentFileMetadataProgressType),
-      arguments=ConsignmentIdArg :: Nil,
-      resolve = ctx => ctx.ctx.antivirusMetadataService.getFileMetadataProgress(ctx.arg(ConsignmentIdArg)),
-      tags=List(ValidateUserOwnsConsignment(ConsignmentIdArg))
-    )
+     )
   )
 
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
