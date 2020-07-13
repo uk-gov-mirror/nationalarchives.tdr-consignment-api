@@ -21,7 +21,7 @@ object ConsignmentFields {
   implicit val AntivirusProgressType: ObjectType[Unit, AntivirusProgress] =
     deriveObjectType[Unit, AntivirusProgress]()
 
-  implicit private val ConsignmentType: ObjectType[Unit, Consignment] = ObjectType(
+  implicit val ConsignmentType: ObjectType[Unit, Consignment] = ObjectType(
     "Consignment",
     fields[Unit, Consignment](
       Field("consignmentid", OptionType(UuidType), resolve = _.value.consignmentid),
