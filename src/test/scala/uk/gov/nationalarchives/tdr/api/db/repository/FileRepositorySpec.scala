@@ -41,7 +41,7 @@ class FileRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers {
     consignmentFiles shouldBe 4
   }
 
-  "countProcessedFilesInConsignment" should "return 0 if consignment has no AVmetadata for files" in {
+  "countProcessedAvMetadataInConsignment" should "return 0 if consignment has no AVmetadata for files" in {
     val db = DbConnection.db
     val fileRepository = new FileRepository(db)
     val consignmentId = UUID.fromString("64456c78-49bb-4bff-85c8-2fff053b9f8e")
@@ -51,14 +51,14 @@ class FileRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers {
     TestUtils.createFile(UUID.fromString("c2d5c569-0fc4-4688-9523-157c4028f1b0"), consignmentId)
     TestUtils.createFile(UUID.fromString("317c7084-d3d4-435b-acd2-cfb317793843"), consignmentId)
 //  We have created files, but not added any AVmetadata for those files to the AVMetadata repository.
-//  Thus, calling the countProcessedFilesInConsignment method should return 0.
+//  Thus, calling the countProcessedAvMetadataInConsignment method should return 0.
 
-    val avMetadataFiles = fileRepository.countProcessedFilesInConsignment(consignmentId).futureValue
+    val avMetadataFiles = fileRepository.countProcessedAvMetadataInConsignment(consignmentId).futureValue
 
     avMetadataFiles shouldBe 0
   }
 
-  "countProcessedFilesInConsignment" should "return the number of AVmetadata for files in a specified consignment" in {
+  "countProcessedAvMetadataInConsignment" should "return the number of AVmetadata for files in a specified consignment" in {
     val db = DbConnection.db
     val fileRepository = new FileRepository(db)
     val consignmentOne = "049a11d7-06f5-4b11-b786-640000de76e1"
@@ -79,12 +79,12 @@ class FileRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers {
     TestUtils.addAntivirusMetadata(fileTwoId)
     TestUtils.addAntivirusMetadata(fileThreeId)
 
-    val avMetadataFiles = fileRepository.countProcessedFilesInConsignment(UUID.fromString(consignmentOne)).futureValue
+    val avMetadataFiles = fileRepository.countProcessedAvMetadataInConsignment(UUID.fromString(consignmentOne)).futureValue
 
     avMetadataFiles shouldBe 2
   }
 
-  "countProcessedFilesInConsignment" should "return number of AVmetadata rows with repetitive data filtered out" in {
+  "countProcessedAvMetadataInConsignment" should "return number of AVmetadata rows with repetitive data filtered out" in {
     val db = DbConnection.db
     val fileRepository = new FileRepository(db)
     val consignmentId = "c6f78fef-704a-46a8-82c0-afa465199e65"
@@ -98,7 +98,7 @@ class FileRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers {
     (1 to 7).foreach { _ => TestUtils.addAntivirusMetadata(fileOneId)}
 
     TestUtils.addAntivirusMetadata(fileTwoId)
-    val avMetadataFiles = fileRepository.countProcessedFilesInConsignment(UUID.fromString(consignmentId)).futureValue
+    val avMetadataFiles = fileRepository.countProcessedAvMetadataInConsignment(UUID.fromString(consignmentId)).futureValue
 
     avMetadataFiles shouldBe 2
   }

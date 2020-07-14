@@ -38,9 +38,9 @@ class AntivirusMetadataService(antivirusMetadataRepository: AntivirusMetadataRep
     })
   }
 
-  def getFileMetadataProgress(consignmentId: UUID): Future[FileCheckProgress] = {
+  def getAntivirusFileMetadataProgress(consignmentId: UUID): Future[FileCheckProgress] = {
       for (
-        processed <- fileRepository.countProcessedFilesInConsignment(consignmentId)
+        processed <- fileRepository.countProcessedAvMetadataInConsignment(consignmentId)
       ) yield FileCheckProgress(AntivirusProgress(processed))
   }
 }

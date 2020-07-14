@@ -20,10 +20,13 @@ class FileRepository(db: Database) {
     db.run(query.result)
   }
 
-  def countProcessedFilesInConsignment(consignmentId: UUID): Future[Int] = {
-    val query = (for {
-      (avmetadata, file) <- Avmetadata.join(File).on(_.fileid === _.fileid).filter(_._2.consignmentid === consignmentId)
-    } yield (avmetadata, file )).groupBy(_._1.fileid).map{ case (fileid, _) => (fileid) }.length
+  def countProcessedAvMetadataInConsignment(consignmentId: UUID): Future[Int] = {
+    val query = Avmetadata.join(File)
+      .on(_.fileid === _.fileid)
+      .filter(_._2.consignmentid === consignmentId)
+      .groupBy(_._1.fileid)
+      .map(_._1)
+      .length
     db.run(query.result)
   }
 }

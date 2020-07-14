@@ -15,12 +15,12 @@ class DeferredResolver extends sangria.execution.deferred.DeferredResolver[Consi
       case DeferTotalFiles(consignmentId) => consignmentId.map(id => context.fileService.fileCount(id)).getOrElse(Future.successful(0))
       case DeferFileProgress(consignmentId) =>
         consignmentId.map(
-          id => context.antivirusMetadataService.getFileMetadataProgress(id)
-          ).getOrElse(Future.successful(0))
+          id => context.antivirusMetadataService.getAntivirusFileMetadataProgress(id)
+        ).getOrElse(Future.successful(0))
       case other => throw UnsupportedDeferError(other)
     }
   }
 }
 
-case class DeferTotalFiles(consignmentId: Option[UUID]) extends Deferred[Int]
-case class DeferFileProgress(consignmentId: Option[UUID]) extends Deferred[FileCheckProgress]
+case class DeferTotalFiles(consignmentid: Option[UUID]) extends Deferred[Int]
+case class DeferFileProgress(consignmentid: Option[UUID]) extends Deferred[FileCheckProgress]
