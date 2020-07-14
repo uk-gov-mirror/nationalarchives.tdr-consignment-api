@@ -22,5 +22,5 @@ class DeferredResolver extends sangria.execution.deferred.DeferredResolver[Consi
   }
 }
 
-case class DeferTotalFiles(consignmentid: Option[UUID]) extends Deferred[Int]
-case class DeferFileProgress(consignmentid: Option[UUID]) extends Deferred[FileCheckProgress]
+case class DeferTotalFiles(consignmentId: Option[UUID]) extends Deferred[Int]
+case class DeferFileProgress(consignmentId: Option[UUID]) extends Deferred[FileCheckProgress]
