@@ -4,8 +4,8 @@ import java.sql.Timestamp
 import java.time.Instant
 import java.util.UUID
 
-import org.mockito.{ArgumentCaptor, MockitoSugar}
 import org.mockito.ArgumentMatchers._
+import org.mockito.{ArgumentCaptor, MockitoSugar}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -14,7 +14,6 @@ import uk.gov.nationalarchives.tdr.api.db.repository.{FileMetadataRepository, Fi
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.AddFileMetadataInput
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -79,7 +78,6 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     result.value should equal(value)
   }
 
-
   "getFileProperty" should "return a file property" in {
     val fixedPropertyId = UUID.fromString("6929ca2a-c920-41d3-bf8d-25a7da5d8ae2")
     val propertyRepositoryMock = mock[FilePropertyRepository]
@@ -93,6 +91,4 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     property.get.shortname.get should equal("ShortName")
     property.get.description.get should equal("Description")
   }
-
-
 }

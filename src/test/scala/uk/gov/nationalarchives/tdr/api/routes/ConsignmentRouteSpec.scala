@@ -27,12 +27,11 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     conn.close()
   }
 
-
   case class GraphqlQueryData(data: Option[GetConsignment], errors: List[GraphqlError] = Nil)
   case class GraphqlMutationData(data: Option[AddConsignment], errors: List[GraphqlError] = Nil)
-  case class Consignment(consignmentid: Option[UUID] = None, userid: Option[UUID] = None, seriesid: Option[UUID] = None)
-  case class GetConsignment(getConsignment: Option[Consignment]) extends TestRequest
-  case class AddConsignment(addConsignment: Consignment) extends TestRequest
+  case class Consignment(consignmentid: Option[UUID] = None, userid: Option[UUID] = None, seriesid: Option[UUID] = None, totalFiles: Option[Int])
+  case class GetConsignment(getConsignment: Option[Consignment])
+  case class AddConsignment(addConsignment: Consignment)
 
   val runTestQuery: (String, OAuth2BearerToken) => GraphqlQueryData = runTestRequest[GraphqlQueryData](getConsignmentJsonFilePrefix)
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData = runTestRequest[GraphqlMutationData](addConsignmentJsonFilePrefix)
@@ -75,17 +74,20 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   }
 
   "getConsignment" should "return all requested fields" in {
-    val fixedUuidSource = new FixedUUIDSource()
     val sql = "insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES (?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    val uuid = fixedUuidSource.uuid.toString
-    ps.setString(1, uuid)
-    ps.setString(2, uuid)
+    val consignmentId = "b130e097-2edc-4e67-a7e9-5364a09ae9cb"
+    val seriesId = "fde450c9-09aa-4ba8-b0df-13f9bac1e587"
+    ps.setString(1, consignmentId)
+    ps.setString(2, seriesId)
     ps.setString(3, userId.toString)
     ps.executeUpdate()
+    val fileOne = createFile(UUID.fromString("e7ba59c9-5b8b-4029-9f27-2d03957463ad"), UUID.fromString(consignmentId))
+    val fileTwo = createFile(UUID.fromString("8644e48e-42ae-41bc-86cc-7c3c10a7bda3"), UUID.fromString(consignmentId))
+    val fileThree = createFile(UUID.fromString("9757f402-ee1a-43a2-ae2a-81a9ea9729b9"), UUID.fromString(consignmentId))
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_all")
     val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())
-    response.data should equal(expectedResponse.data)
+    response should equal(expectedResponse)
   }
 
   "getConsignment" should "return the expected data" in {

@@ -1,7 +1,5 @@
 package uk.gov.nationalarchives.tdr.api.http
 
-import java.sql.SQLException
-
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
@@ -18,13 +16,12 @@ import uk.gov.nationalarchives.tdr.api.consignmentstatevalidation.{ConsignmentSt
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.db.repository.{ClientFileMetadataRepository, ConsignmentRepository, SeriesRepository, TransferAgreementRepository, _}
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
-import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, ErrorCodes, GraphQlTypes}
+import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, DeferredResolver, ErrorCodes, GraphQlTypes}
 import uk.gov.nationalarchives.tdr.api.service._
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
-
 
 object GraphQLServer {
 
@@ -74,14 +71,15 @@ object GraphQLServer {
     val db = DbConnection.db
 
     val consignmentRepository = new ConsignmentRepository(db)
+    val fileRepository = new FileRepository(db)
 
     val seriesService = new SeriesService(new SeriesRepository(db), uuidSource)
     val consignmentService = new ConsignmentService(consignmentRepository, new CurrentTimeSource, uuidSource)
     val transferAgreementService = new TransferAgreementService(new TransferAgreementRepository(db), uuidSource)
     val clientFileMetadataService = new ClientFileMetadataService(new ClientFileMetadataRepository(db), uuidSource)
-    val fileService = new FileService(new FileRepository(db), consignmentRepository, new CurrentTimeSource, uuidSource)
+    val fileService = new FileService(fileRepository, consignmentRepository, new CurrentTimeSource, uuidSource)
     val transferringBodyService = new TransferringBodyService(new TransferringBodyRepository(db))
-    val antivirusMetadataService = new AntivirusMetadataService(new AntivirusMetadataRepository(db))
+    val antivirusMetadataService = new AntivirusMetadataService(new AntivirusMetadataRepository(db), fileRepository)
     val fileMetadataService = new FileMetadataService(new FileMetadataRepository(db), new FilePropertyRepository(db), new CurrentTimeSource, uuidSource)
     val ffidMetadataService = new FFIDMetadataService(new FFIDMetadataRepository(db), new FFIDMetadataMatchesRepository(db), new CurrentTimeSource, uuidSource)
 
@@ -102,6 +100,7 @@ object GraphQLServer {
       query,  context,
       variables = vars,
       operationName = operation,
+      deferredResolver = new DeferredResolver,
       middleware = new ValidationAuthoriser :: new ConsignmentStateValidator :: Nil,
       exceptionHandler = exceptionHandler
     ).map(OK -> _)

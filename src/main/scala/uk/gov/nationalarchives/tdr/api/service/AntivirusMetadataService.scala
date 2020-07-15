@@ -2,14 +2,16 @@ package uk.gov.nationalarchives.tdr.api.service
 
 import java.sql.Timestamp
 import java.time.Instant
+import java.util.UUID
 
 import uk.gov.nationalarchives.Tables.AvmetadataRow
-import uk.gov.nationalarchives.tdr.api.db.repository.AntivirusMetadataRepository
-import uk.gov.nationalarchives.tdr.api.graphql.fields.AntivirusMetadataFields.{AntivirusMetadata, AddAntivirusMetadataInput}
+import uk.gov.nationalarchives.tdr.api.db.repository.{AntivirusMetadataRepository, FileRepository}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.AntivirusMetadataFields.{AddAntivirusMetadataInput, AntivirusMetadata}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AntivirusProgress, FileChecks}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AntivirusMetadataService(antivirusMetadataRepository: AntivirusMetadataRepository)
+class AntivirusMetadataService(antivirusMetadataRepository: AntivirusMetadataRepository, fileRepository: FileRepository)
                               (implicit val executionContext: ExecutionContext) {
 
   def addAntivirusMetadata(input: AddAntivirusMetadataInput): Future[AntivirusMetadata] = {
@@ -36,7 +38,9 @@ class AntivirusMetadataService(antivirusMetadataRepository: AntivirusMetadataRep
     })
   }
 
-
-
-
+  def getAntivirusFileMetadataProgress(consignmentId: UUID): Future[FileChecks] = {
+      for (
+        processed <- fileRepository.countProcessedAvMetadataInConsignment(consignmentId)
+      ) yield FileChecks(AntivirusProgress(processed))
+  }
 }

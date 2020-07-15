@@ -14,7 +14,6 @@ import uk.gov.nationalarchives.tdr.api.db.repository.ConsignmentRepository
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AddConsignmentInput, Consignment}
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -46,7 +45,6 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
     val consignmentId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
     val consignmentRepositoryMock = mock[ConsignmentRepository]
     val consignmentService = new ConsignmentService(consignmentRepositoryMock, FixedTimeSource, fixedUuidSource)
-
 
     val expectedRow = ConsignmentRow(consignmentId, seriesUuid, userUuid, Timestamp.from(FixedTimeSource.now))
     val mockResponse = Future.successful(ConsignmentRow(consignmentId, seriesUuid, userUuid, Timestamp.from(Instant.now)))

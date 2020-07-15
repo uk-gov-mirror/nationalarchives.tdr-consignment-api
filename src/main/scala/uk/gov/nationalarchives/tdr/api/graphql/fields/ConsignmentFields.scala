@@ -5,16 +5,41 @@ import java.util.UUID
 import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
-import sangria.schema.{Argument, Field, InputObjectType, LongType, ObjectType, OptionType, fields}
+import sangria.schema.{Argument, Field, InputObjectType, IntType, ObjectType, OptionType, fields}
 import uk.gov.nationalarchives.tdr.api.auth.{ValidateSeries, ValidateUserOwnsConsignment}
-import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
+import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, DeferAntivirusProgress, DeferTotalFiles}
 
 object ConsignmentFields {
   case class Consignment(consignmentid: Option[UUID] = None, userid: UUID, seriesid: UUID)
   case class AddConsignmentInput(seriesid: UUID)
+  case class AntivirusProgress(filesProcessed: Int)
+  case class FileChecks(antivirusProgress: AntivirusProgress)
 
-  implicit val ConsignmentType: ObjectType[Unit, Consignment] = deriveObjectType[Unit, Consignment]()
+  implicit val FileChecksType: ObjectType[Unit, FileChecks] =
+    deriveObjectType[Unit, FileChecks]()
+  implicit val AntivirusProgressType: ObjectType[Unit, AntivirusProgress] =
+    deriveObjectType[Unit, AntivirusProgress]()
+
+  implicit val ConsignmentType: ObjectType[Unit, Consignment] = ObjectType(
+    "Consignment",
+    fields[Unit, Consignment](
+      Field("consignmentid", OptionType(UuidType), resolve = _.value.consignmentid),
+      Field("userid", UuidType, resolve = _.value.userid),
+      Field("seriesid", UuidType, resolve = _.value.seriesid),
+      Field(
+        "totalFiles",
+        IntType,
+        resolve = context => DeferTotalFiles(context.value.consignmentid)
+      ),
+      Field(
+        "fileChecks",
+        FileChecksType,
+        resolve = context => DeferAntivirusProgress(context.value.consignmentid)
+      )
+    )
+  )
+
   implicit val AddConsignmentInputType: InputObjectType[AddConsignmentInput] = deriveInputObjectType[AddConsignmentInput]()
 
   val ConsignmentInputArg = Argument("addConsignmentInput", AddConsignmentInputType)

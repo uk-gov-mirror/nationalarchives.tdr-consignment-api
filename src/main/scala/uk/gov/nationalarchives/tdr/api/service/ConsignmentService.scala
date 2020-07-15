@@ -10,8 +10,11 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AddCons
 import scala.concurrent.{ExecutionContext, Future}
 
 
-class ConsignmentService(consignmentRepository: ConsignmentRepository, timeSource: TimeSource, uuidSource: UUIDSource)
-                        (implicit val executionContext: ExecutionContext) {
+class ConsignmentService(
+                          consignmentRepository: ConsignmentRepository,
+                          timeSource: TimeSource,
+                          uuidSource: UUIDSource
+                        )(implicit val executionContext: ExecutionContext) {
 
   def addConsignment(addConsignmentInput: AddConsignmentInput, userId: Option[UUID]): Future[Consignment] = {
       val consignmentRow = ConsignmentRow(uuidSource.uuid, addConsignmentInput.seriesid, userId.get, Timestamp.from(timeSource.now))
@@ -20,7 +23,6 @@ class ConsignmentService(consignmentRepository: ConsignmentRepository, timeSourc
 
   def getConsignment(consignmentId: UUID): Future[Option[Consignment]] = {
     val consignments = consignmentRepository.getConsignment(consignmentId)
-
     consignments.map(rows => rows.headOption.map(row => Consignment(Some(row.consignmentid), row.userid, row.seriesid)))
   }
 
