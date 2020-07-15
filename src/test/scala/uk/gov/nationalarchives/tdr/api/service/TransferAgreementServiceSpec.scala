@@ -11,7 +11,6 @@ import uk.gov.nationalarchives.Tables.TransferagreementRow
 import uk.gov.nationalarchives.tdr.api.db.repository.TransferAgreementRepository
 import uk.gov.nationalarchives.tdr.api.graphql.fields.TransferAgreementFields.{AddTransferAgreementInput, TransferAgreement}
 import uk.gov.nationalarchives.tdr.api.utils.FixedUUIDSource
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 import scala.concurrent.{ExecutionContext, Future}
 

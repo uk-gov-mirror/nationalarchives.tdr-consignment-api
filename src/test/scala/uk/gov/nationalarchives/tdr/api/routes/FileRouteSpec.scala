@@ -4,14 +4,14 @@ import java.sql.{PreparedStatement, ResultSet}
 import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
+import io.circe.generic.extras.Configuration
+import io.circe.generic.extras.auto._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.utils.{FixedUUIDSource, TestRequest}
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils.{GraphqlError, getDataFromFile, userId, validUserToken}
-import io.circe.generic.extras.Configuration
-import io.circe.generic.extras.auto._
+import uk.gov.nationalarchives.tdr.api.utils.{FixedUUIDSource, TestRequest}
 
 class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach  {
   private val addFileJsonFilePrefix: String = "json/addfile_"

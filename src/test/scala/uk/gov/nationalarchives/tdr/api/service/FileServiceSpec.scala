@@ -12,7 +12,6 @@ import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.{ConsignmentRow, FileRow}
 import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentRepository, FileRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields.{AddFilesInput, Files}
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
 
 import scala.concurrent.{ExecutionContext, Future}

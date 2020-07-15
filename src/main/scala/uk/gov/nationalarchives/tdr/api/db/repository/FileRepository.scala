@@ -4,9 +4,9 @@ import java.util.UUID
 
 import slick.jdbc.PostgresProfile.api._
 import uk.gov.nationalarchives.Tables
-import uk.gov.nationalarchives.Tables.{Avmetadata, Consignment, File, FileRow}
+import uk.gov.nationalarchives.Tables.{Avmetadata, File, FileRow}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 class FileRepository(db: Database) {
   private val insertQuery = File  returning File.map(_.fileid)into ((file, fileid) => file.copy(fileid = fileid))

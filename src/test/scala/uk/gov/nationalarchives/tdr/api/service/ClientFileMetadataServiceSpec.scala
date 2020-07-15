@@ -13,7 +13,6 @@ import uk.gov.nationalarchives.Tables.ClientfilemetadataRow
 import uk.gov.nationalarchives.tdr.api.db.repository.ClientFileMetadataRepository
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ClientFileMetadataFields.{AddClientFileMetadataInput, ClientFileMetadata}
 import uk.gov.nationalarchives.tdr.api.utils.FixedUUIDSource
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 import scala.concurrent.{ExecutionContext, Future}
 

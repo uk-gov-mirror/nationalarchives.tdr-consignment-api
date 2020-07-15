@@ -4,7 +4,7 @@ package uk.gov.nationalarchives.tdr.api.graphql
 import java.util.UUID
 
 import sangria.execution.deferred.{Deferred, UnsupportedDeferError}
-import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.FileCheckProgress
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.FileChecks
 
 import scala.concurrent.{ExecutionContext, Future}
 

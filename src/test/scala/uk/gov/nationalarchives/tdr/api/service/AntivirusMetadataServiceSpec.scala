@@ -12,8 +12,7 @@ import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.AvmetadataRow
 import uk.gov.nationalarchives.tdr.api.db.repository.{AntivirusMetadataRepository, FileRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.AntivirusMetadataFields.AddAntivirusMetadataInput
-import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields
-import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AntivirusProgress, FileCheckProgress}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.FileChecks
 
 import scala.concurrent.{ExecutionContext, Future}
 

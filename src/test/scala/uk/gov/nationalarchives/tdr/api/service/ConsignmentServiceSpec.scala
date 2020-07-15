@@ -10,7 +10,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.ConsignmentRow
-import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentRepository, FileRepository}
+import uk.gov.nationalarchives.tdr.api.db.repository.ConsignmentRepository
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AddConsignmentInput, Consignment}
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}

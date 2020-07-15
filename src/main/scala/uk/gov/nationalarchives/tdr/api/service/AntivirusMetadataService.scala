@@ -7,7 +7,7 @@ import java.util.UUID
 import uk.gov.nationalarchives.Tables.AvmetadataRow
 import uk.gov.nationalarchives.tdr.api.db.repository.{AntivirusMetadataRepository, FileRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.AntivirusMetadataFields.{AddAntivirusMetadataInput, AntivirusMetadata}
-import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AntivirusProgress, FileCheckProgress}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AntivirusProgress, FileChecks}
 
 import scala.concurrent.{ExecutionContext, Future}
 

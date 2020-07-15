@@ -12,8 +12,7 @@ import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.FileMetadata
 import uk.gov.nationalarchives.tdr.api.utils.TestRequest
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils.{GraphqlError, getDataFromFile, validBackendChecksToken}
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
+import uk.gov.nationalarchives.tdr.api.utils.TestUtils.{GraphqlError, getDataFromFile, validBackendChecksToken, _}
 
 class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach {
   private val addFileMetadataJsonFilePrefix: String = "json/addfilemetadata_"

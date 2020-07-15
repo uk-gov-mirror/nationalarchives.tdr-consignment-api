@@ -11,7 +11,6 @@ import uk.gov.nationalarchives.Tables.SeriesRow
 import uk.gov.nationalarchives.tdr.api.db.repository.SeriesRepository
 import uk.gov.nationalarchives.tdr.api.graphql.fields.SeriesFields
 import uk.gov.nationalarchives.tdr.api.utils.FixedUUIDSource
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 import scala.concurrent.{ExecutionContext, Future}
 
