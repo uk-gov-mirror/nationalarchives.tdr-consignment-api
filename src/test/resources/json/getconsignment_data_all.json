@@ -1,1 +1,1 @@
-{"data":{"getConsignment":{"consignmentid":"b130e097-2edc-4e67-a7e9-5364a09ae9cb","seriesid": "fde450c9-09aa-4ba8-b0df-13f9bac1e587","userid":"4ab14990-ed63-4615-8336-56fbb9960300", "totalFiles":  3, "fileCheckProgress": { "antivirusProgress": { "processedFiles":  32}}}}}
+{"data":{"getConsignment":{"consignmentid":"b130e097-2edc-4e67-a7e9-5364a09ae9cb","seriesid": "fde450c9-09aa-4ba8-b0df-13f9bac1e587","userid":"4ab14990-ed63-4615-8336-56fbb9960300", "totalFiles":  3, "fileChecks": { "antivirusProgress": { "filesProcessed":  32}}}}}

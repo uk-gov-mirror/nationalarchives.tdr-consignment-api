@@ -8,16 +8,16 @@ import sangria.marshalling.circe._
 import sangria.schema.{Argument, Field, InputObjectType, IntType, ObjectType, OptionType, fields}
 import uk.gov.nationalarchives.tdr.api.auth.{ValidateSeries, ValidateUserOwnsConsignment}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
-import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, DeferFileProgress, DeferTotalFiles}
+import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, DeferAntivirusProgress, DeferTotalFiles}
 
 object ConsignmentFields {
   case class Consignment(consignmentid: Option[UUID] = None, userid: UUID, seriesid: UUID)
   case class AddConsignmentInput(seriesid: UUID)
-  case class AntivirusProgress(processedFiles: Int)
-  case class FileCheckProgress(antivirusProgress: AntivirusProgress)
+  case class AntivirusProgress(filesProcessed: Int)
+  case class FileChecks(antivirusProgress: AntivirusProgress)
 
-  implicit val FileCheckProgressType: ObjectType[Unit, FileCheckProgress] =
-    deriveObjectType[Unit, FileCheckProgress]()
+  implicit val FileChecksType: ObjectType[Unit, FileChecks] =
+    deriveObjectType[Unit, FileChecks]()
   implicit val AntivirusProgressType: ObjectType[Unit, AntivirusProgress] =
     deriveObjectType[Unit, AntivirusProgress]()
 
@@ -33,9 +33,9 @@ object ConsignmentFields {
         resolve = context => DeferTotalFiles(context.value.consignmentid)
       ),
       Field(
-        "fileCheckProgress",
-        FileCheckProgressType,
-        resolve = context => DeferFileProgress(context.value.consignmentid)
+        "fileChecks",
+        FileChecksType,
+        resolve = context => DeferAntivirusProgress(context.value.consignmentid)
       )
     )
   )

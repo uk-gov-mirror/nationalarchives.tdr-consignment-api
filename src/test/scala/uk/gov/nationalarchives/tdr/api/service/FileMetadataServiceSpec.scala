@@ -79,7 +79,6 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     result.value should equal(value)
   }
 
-
   "getFileProperty" should "return a file property" in {
     val fixedPropertyId = UUID.fromString("6929ca2a-c920-41d3-bf8d-25a7da5d8ae2")
     val propertyRepositoryMock = mock[FilePropertyRepository]

@@ -58,17 +58,17 @@ class AntivirusMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
     result.datetime shouldBe dummyInstant.toEpochMilli
   }
 
-  "getFileMetadataProgress" should "return total processed files" in {
+  "getAntivirusFileMetadataProgress" should "return total processed files" in {
     val avRepositoryMock = mock[AntivirusMetadataRepository]
     val fileRepositoryMock = mock[FileRepository]
     val service: AntivirusMetadataService = new AntivirusMetadataService(avRepositoryMock, fileRepositoryMock)
     val consignmentId = UUID.fromString("3c8da55a-bca0-4cd8-8efb-fb2d316e88ee")
-    val processedFiles = 78
+    val filesProcessed = 78
 
-    when(fileRepositoryMock.countProcessedAvMetadataInConsignment(consignmentId)).thenReturn(Future.successful(processedFiles))
+    when(fileRepositoryMock.countProcessedAvMetadataInConsignment(consignmentId)).thenReturn(Future.successful(filesProcessed))
 
-    val progress: FileCheckProgress =  service.getAntivirusFileMetadataProgress(consignmentId).futureValue
+    val progress: FileChecks =  service.getAntivirusFileMetadataProgress(consignmentId).futureValue
 
-    progress.antivirusProgress.processedFiles shouldBe processedFiles
+    progress.antivirusProgress.filesProcessed shouldBe filesProcessed
   }
 }
