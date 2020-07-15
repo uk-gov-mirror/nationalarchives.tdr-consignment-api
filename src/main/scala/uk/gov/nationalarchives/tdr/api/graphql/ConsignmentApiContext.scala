@@ -10,4 +10,5 @@ case class ConsignmentApiContext(accessToken: Token,
                                  transferAgreementService: TransferAgreementService,
                                  transferringBodyService: TransferringBodyService,
                                  antivirusMetadataService: AntivirusMetadataService,
-                                 fileMetadataService: FileMetadataService)
+                                 fileMetadataService: FileMetadataService,
+                                 ffidMetadataService: FFIDMetadataService)

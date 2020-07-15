@@ -36,7 +36,7 @@ object GraphQLServer {
       val additionalFields = Map("code" -> node)
       HandledException(message, additionalFields)
     }
-    case (resultMarshaller, InputDataException(message)) =>
+    case (resultMarshaller, InputDataException(message, _)) =>
       val node = resultMarshaller.scalarNode(ErrorCodes.invalidInputData, "String", Set.empty)
       val additionalFields = Map("code" -> node)
       HandledException(message, additionalFields)
@@ -81,6 +81,7 @@ object GraphQLServer {
     val transferringBodyService = new TransferringBodyService(new TransferringBodyRepository(db))
     val antivirusMetadataService = new AntivirusMetadataService(new AntivirusMetadataRepository(db), fileRepository)
     val fileMetadataService = new FileMetadataService(new FileMetadataRepository(db), new FilePropertyRepository(db), new CurrentTimeSource, uuidSource)
+    val ffidMetadataService = new FFIDMetadataService(new FFIDMetadataRepository(db), new FFIDMetadataMatchesRepository(db), new CurrentTimeSource, uuidSource)
 
     val context = ConsignmentApiContext(
       accessToken,
@@ -91,7 +92,8 @@ object GraphQLServer {
       transferAgreementService,
       transferringBodyService,
       antivirusMetadataService,
-      fileMetadataService
+      fileMetadataService,
+      ffidMetadataService
     )
     Executor.execute(
       GraphQlTypes.schema,

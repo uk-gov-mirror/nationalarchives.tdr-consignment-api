@@ -1,0 +1,20 @@
+{
+  "data": null,
+  "errors": [
+    {
+      "message": "Could not find metadata for file 2e821753-6e0c-494d-9032-b8169e7f25cb",
+      "path": [
+        "getClientFileMetadata"
+      ],
+      "locations": [
+        {
+          "column": 9,
+          "line": 1
+        }
+      ],
+      "extensions": {
+        "code": "INVALID_INPUT_DATA"
+      }
+    }
+  ]
+}

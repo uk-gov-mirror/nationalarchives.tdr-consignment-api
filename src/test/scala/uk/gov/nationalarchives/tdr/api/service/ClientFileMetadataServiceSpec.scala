@@ -64,4 +64,49 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
     r.datetime shouldBe dummyInstant.toEpochMilli
     r.clientFileMetadataId shouldBe clientMetadataUuid
   }
+
+  "getClientFileMetaddata" should "return client file metadata given an existing file id" in {
+    val fixedUuidSource = new FixedUUIDSource()
+    val clientMetadataUuid = fixedUuidSource.uuid
+    val fileUuid = UUID.randomUUID()
+    val dummyInstant = Instant.now()
+    val dummyTimestamp = Timestamp.from(dummyInstant)
+    val dummyFileSize: Long = 1000
+    val repositoryMock = mock[ClientFileMetadataRepository]
+    val mockResponse = Future.successful(Seq(ClientfilemetadataRow(
+      clientMetadataUuid,
+      fileUuid,
+      Some("dummy/original/path"),
+      Some("dummyCheckSum"),
+      Some("checksumType"),
+      dummyTimestamp,
+      dummyTimestamp,
+      Some(dummyFileSize),
+      dummyTimestamp
+    )))
+    when(repositoryMock.getClientFileMetadata(fileUuid)).thenReturn(mockResponse)
+
+    val service = new ClientFileMetadataService(repositoryMock, fixedUuidSource)
+    val result = service.getClientFileMetadata(fileUuid).futureValue
+
+    result.fileId shouldBe fileUuid
+    result.originalPath.get shouldBe "dummy/original/path"
+    result.checksum.get shouldBe "dummyCheckSum"
+    result.checksumType.get shouldBe "checksumType"
+    result.lastModified shouldBe dummyInstant.toEpochMilli
+    result.createdDate shouldBe dummyInstant.toEpochMilli
+    result.fileSize.get shouldBe dummyFileSize
+    result.datetime shouldBe dummyInstant.toEpochMilli
+    result.clientFileMetadataId shouldBe clientMetadataUuid
+  }
+
+  "getClientFileMetaddata" should "return an empty list for a non existent id" in {
+    val fixedUuidSource = new FixedUUIDSource()
+    val fileUuid = UUID.randomUUID()
+    val repositoryMock = mock[ClientFileMetadataRepository]
+    when(repositoryMock.getClientFileMetadata(fileUuid)).thenReturn(Future(Seq()))
+    val service = new ClientFileMetadataService(repositoryMock, fixedUuidSource)
+    val caught: Throwable = service.getClientFileMetadata(fileUuid).failed.futureValue
+    caught.getMessage should equal(s"Could not find metadata for file $fileUuid")
+  }
 }
