@@ -24,7 +24,7 @@ object ApiServer extends App {
   val routes = new Routes(ConfigFactory.load())
 
   Http().bindAndHandle(routes.route, "0.0.0.0", PORT)
-  logger.info(s"open a browser with URL: http://localhost:$PORT")
+  logger.info(s"Consignment API is running")
 
 
   def shutdown(): Unit = {
