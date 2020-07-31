@@ -11,7 +11,6 @@ class SeriesRepository(db: Database) {
     val query = for {
       (series, _) <- Series.join(Body).on(_.bodyid === _.bodyid).filter(_._2.name === bodyName)
     } yield series
-    print(query.result.statements)
     db.run(query.result)
   }
 }
