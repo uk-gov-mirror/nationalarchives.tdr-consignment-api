@@ -8,7 +8,7 @@ version := "0.1.0-SNAPSHOT"
 
 description := "The consignment API for TDR"
 
-scalaVersion := "2.13.0"
+scalaVersion := "2.13.3"
 scalacOptions ++= Seq("-deprecation", "-feature")
 
 resolvers ++= Seq[Resolver](
