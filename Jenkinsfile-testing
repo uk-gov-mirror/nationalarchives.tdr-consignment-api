@@ -7,6 +7,16 @@ pipeline {
   agent none
 
   stages {
+    stage("Run git secrets") {
+      agent {
+        label "master"
+      }
+      steps {
+        script {
+          tdr.runGitSecrets(repo)
+        }
+      }
+    }
     stage('Test') {
         agent {
             ecs {
