@@ -4,7 +4,7 @@ import java.util.UUID
 
 import slick.jdbc.PostgresProfile.api._
 import uk.gov.nationalarchives.Tables
-import uk.gov.nationalarchives.Tables.{Clientfilemetadata, ClientfilemetadataRow}
+import uk.gov.nationalarchives.Tables.{Avmetadata, Clientfilemetadata, ClientfilemetadataRow, File}
 
 import scala.concurrent.Future
 
