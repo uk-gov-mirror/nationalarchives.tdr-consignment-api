@@ -4,7 +4,6 @@ def versionTag = "v${env.BUILD_NUMBER}"
 def repo = "tdr-consignment-api"
 
 pipeline {
-  agent none
   agent {
     label "master"
   }
