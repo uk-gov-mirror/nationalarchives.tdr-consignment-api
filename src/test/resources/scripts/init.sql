@@ -88,9 +88,9 @@ CREATE TABLE IF NOT EXISTS FileMetadata (
     ADD FOREIGN KEY (FileId)
     REFERENCES File(FileId);
 
-ALTER TABLE FileMetadata
-    ADD FOREIGN KEY (PropertyId)
-    REFERENCES FileProperty(PropertyId);
+--ALTER TABLE FileMetadata
+--    ADD FOREIGN KEY (PropertyId)
+--    REFERENCES FileProperty(PropertyId);
     
 CREATE TABLE IF NOT EXISTS FFIDMetadata (
     FFIDMetadataId uuid not null,

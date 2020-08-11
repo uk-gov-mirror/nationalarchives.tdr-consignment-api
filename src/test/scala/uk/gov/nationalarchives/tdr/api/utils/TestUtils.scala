@@ -30,8 +30,9 @@ object TestUtils {
     mock
   }
 
-  val userId = UUID.fromString("4ab14990-ed63-4615-8336-56fbb9960300")
-  val backendChecksUser = UUID.fromString("6847253d-b9c6-4ea9-b3c9-57542b8c6375")
+  val userId: UUID = UUID.fromString("4ab14990-ed63-4615-8336-56fbb9960300")
+  val backendChecksUser: UUID = UUID.fromString("6847253d-b9c6-4ea9-b3c9-57542b8c6375")
+//  val metadataId: UUID = UUID.fromString("4ab14990-ed63-4615-8336-56fbb9960300")
 
   def validUserToken(body: String = "Body"): OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
     aTokenConfig()
@@ -111,9 +112,32 @@ object TestUtils {
   def addAntivirusMetadata(fileId: String): Unit = {
     val sql = s"insert into AVMetadata (FileId, Result, Datetime) VALUES (?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.setString(1, s"${fileId}")
+    ps.setString(1, fileId)
     ps.setString(2, "Result of AVMetadata processing")
     ps.setTimestamp(3, Timestamp.from(FixedTimeSource.now))
+    ps.executeUpdate()
+  }
+
+  //scalastyle:off magic.number
+  def addFileMetadata(metadataId: String, fileId: String, propertyId: String): Unit = {
+    val sql = s"insert into FileMetadata (MetadataId, FileId, PropertyId, Value, Datetime, UserId) VALUES (?, ?, ?, ?, ?, ?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, metadataId)
+    ps.setString(2, fileId)
+    ps.setString(3, propertyId)
+    ps.setString(4, "Result of FileMetadata processing")
+    ps.setTimestamp(5, Timestamp.from(FixedTimeSource.now))
+    ps.setString(6, userId.toString)
+
+    ps.executeUpdate()
+  }
+
+  def addFileProperty(propertyId: String, name: String): Unit = {
+    val sql = s"insert into FileProperty (PropertyId, Name) VALUES (?, ?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, propertyId)
+    ps.setString(2, name)
+
     ps.executeUpdate()
   }
 }

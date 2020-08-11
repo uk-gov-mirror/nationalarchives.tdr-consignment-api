@@ -34,7 +34,7 @@ class ConsignmentService(
 
   def getConsignmentFileProgress(consignmentId: UUID): Future[FileChecks] = {
     for {
-      processed <- fileRepository.countProcessedAvMetadataInConsignment(consignmentId);
+      processed <- fileRepository.countProcessedAvMetadataInConsignment(consignmentId)
       checksum <- fileMetadataRepository.countProcessedChecksumInConsignment(consignmentId)
     } yield FileChecks(AntivirusProgress(processed), ChecksumProgress(checksum))
   }
