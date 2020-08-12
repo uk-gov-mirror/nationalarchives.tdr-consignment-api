@@ -169,5 +169,6 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
     val progress: FileChecks = service.getConsignmentFileProgress(consignmentId).futureValue
 
     progress.antivirusProgress.filesProcessed shouldBe filesProcessed
+    progress.checksumProgress.filesProcessed shouldBe filesProcessed
   }
 }

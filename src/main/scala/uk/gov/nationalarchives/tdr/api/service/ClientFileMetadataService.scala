@@ -13,16 +13,21 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ClientFileMetadataService(clientFileMetadataRepository: ClientFileMetadataRepository, uuidSource: UUIDSource)
                                (implicit val executionContext: ExecutionContext) {
-
-  def getClientFileMetadata(fileId: UUID): Future[ClientFileMetadata] = {
-    clientFileMetadataRepository.getClientFileMetadata(fileId).map(_.head).map(rowToOutput).recover {
-      case nse: NoSuchElementException => throw InputDataException(s"Could not find metadata for file $fileId", Some(nse))
-      case e: SQLException => throw InputDataException(e.getLocalizedMessage, Some(e))
-    }
+  private def rowToOutput(row: ClientfilemetadataRow): ClientFileMetadata = {
+    ClientFileMetadata(
+      row.fileid,
+      row.originalpath,
+      row.checksum,
+      row.checksumtype,
+      row.lastmodified.getTime,
+      row.createddate.getTime,
+      row.filesize,
+      row.datetime.getTime,
+      row.clientfilemetadataid
+    )
   }
 
   def addClientFileMetadata(inputs: Seq[AddClientFileMetadataInput]): Future[Seq[ClientFileMetadata]] = {
-
     val rows: Seq[ClientfilemetadataRow] = inputs.map(i => ClientfilemetadataRow(
       uuidSource.uuid,
       i.fileId,
@@ -39,17 +44,10 @@ class ClientFileMetadataService(clientFileMetadataRepository: ClientFileMetadata
     })
   }
 
-  private def rowToOutput(row: ClientfilemetadataRow): ClientFileMetadata = {
-    ClientFileMetadata(
-      row.fileid,
-      row.originalpath,
-      row.checksum,
-      row.checksumtype,
-      row.lastmodified.getTime,
-      row.createddate.getTime,
-      row.filesize,
-      row.datetime.getTime,
-      row.clientfilemetadataid
-    )
+  def getClientFileMetadata(fileId: UUID): Future[ClientFileMetadata] = {
+    clientFileMetadataRepository.getClientFileMetadata(fileId).map(_.head).map(rowToOutput).recover {
+      case nse: NoSuchElementException => throw InputDataException(s"Could not find metadata for file $fileId", Some(nse))
+      case e: SQLException => throw InputDataException(e.getLocalizedMessage, Some(e))
+    }
   }
 }
