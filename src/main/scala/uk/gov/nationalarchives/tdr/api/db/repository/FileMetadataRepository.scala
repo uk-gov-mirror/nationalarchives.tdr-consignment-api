@@ -10,7 +10,6 @@ import scala.concurrent.Future
 class FileMetadataRepository(db: Database) {
   private val insertQuery = Filemetadata returning Filemetadata.map(_.fileid) into
     ((fileMetadata, fileid) => fileMetadata.copy(fileid = fileid))
-  private val propertyId = UUID.fromString("7a1b272c-e2f7-4b8f-8291-5e9dc312edb7")
 
   def addFileMetadata(fileMetadataRows: FilemetadataRow): Future[FilemetadataRow] = {
     db.run(insertQuery += fileMetadataRows)
