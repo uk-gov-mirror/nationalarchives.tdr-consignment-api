@@ -36,7 +36,7 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
     TestUtils.createFile(fileOneId, consignmentId)
     TestUtils.createFile(fileTwoId, consignmentId)
     TestUtils.createFile(fileThreeId, consignmentId)
-//  We have created files, but not added any fileMetadata for those files to the AVMetadata repository.
+//  We have created files, but not added any fileMetadata for those files to the FileMetadata repository.
 //  Thus, calling the countProcessedChecksumInConsignment method should return 0.
 
     val consignmentFiles = fileMetadataRepository.countProcessedChecksumInConsignment(consignmentId).futureValue
