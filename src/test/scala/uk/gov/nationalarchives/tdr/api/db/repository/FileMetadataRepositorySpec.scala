@@ -64,12 +64,12 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
     TestUtils.createFile(UUID.fromString(fileTwoId), consignmentOne)
     TestUtils.createFile(UUID.fromString(fileThreeId), consignmentTwo)
 
+    TestUtils.addFileProperty(propertyId, "SHA256ServerSideChecksum")
+
 //  Then need to add data to the FileMetadata repository for these files
     TestUtils.addFileMetadata(metadataOneId, fileOneId, propertyId)
     TestUtils.addFileMetadata(metadataTwoId, fileTwoId, propertyId)
     TestUtils.addFileMetadata(metadataThreeId, fileThreeId, propertyId)
-
-    TestUtils.addFileProperty(propertyId, "SHA256ServerSideChecksum")
 
     val fileMetadataFiles = fileMetadataRepository.countProcessedChecksumInConsignment(consignmentOne).futureValue
 
