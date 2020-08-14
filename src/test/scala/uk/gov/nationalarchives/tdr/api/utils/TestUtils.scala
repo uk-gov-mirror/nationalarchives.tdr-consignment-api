@@ -130,7 +130,7 @@ object TestUtils {
 
     ps.executeUpdate()
   }
-  
+
   //scalastyle:on magic.number
   def addFileProperty(propertyId: String, name: String): Unit = {
     val sql = s"insert into FileProperty (PropertyId, Name) VALUES (?, ?)"
