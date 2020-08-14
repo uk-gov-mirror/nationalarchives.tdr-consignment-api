@@ -12,19 +12,19 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 
 object AntivirusMetadataFields {
   case class AntivirusMetadata(fileId: UUID,
-                               software: Option[String] = None,
+                               software: String,
                                value: Option[String] = None,
-                               softwareVersion: Option[String] = None,
-                               databaseVersion: Option[String] = None,
-                               result: Option[String] = None,
+                               softwareVersion: String,
+                               databaseVersion: String,
+                               result: String,
                                datetime: Long)
 
   case class AddAntivirusMetadataInput(fileId: UUID,
-                                       software: Option[String] = None,
+                                       software: String,
                                        value: Option[String] = None,
-                                       softwareVersion: Option[String] = None,
-                                       databaseVersion: Option[String] = None,
-                                       result: Option[String] = None,
+                                       softwareVersion: String,
+                                       databaseVersion: String,
+                                       result: String,
                                        datetime: Long)
 
   implicit val AntivirusMetadataType: ObjectType[Unit, AntivirusMetadata] = deriveObjectType[Unit, AntivirusMetadata]()
