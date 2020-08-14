@@ -17,7 +17,6 @@ object ConsignmentFields {
   case class ChecksumProgress(filesProcessed: Int)
   case class FileChecks(antivirusProgress: AntivirusProgress, checksumProgress: ChecksumProgress)
 
-
   implicit val FileChecksType: ObjectType[Unit, FileChecks] =
     deriveObjectType[Unit, FileChecks]()
   implicit val AntivirusProgressType: ObjectType[Unit, AntivirusProgress] =
@@ -46,8 +45,8 @@ object ConsignmentFields {
 
   implicit val AddConsignmentInputType: InputObjectType[AddConsignmentInput] = deriveInputObjectType[AddConsignmentInput]()
 
-  val ConsignmentInputArg = Argument("addConsignmentInput", AddConsignmentInputType)
-  val ConsignmentIdArg = Argument("consignmentid", UuidType)
+  val ConsignmentInputArg: Argument[AddConsignmentInput] = Argument("addConsignmentInput", AddConsignmentInputType)
+  val ConsignmentIdArg: Argument[UUID] = Argument("consignmentid", UuidType)
 
   val queryFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("getConsignment", OptionType(ConsignmentType),
