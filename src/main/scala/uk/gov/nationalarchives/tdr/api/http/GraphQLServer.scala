@@ -42,7 +42,7 @@ object GraphQLServer {
       HandledException(message, additionalFields)
   }
 
-  def endpoint(requestJSON: JsValue, accessToken: Token)(implicit ec: ExecutionContext): Route = {
+  def endpoint(requestJSON: JsValue, accessToken: Token)(implicit ec: ExecutionContext): Route = RouteLogging.logging {
 
     val JsObject(fields) = requestJSON
 
@@ -61,7 +61,6 @@ object GraphQLServer {
       case Failure(error) =>
         complete(BadRequest, JsObject("error" -> JsString(error.getMessage)))
     }
-
   }
 
   private def executeGraphQLQuery(query: Document, operation: Option[String], vars: JsObject, accessToken: Token)
