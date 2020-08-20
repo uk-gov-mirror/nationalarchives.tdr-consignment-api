@@ -1,9 +1,10 @@
 library("tdr-jenkinslib")
 
 ecsDeployJob(
-    imageName: "consignment-api",
-    toDeploy: params.TO_DEPLOY,
-    ecsService: "consignmentapi",
-    stage: params.STAGE,
-    testDelaySeconds: 300
+  imageName: "consignment-api",
+  toDeploy: params.TO_DEPLOY,
+  ecsService: "consignmentapi",
+  stage: params.STAGE,
+  testDelaySeconds: 300
 )
+
