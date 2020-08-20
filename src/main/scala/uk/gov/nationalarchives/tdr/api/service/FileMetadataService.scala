@@ -3,8 +3,7 @@ package uk.gov.nationalarchives.tdr.api.service
 import java.sql.{SQLException, Timestamp}
 import java.util.UUID
 
-import uk.gov.nationalarchives.Tables.FilepropertyRow
-import uk.gov.nationalarchives.Tables.FilemetadataRow
+import uk.gov.nationalarchives.Tables.{FilemetadataRow, FilepropertyRow}
 import uk.gov.nationalarchives.tdr.api.db.repository.{FileMetadataRepository, FilePropertyRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.{AddFileMetadataInput, FileMetadata}
@@ -34,5 +33,4 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository, filePr
   def getFileProperty(filePropertyName: String): Future[Option[FilepropertyRow]] = {
     filePropertyRepository.getPropertyByName(filePropertyName)
   }
-
 }

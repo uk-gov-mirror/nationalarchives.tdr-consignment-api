@@ -3,14 +3,14 @@ package uk.gov.nationalarchives.tdr.api.service
 import java.sql.{SQLException, Timestamp}
 import java.util.UUID
 
-import uk.gov.nationalarchives.tdr.api.db.repository.{FFIDMetadataMatchesRepository, FFIDMetadataRepository}
-import uk.gov.nationalarchives.tdr.api.graphql.fields.FFIDMetadataFields.{FFIDMetadata, FFIDMetadataInput, FFIDMetadataInputMatches, FFIDMetadataMatches}
 import uk.gov.nationalarchives.Tables.{FfidmetadataRow, FfidmetadatamatchesRow}
+import uk.gov.nationalarchives.tdr.api.db.repository.{FFIDMetadataMatchesRepository, FFIDMetadataRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FFIDMetadataFields.{FFIDMetadata, FFIDMetadataInput, FFIDMetadataMatches}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class FFIDMetadataService(ffidMetadataRespoitory: FFIDMetadataRepository, matchesRepository: FFIDMetadataMatchesRepository,
+class FFIDMetadataService(ffidMetadataRepository: FFIDMetadataRepository, matchesRepository: FFIDMetadataMatchesRepository,
                           timeSource: TimeSource, uuidSource: UUIDSource)(implicit val executionContext: ExecutionContext) {
   def addFFIDMetadata(ffidMetadata: FFIDMetadataInput): Future[FFIDMetadata] = {
     val metadataRows = FfidmetadataRow(uuidSource.uuid, ffidMetadata.fileId,
@@ -27,7 +27,7 @@ class FFIDMetadataService(ffidMetadataRespoitory: FFIDMetadataRepository, matche
 
     }
     (for {
-      metadata <- ffidMetadataRespoitory.addFFIDMetadata(metadataRows)
+      metadata <- ffidMetadataRepository.addFFIDMetadata(metadataRows)
       matchrow <- addMatches(metadata.ffidmetadataid)
     } yield {
       FFIDMetadata(

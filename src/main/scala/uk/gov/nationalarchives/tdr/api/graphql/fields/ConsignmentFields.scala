@@ -8,18 +8,21 @@ import sangria.marshalling.circe._
 import sangria.schema.{Argument, Field, InputObjectType, IntType, ObjectType, OptionType, fields}
 import uk.gov.nationalarchives.tdr.api.auth.{ValidateSeries, ValidateUserOwnsConsignment}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
-import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, DeferAntivirusProgress, DeferTotalFiles}
+import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, DeferFileChecksProgress, DeferTotalFiles}
 
 object ConsignmentFields {
   case class Consignment(consignmentid: Option[UUID] = None, userid: UUID, seriesid: UUID)
   case class AddConsignmentInput(seriesid: UUID)
   case class AntivirusProgress(filesProcessed: Int)
-  case class FileChecks(antivirusProgress: AntivirusProgress)
+  case class ChecksumProgress(filesProcessed: Int)
+  case class FileChecks(antivirusProgress: AntivirusProgress, checksumProgress: ChecksumProgress)
 
   implicit val FileChecksType: ObjectType[Unit, FileChecks] =
     deriveObjectType[Unit, FileChecks]()
   implicit val AntivirusProgressType: ObjectType[Unit, AntivirusProgress] =
     deriveObjectType[Unit, AntivirusProgress]()
+  implicit val ChecksumProgressType: ObjectType[Unit, ChecksumProgress] =
+    deriveObjectType[Unit, ChecksumProgress]()
 
   implicit val ConsignmentType: ObjectType[Unit, Consignment] = ObjectType(
     "Consignment",
@@ -35,15 +38,15 @@ object ConsignmentFields {
       Field(
         "fileChecks",
         FileChecksType,
-        resolve = context => DeferAntivirusProgress(context.value.consignmentid)
+        resolve = context => DeferFileChecksProgress(context.value.consignmentid)
       )
     )
   )
 
   implicit val AddConsignmentInputType: InputObjectType[AddConsignmentInput] = deriveInputObjectType[AddConsignmentInput]()
 
-  val ConsignmentInputArg = Argument("addConsignmentInput", AddConsignmentInputType)
-  val ConsignmentIdArg = Argument("consignmentid", UuidType)
+  val ConsignmentInputArg: Argument[AddConsignmentInput] = Argument("addConsignmentInput", AddConsignmentInputType)
+  val ConsignmentIdArg: Argument[UUID] = Argument("consignmentid", UuidType)
 
   val queryFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("getConsignment", OptionType(ConsignmentType),
