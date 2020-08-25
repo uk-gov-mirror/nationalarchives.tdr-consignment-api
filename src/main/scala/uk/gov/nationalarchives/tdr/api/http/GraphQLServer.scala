@@ -9,6 +9,7 @@ import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
 import sangria.ast.Document
 import sangria.execution._
+import sangria.marshalling.ResultMarshaller
 import sangria.marshalling.sprayJson._
 import sangria.parser.QueryParser
 import spray.json.{JsObject, JsString, JsValue}
@@ -28,24 +29,23 @@ object GraphQLServer {
 
   private val logger = Logger(classOf[GraphQLServer])
 
+  private def handleException(marshaller: ResultMarshaller, errorCode: String, message: String): HandledException = {
+    val node = marshaller.scalarNode(errorCode, "String", Set.empty)
+    val additionalFields = Map("code" -> node)
+    logger.warn(s"$message, Codes: ${additionalFields}")
+    HandledException(message, additionalFields)
+  }
+
   val exceptionHandler = ExceptionHandler {
     case (resultMarshaller, AuthorisationException(message)) => {
-      val node = resultMarshaller.scalarNode(ErrorCodes.notAuthorised, "String", Set.empty)
-      val additionalFields = Map("code" -> node)
-      logger.warn(s"$message, $additionalFields")
-      HandledException(message, additionalFields)
+      handleException(resultMarshaller, ErrorCodes.notAuthorised, message)
     }
     case (resultMarshaller, ConsignmentStateException(message)) => {
-      val node = resultMarshaller.scalarNode(ErrorCodes.invalidConsignmentState, "String", Set.empty)
-      val additionalFields = Map("code" -> node)
-      logger.warn(s"$message, $additionalFields")
-      HandledException(message, additionalFields)
+      handleException(resultMarshaller, ErrorCodes.invalidConsignmentState, message)
     }
-    case (resultMarshaller, InputDataException(message, _)) =>
-      val node = resultMarshaller.scalarNode(ErrorCodes.invalidInputData, "String", Set.empty)
-      val additionalFields = Map("code" -> node)
-      logger.warn(s"$message, $additionalFields")
-      HandledException(message, additionalFields)
+    case (resultMarshaller, InputDataException(message, _)) => {
+      handleException(resultMarshaller, ErrorCodes.invalidInputData, message)
+    }
   }
 
   def endpoint(requestJSON: JsValue, accessToken: Token)(implicit ec: ExecutionContext): Route = {
