@@ -6,6 +6,7 @@ import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.typesafe.config.ConfigFactory
+import com.typesafe.scalalogging.Logger
 import sangria.ast.Document
 import sangria.execution._
 import sangria.marshalling.sprayJson._
@@ -25,24 +26,29 @@ import scala.util.{Failure, Success}
 
 object GraphQLServer {
 
+  private val logger = Logger(classOf[GraphQLServer])
+
   val exceptionHandler = ExceptionHandler {
     case (resultMarshaller, AuthorisationException(message)) => {
       val node = resultMarshaller.scalarNode(ErrorCodes.notAuthorised, "String", Set.empty)
       val additionalFields = Map("code" -> node)
+      logger.warn(s"$message, $additionalFields")
       HandledException(message, additionalFields)
     }
     case (resultMarshaller, ConsignmentStateException(message)) => {
       val node = resultMarshaller.scalarNode(ErrorCodes.invalidConsignmentState, "String", Set.empty)
       val additionalFields = Map("code" -> node)
+      logger.warn(s"$message, $additionalFields")
       HandledException(message, additionalFields)
     }
     case (resultMarshaller, InputDataException(message, _)) =>
       val node = resultMarshaller.scalarNode(ErrorCodes.invalidInputData, "String", Set.empty)
       val additionalFields = Map("code" -> node)
+      logger.warn(s"$message, $additionalFields")
       HandledException(message, additionalFields)
   }
 
-  def endpoint(requestJSON: JsValue, accessToken: Token)(implicit ec: ExecutionContext): Route = RouteLogging.logging {
+  def endpoint(requestJSON: JsValue, accessToken: Token)(implicit ec: ExecutionContext): Route = {
 
     val JsObject(fields) = requestJSON
 
@@ -109,3 +115,5 @@ object GraphQLServer {
       }
   }
 }
+
+class GraphQLServer
