@@ -78,14 +78,6 @@ class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequ
     checkNoAntivirusMetadataAdded()
   }
 
-  "addAntivirusMetadata" should "throw an error if the field datetime is not provided" in {
-    val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_datetime_missing")
-    val response: GraphqlMutationData = runTestMutation("mutation_missingdatetime", validBackendChecksToken("antivirus"))
-
-    response.errors.head.message should equal (expectedResponse.errors.head.message)
-    checkNoAntivirusMetadataAdded()
-  }
-
   private def checkAntivirusMetadataExists(fileId: UUID): Unit = {
     val sql = "select * from AVMetadata where FileId = ?;"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
