@@ -15,18 +15,18 @@ class TransferringBodyServiceSpec extends AnyFlatSpec with MockitoSugar with Mat
 
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
 
-  val repository = mock[TransferringBodyRepository]
+  val repository: TransferringBodyRepository = mock[TransferringBodyRepository]
   val service = new TransferringBodyService(repository)
 
   "getBody" should "return a transferring body matching the series ID" in {
     val seriesId = UUID.fromString("20e88b3c-d063-4a6e-8b61-187d8c51d11d")
     val bodyId = UUID.fromString("8a72cc59-7f2f-4e55-a263-4a4cb9f677f5")
 
-    val bodyRow = BodyRow(bodyId, Some("Some department name"))
+    val bodyRow = BodyRow(bodyId, Some("Some department name"), Some("CODE"))
     when(repository.getTransferringBody(seriesId)).thenReturn(Future.successful(bodyRow))
 
     val body = service.getBody(seriesId)
 
-    body.futureValue.name should contain("Some department name")
+    body.futureValue.code.get should equal("CODE")
   }
 }
