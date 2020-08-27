@@ -27,11 +27,11 @@ class AntivirusMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
     val fileRepositoryMock = mock[FileRepository]
     val mockResponse = Future.successful(AvmetadataRow(
       fixedFileUuid,
-      Some("software"),
+      "software",
       Some("value"),
-      Some("software version"),
-      Some("database version"),
-      Some("result"),
+      "software version",
+      "database version",
+      "result",
       dummyTimestamp
     ))
 
@@ -40,34 +40,20 @@ class AntivirusMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
     val service: AntivirusMetadataService = new AntivirusMetadataService(avRepositoryMock, fileRepositoryMock)
     val result = service.addAntivirusMetadata(AddAntivirusMetadataInput(
       fixedFileUuid,
-      Some("software"),
+      "software",
       Some("value"),
-      Some("software version"),
-      Some("database version"),
-      Some("result"),
+      "software version",
+      "database version",
+      "result",
       dummyInstant.toEpochMilli
     )).futureValue
 
     result.fileId shouldBe fixedFileUuid
-    result.software.get shouldBe "software"
+    result.software shouldBe "software"
     result.value.get shouldBe "value"
-    result.softwareVersion.get shouldBe "software version"
-    result.databaseVersion.get shouldBe "database version"
-    result.result.get shouldBe "result"
+    result.softwareVersion shouldBe "software version"
+    result.databaseVersion shouldBe "database version"
+    result.result shouldBe "result"
     result.datetime shouldBe dummyInstant.toEpochMilli
-  }
-
-  "getAntivirusFileMetadataProgress" should "return total processed files" in {
-    val avRepositoryMock = mock[AntivirusMetadataRepository]
-    val fileRepositoryMock = mock[FileRepository]
-    val service: AntivirusMetadataService = new AntivirusMetadataService(avRepositoryMock, fileRepositoryMock)
-    val consignmentId = UUID.fromString("3c8da55a-bca0-4cd8-8efb-fb2d316e88ee")
-    val filesProcessed = 78
-
-    when(fileRepositoryMock.countProcessedAvMetadataInConsignment(consignmentId)).thenReturn(Future.successful(filesProcessed))
-
-    val progress: FileChecks =  service.getAntivirusFileMetadataProgress(consignmentId).futureValue
-
-    progress.antivirusProgress.filesProcessed shouldBe filesProcessed
   }
 }

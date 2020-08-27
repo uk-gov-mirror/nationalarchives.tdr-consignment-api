@@ -16,10 +16,9 @@ object FileMetadataFields {
   case class AddFileMetadataInput(filePropertyName: String, fileId: UUID, value: String)
 
   implicit val FileMetadataType: ObjectType[Unit, FileMetadata] = deriveObjectType[Unit, FileMetadata]()
-
   implicit val AddFileMetadataInputType: InputObjectType[AddFileMetadataInput] = deriveInputObjectType[AddFileMetadataInput]()
 
-  val FileMetadataInputArg = Argument("addFileMetadataInput", AddFileMetadataInputType)
+  val FileMetadataInputArg: Argument[AddFileMetadataInput] = Argument("addFileMetadataInput", AddFileMetadataInputType)
 
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("addFileMetadata", FileMetadataType,

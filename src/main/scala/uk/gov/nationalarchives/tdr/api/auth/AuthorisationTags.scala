@@ -48,19 +48,18 @@ object ValidateSeries extends AuthorisationTag {
                        (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val token = ctx.ctx.accessToken
     val userBody = token.transferringBody.getOrElse(
-      throw new AuthorisationException(s"No transferring body in user token for user '${token.userId.getOrElse("")}'"))
+      throw AuthorisationException(s"No transferring body in user token for user '${token.userId.getOrElse("")}'"))
 
     val addConsignmentInput = ctx.arg[AddConsignmentInput]("addConsignmentInput")
     val bodyResult = ctx.ctx.transferringBodyService.getBody(addConsignmentInput.seriesid)
 
     bodyResult.map(body => {
-      body.name match {
-        case Some(name) if name == userBody => continue
-        case Some(name) => {
+      body.code match {
+        case Some(code) if code == userBody => continue
+        case Some(code) =>
           val message = s"User '${token.userId}' is from transferring body '$userBody' and does not have permission " +
-            s"to create a consignment under series '$addConsignmentInput' owned by body '$name'"
+            s"to create a consignment under series '$addConsignmentInput' owned by body '$code'"
           throw AuthorisationException(message)
-        }
         // This exception can be removed when we use body IDs rather than names
         case _ => throw new IllegalStateException("")
       }

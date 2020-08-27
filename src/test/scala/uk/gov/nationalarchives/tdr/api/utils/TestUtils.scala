@@ -17,23 +17,23 @@ import scala.io.Source.fromResource
 
 object TestUtils {
 
-  val defaultFileId = UUID.fromString("07a3a4bd-0281-4a6d-a4c1-8fa3239e1313")
+  val defaultFileId: UUID = UUID.fromString("07a3a4bd-0281-4a6d-a4c1-8fa3239e1313")
 
   private val tdrPort: Int = 8000
   private val testPort: Int = 8001
   private val tdrMock: KeycloakVerificationMock = createServer("tdr", tdrPort)
   private val testMock: KeycloakVerificationMock = createServer("test", testPort)
 
-  private def createServer(realm: String, port: Int) = {
+  private def createServer(realm: String, port: Int): KeycloakVerificationMock = {
     val mock: KeycloakVerificationMock = new KeycloakVerificationMock(port, "tdr")
     mock.start()
     mock
   }
 
-  val userId = UUID.fromString("4ab14990-ed63-4615-8336-56fbb9960300")
-  val backendChecksUser = UUID.fromString("6847253d-b9c6-4ea9-b3c9-57542b8c6375")
+  val userId: UUID = UUID.fromString("4ab14990-ed63-4615-8336-56fbb9960300")
+  val backendChecksUser: UUID = UUID.fromString("6847253d-b9c6-4ea9-b3c9-57542b8c6375")
 
-  def validUserToken(body: String = "Body"): OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
+  def validUserToken(body: String = "Code"): OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
     aTokenConfig()
       .withResourceRole("tdr", "tdr_user")
       .withClaim("body", body)
@@ -111,9 +111,33 @@ object TestUtils {
   def addAntivirusMetadata(fileId: String): Unit = {
     val sql = s"insert into AVMetadata (FileId, Result, Datetime) VALUES (?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.setString(1, s"${fileId}")
+    ps.setString(1, fileId)
     ps.setString(2, "Result of AVMetadata processing")
     ps.setTimestamp(3, Timestamp.from(FixedTimeSource.now))
+    ps.executeUpdate()
+  }
+
+  //scalastyle:off magic.number
+  def addFileMetadata(metadataId: String, fileId: String, propertyId: String): Unit = {
+    val sql = s"insert into FileMetadata (MetadataId, FileId, PropertyId, Value, Datetime, UserId) VALUES (?, ?, ?, ?, ?, ?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, metadataId)
+    ps.setString(2, fileId)
+    ps.setString(3, propertyId)
+    ps.setString(4, "Result of FileMetadata processing")
+    ps.setTimestamp(5, Timestamp.from(FixedTimeSource.now))
+    ps.setString(6, userId.toString)
+
+    ps.executeUpdate()
+  }
+
+  //scalastyle:on magic.number
+  def addFileProperty(propertyId: String, name: String): Unit = {
+    val sql = s"insert into FileProperty (PropertyId, Name) VALUES (?, ?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, propertyId)
+    ps.setString(2, name)
+
     ps.executeUpdate()
   }
 }

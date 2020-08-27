@@ -13,9 +13,9 @@ class DeferredResolver extends sangria.execution.deferred.DeferredResolver[Consi
   override def resolve(deferred: Vector[Deferred[Any]], context: ConsignmentApiContext, queryState: Any)(implicit ec: ExecutionContext): Vector[Future[Any]] = {
     deferred.map {
       case DeferTotalFiles(consignmentId) => consignmentId.map(id => context.fileService.fileCount(id)).getOrElse(Future.successful(0))
-      case DeferAntivirusProgress(consignmentId) =>
+      case DeferFileChecksProgress(consignmentId) =>
         consignmentId.map(
-          id => context.antivirusMetadataService.getAntivirusFileMetadataProgress(id)
+          id => context.consignmentService.getConsignmentFileProgress(id)
         ).getOrElse(Future.successful(0))
       case other => throw UnsupportedDeferError(other)
     }
@@ -23,4 +23,4 @@ class DeferredResolver extends sangria.execution.deferred.DeferredResolver[Consi
 }
 
 case class DeferTotalFiles(consignmentId: Option[UUID]) extends Deferred[Int]
-case class DeferAntivirusProgress(consignmentId: Option[UUID]) extends Deferred[FileChecks]
+case class DeferFileChecksProgress(consignmentId: Option[UUID]) extends Deferred[FileChecks]

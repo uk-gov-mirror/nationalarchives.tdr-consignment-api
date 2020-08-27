@@ -81,13 +81,14 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
   "getFileProperty" should "return a file property" in {
     val fixedPropertyId = UUID.fromString("6929ca2a-c920-41d3-bf8d-25a7da5d8ae2")
     val propertyRepositoryMock = mock[FilePropertyRepository]
-    val mockPropertyResponse = Future.successful(Some(FilepropertyRow(fixedPropertyId, Some("Name"), Some("Description"), Some("ShortName"))))
+    val filePropertyRow = Some(FilepropertyRow(fixedPropertyId, Some("SHA256ServerSideChecksum"), Some("Description"), Some("ShortName")))
+    val mockPropertyResponse = Future.successful(filePropertyRow)
     when(propertyRepositoryMock.getPropertyByName(any[String])).thenReturn(mockPropertyResponse)
     val service = new FileMetadataService(mock[FileMetadataRepository], propertyRepositoryMock, FixedTimeSource, new FixedUUIDSource)
-    val property = service.getFileProperty("Name").futureValue
+    val property = service.getFileProperty("SHA256ServerSideChecksum").futureValue
     property.isDefined should equal(true)
     property.get.propertyid should equal(fixedPropertyId)
-    property.get.name.get should equal("Name")
+    property.get.name.get should equal("SHA256ServerSideChecksum")
     property.get.shortname.get should equal("ShortName")
     property.get.description.get should equal("Description")
   }

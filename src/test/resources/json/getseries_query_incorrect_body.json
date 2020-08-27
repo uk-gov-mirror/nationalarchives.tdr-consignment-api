@@ -1,1 +1,1 @@
-{"query":"{getSeries(body: \"Body2\"){seriesid}}"}
+{"query":"{getSeries(body: \"Code2\"){seriesid}}"}

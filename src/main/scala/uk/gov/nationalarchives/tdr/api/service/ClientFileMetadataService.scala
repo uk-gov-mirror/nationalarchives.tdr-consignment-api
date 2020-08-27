@@ -14,15 +14,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class ClientFileMetadataService(clientFileMetadataRepository: ClientFileMetadataRepository, uuidSource: UUIDSource)
                                (implicit val executionContext: ExecutionContext) {
 
-  def getClientFileMetadata(fileId: UUID): Future[ClientFileMetadata] = {
-    clientFileMetadataRepository.getClientFileMetadata(fileId).map(_.head).map(rowToOutput).recover {
-      case nse: NoSuchElementException => throw InputDataException(s"Could not find metadata for file $fileId", Some(nse))
-      case e: SQLException => throw InputDataException(e.getLocalizedMessage, Some(e))
-    }
-  }
-
   def addClientFileMetadata(inputs: Seq[AddClientFileMetadataInput]): Future[Seq[ClientFileMetadata]] = {
-
     val rows: Seq[ClientfilemetadataRow] = inputs.map(i => ClientfilemetadataRow(
       uuidSource.uuid,
       i.fileId,
@@ -37,6 +29,13 @@ class ClientFileMetadataService(clientFileMetadataRepository: ClientFileMetadata
     clientFileMetadataRepository.addClientFileMetadata(rows).map(r => {
       r.map(rowToOutput)
     })
+  }
+
+  def getClientFileMetadata(fileId: UUID): Future[ClientFileMetadata] = {
+    clientFileMetadataRepository.getClientFileMetadata(fileId).map(_.head).map(rowToOutput).recover {
+      case nse: NoSuchElementException => throw InputDataException(s"Could not find metadata for file $fileId", Some(nse))
+      case e: SQLException => throw InputDataException(e.getLocalizedMessage, Some(e))
+    }
   }
 
   private def rowToOutput(row: ClientfilemetadataRow): ClientFileMetadata = {

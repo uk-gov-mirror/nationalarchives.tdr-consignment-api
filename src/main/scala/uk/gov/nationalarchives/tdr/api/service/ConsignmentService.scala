@@ -4,14 +4,16 @@ import java.sql.Timestamp
 import java.util.UUID
 
 import uk.gov.nationalarchives.Tables.ConsignmentRow
-import uk.gov.nationalarchives.tdr.api.db.repository.ConsignmentRepository
-import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AddConsignmentInput, Consignment}
+import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentRepository, FileMetadataRepository, FileRepository}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AddConsignmentInput, AntivirusProgress, ChecksumProgress, Consignment, FileChecks}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 
 class ConsignmentService(
                           consignmentRepository: ConsignmentRepository,
+                          fileMetadataRepository: FileMetadataRepository,
+                          fileRepository: FileRepository,
                           timeSource: TimeSource,
                           uuidSource: UUIDSource
                         )(implicit val executionContext: ExecutionContext) {
@@ -28,5 +30,12 @@ class ConsignmentService(
 
   def consignmentHasFiles(consignmentId: UUID): Future[Boolean] = {
     consignmentRepository.consignmentHasFiles(consignmentId)
+  }
+
+  def getConsignmentFileProgress(consignmentId: UUID): Future[FileChecks] = {
+    for {
+      processed <- fileRepository.countProcessedAvMetadataInConsignment(consignmentId)
+      checksum <- fileMetadataRepository.countProcessedChecksumInConsignment(consignmentId)
+    } yield FileChecks(AntivirusProgress(processed), ChecksumProgress(checksum))
   }
 }
