@@ -27,12 +27,12 @@ import scala.util.{Failure, Success}
 
 object GraphQLServer {
 
-  private val logger = Logger(classOf[GraphQLServer])
+  private val logger = Logger(s"${GraphQLServer.getClass}")
 
   private def handleException(marshaller: ResultMarshaller, errorCode: String, message: String): HandledException = {
     val node = marshaller.scalarNode(errorCode, "String", Set.empty)
     val additionalFields = Map("code" -> node)
-    logger.warn(s"$message, Codes: ${additionalFields}")
+    logger.warn(s"$message, Code: $errorCode")
     HandledException(message, additionalFields)
   }
 
@@ -115,5 +115,3 @@ object GraphQLServer {
       }
   }
 }
-
-class GraphQLServer
