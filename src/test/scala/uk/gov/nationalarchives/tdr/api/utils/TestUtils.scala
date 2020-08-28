@@ -108,16 +108,19 @@ object TestUtils {
     ps.executeUpdate()
   }
 
+  //scalastyle:off magic.number
   def addAntivirusMetadata(fileId: String): Unit = {
-    val sql = s"insert into AVMetadata (FileId, Result, Datetime) VALUES (?, ?, ?)"
+    val sql = s"insert into AVMetadata (FileId, Software, SoftwareVersion, DatabaseVersion, Result, Datetime) VALUES (?, ?, ?, ?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, fileId)
-    ps.setString(2, "Result of AVMetadata processing")
-    ps.setTimestamp(3, Timestamp.from(FixedTimeSource.now))
+    ps.setString(2, "Some antivirus software")
+    ps.setString(3, "Some software version")
+    ps.setString(4, "Some database version")
+    ps.setString(5, "Result of AVMetadata processing")
+    ps.setTimestamp(6, Timestamp.from(FixedTimeSource.now))
     ps.executeUpdate()
   }
 
-  //scalastyle:off magic.number
   def addFileMetadata(metadataId: String, fileId: String, propertyId: String): Unit = {
     val sql = s"insert into FileMetadata (MetadataId, FileId, PropertyId, Value, Datetime, UserId) VALUES (?, ?, ?, ?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
@@ -130,8 +133,8 @@ object TestUtils {
 
     ps.executeUpdate()
   }
-
   //scalastyle:on magic.number
+
   def addFileProperty(propertyId: String, name: String): Unit = {
     val sql = s"insert into FileProperty (PropertyId, Name) VALUES (?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)

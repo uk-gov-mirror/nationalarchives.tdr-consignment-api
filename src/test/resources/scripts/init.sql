@@ -58,11 +58,11 @@ CREATE TABLE IF NOT EXISTS File (
 
 CREATE TABLE IF NOT EXISTS AVMetadata (
     FileId uuid DEFAULT NULL,
-    Software varchar(255) DEFAULT NULL,
+    Software varchar(255) NOT NULL,
     Value varchar(255) DEFAULT NULL,
-    SoftwareVersion varchar(255) DEFAULT NULL,
-    DatabaseVersion varchar(255) DEFAULT NULL,
-    Result varchar(255) DEFAULT NULL,
+    SoftwareVersion varchar(255) NOT NULL,
+    DatabaseVersion varchar(255) NOT NULL,
+    Result varchar(255) NOT NULL,
     Datetime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
