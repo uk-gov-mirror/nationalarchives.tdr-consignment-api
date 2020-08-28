@@ -4,12 +4,12 @@ import java.sql.Timestamp
 import java.time.Instant
 
 import uk.gov.nationalarchives.Tables.AvmetadataRow
-import uk.gov.nationalarchives.tdr.api.db.repository.{AntivirusMetadataRepository, FileRepository}
+import uk.gov.nationalarchives.tdr.api.db.repository.AntivirusMetadataRepository
 import uk.gov.nationalarchives.tdr.api.graphql.fields.AntivirusMetadataFields.{AddAntivirusMetadataInput, AntivirusMetadata}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AntivirusMetadataService(antivirusMetadataRepository: AntivirusMetadataRepository, fileRepository: FileRepository)
+class AntivirusMetadataService(antivirusMetadataRepository: AntivirusMetadataRepository)
                               (implicit val executionContext: ExecutionContext) {
 
   def addAntivirusMetadata(input: AddAntivirusMetadataInput): Future[AntivirusMetadata] = {

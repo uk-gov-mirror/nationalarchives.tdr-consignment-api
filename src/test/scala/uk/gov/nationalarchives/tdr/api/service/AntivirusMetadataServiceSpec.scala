@@ -10,9 +10,8 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.AvmetadataRow
-import uk.gov.nationalarchives.tdr.api.db.repository.{AntivirusMetadataRepository, FileRepository}
+import uk.gov.nationalarchives.tdr.api.db.repository.AntivirusMetadataRepository
 import uk.gov.nationalarchives.tdr.api.graphql.fields.AntivirusMetadataFields.AddAntivirusMetadataInput
-import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.FileChecks
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -24,7 +23,6 @@ class AntivirusMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
     val dummyInstant = Instant.now()
     val dummyTimestamp = Timestamp.from(dummyInstant)
     val avRepositoryMock = mock[AntivirusMetadataRepository]
-    val fileRepositoryMock = mock[FileRepository]
     val mockResponse = Future.successful(AvmetadataRow(
       fixedFileUuid,
       "software",
@@ -37,7 +35,7 @@ class AntivirusMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
 
     when(avRepositoryMock.addAntivirusMetadata(any[AvmetadataRow])).thenReturn(mockResponse)
 
-    val service: AntivirusMetadataService = new AntivirusMetadataService(avRepositoryMock, fileRepositoryMock)
+    val service: AntivirusMetadataService = new AntivirusMetadataService(avRepositoryMock)
     val result = service.addAntivirusMetadata(AddAntivirusMetadataInput(
       fixedFileUuid,
       "software",
