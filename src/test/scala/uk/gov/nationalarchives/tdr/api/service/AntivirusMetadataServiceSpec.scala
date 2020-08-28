@@ -26,7 +26,6 @@ class AntivirusMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
     val mockResponse = Future.successful(AvmetadataRow(
       fixedFileUuid,
       "software",
-      Some("value"),
       "software version",
       "database version",
       "result",
