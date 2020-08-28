@@ -41,7 +41,6 @@ class AntivirusMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
     val result = service.addAntivirusMetadata(AddAntivirusMetadataInput(
       fixedFileUuid,
       "software",
-      Some("value"),
       "software version",
       "database version",
       "result",
@@ -50,7 +49,6 @@ class AntivirusMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
 
     result.fileId shouldBe fixedFileUuid
     result.software shouldBe "software"
-    result.value.get shouldBe "value"
     result.softwareVersion shouldBe "software version"
     result.databaseVersion shouldBe "database version"
     result.result shouldBe "result"
