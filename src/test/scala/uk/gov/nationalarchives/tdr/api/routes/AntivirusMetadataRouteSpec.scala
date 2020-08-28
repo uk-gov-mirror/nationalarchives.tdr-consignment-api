@@ -23,7 +23,6 @@ class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequ
   case class AntivirusMetadata(
                                 fileId: UUID,
                                 software: Option[String] = None,
-                                value: Option[String] = None,
                                 softwareVersion: Option[String] = None,
                                 databaseVersion: Option[String] = None,
                                 result: Option[String] = None,
