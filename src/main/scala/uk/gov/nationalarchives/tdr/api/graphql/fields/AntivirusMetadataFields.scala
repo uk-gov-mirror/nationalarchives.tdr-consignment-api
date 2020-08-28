@@ -13,7 +13,6 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 object AntivirusMetadataFields {
   case class AntivirusMetadata(fileId: UUID,
                                software: String,
-                               value: Option[String] = None,
                                softwareVersion: String,
                                databaseVersion: String,
                                result: String,
@@ -21,7 +20,6 @@ object AntivirusMetadataFields {
 
   case class AddAntivirusMetadataInput(fileId: UUID,
                                        software: String,
-                                       value: Option[String] = None,
                                        softwareVersion: String,
                                        databaseVersion: String,
                                        result: String,
