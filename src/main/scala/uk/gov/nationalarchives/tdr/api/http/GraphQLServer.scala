@@ -6,8 +6,10 @@ import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.typesafe.config.ConfigFactory
+import com.typesafe.scalalogging.Logger
 import sangria.ast.Document
 import sangria.execution._
+import sangria.marshalling.ResultMarshaller
 import sangria.marshalling.sprayJson._
 import sangria.parser.QueryParser
 import spray.json.{JsObject, JsString, JsValue}
@@ -25,21 +27,25 @@ import scala.util.{Failure, Success}
 
 object GraphQLServer {
 
+  private val logger = Logger(s"${GraphQLServer.getClass}")
+
+  private def handleException(marshaller: ResultMarshaller, errorCode: String, message: String): HandledException = {
+    val node = marshaller.scalarNode(errorCode, "String", Set.empty)
+    val additionalFields = Map("code" -> node)
+    logger.warn(s"$message, Code: $errorCode")
+    HandledException(message, additionalFields)
+  }
+
   val exceptionHandler = ExceptionHandler {
     case (resultMarshaller, AuthorisationException(message)) => {
-      val node = resultMarshaller.scalarNode(ErrorCodes.notAuthorised, "String", Set.empty)
-      val additionalFields = Map("code" -> node)
-      HandledException(message, additionalFields)
+      handleException(resultMarshaller, ErrorCodes.notAuthorised, message)
     }
     case (resultMarshaller, ConsignmentStateException(message)) => {
-      val node = resultMarshaller.scalarNode(ErrorCodes.invalidConsignmentState, "String", Set.empty)
-      val additionalFields = Map("code" -> node)
-      HandledException(message, additionalFields)
+      handleException(resultMarshaller, ErrorCodes.invalidConsignmentState, message)
     }
-    case (resultMarshaller, InputDataException(message, _)) =>
-      val node = resultMarshaller.scalarNode(ErrorCodes.invalidInputData, "String", Set.empty)
-      val additionalFields = Map("code" -> node)
-      HandledException(message, additionalFields)
+    case (resultMarshaller, InputDataException(message, _)) => {
+      handleException(resultMarshaller, ErrorCodes.invalidInputData, message)
+    }
   }
 
   def endpoint(requestJSON: JsValue, accessToken: Token)(implicit ec: ExecutionContext): Route = {
@@ -61,7 +67,6 @@ object GraphQLServer {
       case Failure(error) =>
         complete(BadRequest, JsObject("error" -> JsString(error.getMessage)))
     }
-
   }
 
   private def executeGraphQLQuery(query: Document, operation: Option[String], vars: JsObject, accessToken: Token)
