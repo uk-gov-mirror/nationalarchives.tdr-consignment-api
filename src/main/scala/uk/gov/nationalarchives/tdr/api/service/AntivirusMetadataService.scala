@@ -17,7 +17,6 @@ class AntivirusMetadataService(antivirusMetadataRepository: AntivirusMetadataRep
     val inputRow = AvmetadataRow(
       input.fileId,
       input.software,
-      None,
       input.softwareVersion,
       input.databaseVersion,
       input.result,
