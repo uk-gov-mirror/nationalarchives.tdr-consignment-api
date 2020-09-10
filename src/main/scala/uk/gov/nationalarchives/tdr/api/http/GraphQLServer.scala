@@ -69,8 +69,8 @@ object GraphQLServer {
     }
   }
 
-  private def executeGraphQLQuery(query: Document, operation: Option[String], vars: JsObject, accessToken: Token)
-                                 (implicit ec: ExecutionContext): Future[(StatusCode with Serializable, JsValue)] = {
+  //noinspection ScalaStyle
+  private def executeGraphQLQuery(query: Document, operation: Option[String], vars: JsObject, accessToken: Token)(implicit ec: ExecutionContext): Future[(StatusCode with Serializable, JsValue)] = {
     val uuidSourceClass: Class[_] = Class.forName(ConfigFactory.load().getString("source.uuid"))
     val uuidSource: UUIDSource = uuidSourceClass.getDeclaredConstructor().newInstance().asInstanceOf[UUIDSource]
     val db = DbConnection.db
@@ -78,9 +78,10 @@ object GraphQLServer {
     val consignmentRepository = new ConsignmentRepository(db)
     val fileMetadataRepository = new FileMetadataRepository(db)
     val fileRepository = new FileRepository(db)
+    val ffidMetadataRepository = new FFIDMetadataRepository(db)
 
     val seriesService = new SeriesService(new SeriesRepository(db), uuidSource)
-    val consignmentService = new ConsignmentService(consignmentRepository, fileMetadataRepository, fileRepository, new CurrentTimeSource, uuidSource)
+    val consignmentService = new ConsignmentService(consignmentRepository, fileMetadataRepository, fileRepository, ffidMetadataRepository, new CurrentTimeSource, uuidSource)
     val transferAgreementService = new TransferAgreementService(new TransferAgreementRepository(db), uuidSource)
     val clientFileMetadataService = new ClientFileMetadataService(new ClientFileMetadataRepository(db), uuidSource)
     val fileService = new FileService(fileRepository, consignmentRepository, new CurrentTimeSource, uuidSource)

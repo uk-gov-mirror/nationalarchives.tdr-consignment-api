@@ -15,7 +15,8 @@ object ConsignmentFields {
   case class AddConsignmentInput(seriesid: UUID)
   case class AntivirusProgress(filesProcessed: Int)
   case class ChecksumProgress(filesProcessed: Int)
-  case class FileChecks(antivirusProgress: AntivirusProgress, checksumProgress: ChecksumProgress)
+  case class FFIDProgress(filesProcessed: Int)
+  case class FileChecks(antivirusProgress: AntivirusProgress, checksumProgress: ChecksumProgress, ffidProgress: FFIDProgress)
 
   implicit val FileChecksType: ObjectType[Unit, FileChecks] =
     deriveObjectType[Unit, FileChecks]()
@@ -23,6 +24,8 @@ object ConsignmentFields {
     deriveObjectType[Unit, AntivirusProgress]()
   implicit val ChecksumProgressType: ObjectType[Unit, ChecksumProgress] =
     deriveObjectType[Unit, ChecksumProgress]()
+  implicit val FfidProgressType: ObjectType[Unit, FFIDProgress] =
+    deriveObjectType[Unit, FFIDProgress]()
 
   implicit val ConsignmentType: ObjectType[Unit, Consignment] = ObjectType(
     "Consignment",
