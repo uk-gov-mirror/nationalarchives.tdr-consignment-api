@@ -10,7 +10,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.ConsignmentRow
-import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentRepository, FileMetadataRepository, FileRepository}
+import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentRepository, FFIDMetadataRepository, FileMetadataRepository, FileRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AddConsignmentInput, Consignment, FileChecks}
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
@@ -29,11 +29,13 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
     val consignmentRepoMock = mock[ConsignmentRepository]
     val fileMetadataRepositoryMock = mock[FileMetadataRepository]
     val fileRepositoryMock = mock[FileRepository]
+    val ffidMetadataRepositoryMock = mock[FFIDMetadataRepository]
     val mockResponse = Future.successful(ConsignmentRow(consignmentUuid, seriesUuid, userUuid, Timestamp.from(Instant.now)))
     when(consignmentRepoMock.addConsignment(any[ConsignmentRow])).thenReturn(mockResponse)
     val consignmentService = new ConsignmentService(consignmentRepoMock,
       fileMetadataRepositoryMock,
       fileRepositoryMock,
+      ffidMetadataRepositoryMock,
       FixedTimeSource,
       fixedUuidSource)
     val result: Consignment = consignmentService.addConsignment(AddConsignmentInput(seriesUuid), Some(userUuid)).futureValue
@@ -52,9 +54,11 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
     val consignmentRepoMock = mock[ConsignmentRepository]
     val fileMetadataRepositoryMock = mock[FileMetadataRepository]
     val fileRepositoryMock = mock[FileRepository]
+    val ffidMetadataRepositoryMock = mock[FFIDMetadataRepository]
     val consignmentService = new ConsignmentService(consignmentRepoMock,
       fileMetadataRepositoryMock,
       fileRepositoryMock,
+      ffidMetadataRepositoryMock,
       FixedTimeSource,
       fixedUuidSource)
 
@@ -77,11 +81,13 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
     val consignmentRepoMock = mock[ConsignmentRepository]
     val fileMetadataRepositoryMock = mock[FileMetadataRepository]
     val fileRepositoryMock = mock[FileRepository]
+    val ffidMetadataRepositoryMock = mock[FFIDMetadataRepository]
     when(consignmentRepoMock.getConsignment(any[UUID])).thenReturn(mockResponse)
 
     val consignmentService: ConsignmentService = new ConsignmentService(consignmentRepoMock,
       fileMetadataRepositoryMock,
       fileRepositoryMock,
+      ffidMetadataRepositoryMock,
       FixedTimeSource,
       fixedUuidSource)
     val response: Option[ConsignmentFields.Consignment] = consignmentService.getConsignment(consignmentUuid).futureValue
@@ -99,11 +105,13 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
     val consignmentRepoMock = mock[ConsignmentRepository]
     val fileMetadataRepositoryMock = mock[FileMetadataRepository]
     val fileRepositoryMock = mock[FileRepository]
+    val ffidMetadataRepositoryMock = mock[FFIDMetadataRepository]
     when(consignmentRepoMock.getConsignment(any[UUID])).thenReturn(mockResponse)
 
     val consignmentService: ConsignmentService = new ConsignmentService(consignmentRepoMock,
       fileMetadataRepositoryMock,
       fileRepositoryMock,
+      ffidMetadataRepositoryMock,
       FixedTimeSource,
       fixedUuidSource)
     val response: Option[ConsignmentFields.Consignment] = consignmentService.getConsignment(UUID.randomUUID()).futureValue
@@ -118,11 +126,13 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
     val consignmentRepoMock = mock[ConsignmentRepository]
     val fileMetadataRepositoryMock = mock[FileMetadataRepository]
     val fileRepositoryMock = mock[FileRepository]
+    val ffidMetadataRepositoryMock = mock[FFIDMetadataRepository]
     when(consignmentRepoMock.consignmentHasFiles(fixedConsignmentUUID)).thenReturn(mockResponse)
 
     val consignmentService: ConsignmentService = new ConsignmentService(consignmentRepoMock,
       fileMetadataRepositoryMock,
       fileRepositoryMock,
+      ffidMetadataRepositoryMock,
       FixedTimeSource,
       fixedUuidSource)
     val response: Boolean = consignmentService.consignmentHasFiles(fixedConsignmentUUID).futureValue
@@ -136,11 +146,13 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
     val consignmentRepoMock = mock[ConsignmentRepository]
     val fileMetadataRepositoryMock = mock[FileMetadataRepository]
     val fileRepositoryMock = mock[FileRepository]
+    val ffidMetadataRepositoryMock = mock[FFIDMetadataRepository]
     when(consignmentRepoMock.consignmentHasFiles(fixedConsignmentUUID)).thenReturn(mockResponse)
 
     val consignmentService: ConsignmentService = new ConsignmentService(consignmentRepoMock,
       fileMetadataRepositoryMock,
       fileRepositoryMock,
+      ffidMetadataRepositoryMock,
       FixedTimeSource,
       fixedUuidSource)
     val response: Boolean = consignmentService.consignmentHasFiles(fixedConsignmentUUID).futureValue
@@ -152,11 +164,13 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
     val consignmentRepoMock = mock[ConsignmentRepository]
     val fileMetadataRepositoryMock = mock[FileMetadataRepository]
     val fileRepositoryMock = mock[FileRepository]
+    val ffidMetadataRepositoryMock = mock[FFIDMetadataRepository]
     val fixedUuidSource = new FixedUUIDSource()
 
     val service: ConsignmentService = new ConsignmentService(consignmentRepoMock,
       fileMetadataRepositoryMock,
       fileRepositoryMock,
+      ffidMetadataRepositoryMock,
       FixedTimeSource,
       fixedUuidSource)
 
@@ -165,10 +179,12 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
 
     when(fileRepositoryMock.countProcessedAvMetadataInConsignment(consignmentId)).thenReturn(Future.successful(filesProcessed))
     when(fileMetadataRepositoryMock.countProcessedChecksumInConsignment(consignmentId)).thenReturn(Future.successful(filesProcessed))
+    when(ffidMetadataRepositoryMock.countProcessedFfidMetadata(consignmentId)).thenReturn(Future.successful(filesProcessed))
 
     val progress: FileChecks = service.getConsignmentFileProgress(consignmentId).futureValue
 
     progress.antivirusProgress.filesProcessed shouldBe filesProcessed
     progress.checksumProgress.filesProcessed shouldBe filesProcessed
+    progress.ffidProgress.filesProcessed shouldBe filesProcessed
   }
 }

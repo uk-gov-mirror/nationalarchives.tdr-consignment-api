@@ -133,6 +133,25 @@ object TestUtils {
 
     ps.executeUpdate()
   }
+
+  def addFFIDMetadata(fileId: String): Unit = {
+    val ffidMetadataId = java.util.UUID.randomUUID()
+    val sql = s"insert into FFIDMetadata" +
+      s"(FileId, Software, SoftwareVersion, BinarySignatureFileVersion, ContainerSignatureFileVersion, Method, Datetime, FFIDMetadataId)" +
+      s"VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, fileId)
+    ps.setString(2, "TEST DATA software")
+    ps.setString(3, "TEST DATA software version")
+    ps.setString(4, "TEST DATA binary signature file version")
+    ps.setString(5, "TEST DATA container signature file version")
+    ps.setString(6, "TEST DATA method")
+    ps.setTimestamp(7, Timestamp.from(FixedTimeSource.now))
+    ps.setObject(8, ffidMetadataId)
+
+    ps.executeUpdate()
+  }
+
   //scalastyle:on magic.number
 
   def addFileProperty(propertyId: String, name: String): Unit = {
@@ -143,4 +162,5 @@ object TestUtils {
 
     ps.executeUpdate()
   }
+
 }
