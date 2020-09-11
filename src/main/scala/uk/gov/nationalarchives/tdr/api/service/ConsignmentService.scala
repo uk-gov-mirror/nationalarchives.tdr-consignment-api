@@ -5,7 +5,7 @@ import java.util.UUID
 
 import uk.gov.nationalarchives.Tables.ConsignmentRow
 import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentRepository, FFIDMetadataRepository, FileMetadataRepository, FileRepository}
-import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AddConsignmentInput, AntivirusProgress, ChecksumProgress, Consignment, FFIDProgress, FileChecks}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields._
 
 import scala.concurrent.{ExecutionContext, Future}
 
