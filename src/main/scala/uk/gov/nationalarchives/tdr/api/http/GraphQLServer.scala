@@ -74,7 +74,6 @@ object GraphQLServer {
     val uuidSourceClass: Class[_] = Class.forName(ConfigFactory.load().getString("source.uuid"))
     val uuidSource: UUIDSource = uuidSourceClass.getDeclaredConstructor().newInstance().asInstanceOf[UUIDSource]
     val db = DbConnection.db
-
     val consignmentRepository = new ConsignmentRepository(db)
     val fileMetadataRepository = new FileMetadataRepository(db)
     val fileRepository = new FileRepository(db)
