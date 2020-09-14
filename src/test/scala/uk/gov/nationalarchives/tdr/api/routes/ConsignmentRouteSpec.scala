@@ -27,8 +27,6 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     conn.close()
   }
 
-  //"fileChecks": { "antivirusProgress": { "filesProcessed":  1},  "checksumProgress": {"filesProcessed": 2}}
-
   case class GraphqlQueryData(data: Option[GetConsignment], errors: List[GraphqlError] = Nil)
   case class GraphqlMutationData(data: Option[AddConsignment], errors: List[GraphqlError] = Nil)
   case class Consignment(consignmentid: Option[UUID] = None,
@@ -37,9 +35,10 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
                          totalFiles: Option[Int],
                          fileChecks: Option[FileChecks]
                         )
-  case class FileChecks(antivirusProgress: Option[AntivirusProgress], checksumProgress: Option[ChecksumProgress])
+  case class FileChecks(antivirusProgress: Option[AntivirusProgress], checksumProgress: Option[ChecksumProgress], ffidProgress: Option[FfidProgress])
   case class AntivirusProgress(filesProcessed: Option[Int])
   case class ChecksumProgress(filesProcessed: Option[Int])
+  case class FfidProgress(filesProcessed: Option[Int])
   case class GetConsignment(getConsignment: Option[Consignment])
   case class AddConsignment(addConsignment: Consignment)
 
@@ -94,14 +93,23 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     ps.executeUpdate()
     val fileOneId = "e7ba59c9-5b8b-4029-9f27-2d03957463ad"
     val fileTwoId = "42910a85-85c3-40c3-888f-32f697bfadb6"
-    val fileOne: Unit = createFile(UUID.fromString(fileOneId), UUID.fromString(consignmentId))
-    val fileTwo: Unit = createFile(UUID.fromString(fileTwoId), UUID.fromString(consignmentId))
-    val fileThree: Unit = createFile(UUID.fromString("9757f402-ee1a-43a2-ae2a-81a9ea9729b9"), UUID.fromString(consignmentId))
+    val fileThreeId = "9757f402-ee1a-43a2-ae2a-81a9ea9729b9"
+
+    createFile(UUID.fromString(fileOneId), UUID.fromString(consignmentId))
+    createFile(UUID.fromString(fileTwoId), UUID.fromString(consignmentId))
+    createFile(UUID.fromString(fileThreeId), UUID.fromString(consignmentId))
+
     addAntivirusMetadata(fileOneId)
+
     val propertyId = "f62d1f66-db67-4a25-ac6f-b1ded92767b2"
     addFileProperty(propertyId, "SHA256ServerSideChecksum")
     addFileMetadata("06209e0d-95d0-4f13-8933-e5b9d00eb435", fileOneId, propertyId)
     addFileMetadata("c4759aae-dc68-45ec-aee1-5a562c7b42cc", fileTwoId, propertyId)
+
+    addFFIDMetadata(fileOneId)
+    addFFIDMetadata(fileTwoId)
+    addFFIDMetadata(fileThreeId)
+
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_all")
     val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())
 

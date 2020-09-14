@@ -1,1 +1,1 @@
-{"query":"{getConsignment(consignmentid: \"b130e097-2edc-4e67-a7e9-5364a09ae9cb\"){seriesid, consignmentid, userid, totalFiles, fileChecks {antivirusProgress {filesProcessed}, checksumProgress {filesProcessed}}}}"}
+{"query":"{getConsignment(consignmentid: \"b130e097-2edc-4e67-a7e9-5364a09ae9cb\"){seriesid, consignmentid, userid, totalFiles, fileChecks {antivirusProgress {filesProcessed}, checksumProgress {filesProcessed}, ffidProgress {filesProcessed}}}}"}
