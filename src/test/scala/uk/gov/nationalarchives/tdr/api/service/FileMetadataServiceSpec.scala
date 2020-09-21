@@ -98,7 +98,8 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     when(fileMetadataRepositoryMock.addFileMetadata(any[FilemetadataRow])).thenReturn(mockMetadataResponse)
     when(fileMetadataRepositoryMock.addChecksumValidationResult(any[UUID], any[Option[Boolean]])).thenReturn(Future(1))
 
-    val service = new FileMetadataService(fileMetadataRepositoryMock, filePropertyRepositoryMock, clientFileMetadataServiceMock, FixedTimeSource, new FixedUUIDSource())
+    val service = new FileMetadataService(fileMetadataRepositoryMock, filePropertyRepositoryMock,
+      clientFileMetadataServiceMock, FixedTimeSource, new FixedUUIDSource())
     service.addFileMetadata(AddFileMetadataInput("SHA256ServerSideChecksum", fileId, "checksum"), Some(UUID.randomUUID())).futureValue
     verify(fileMetadataRepositoryMock).addChecksumValidationResult(any[UUID], any[Option[Boolean]])
   }
@@ -119,7 +120,8 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     when(filePropertyRepositoryMock.getPropertyByName(any[String])).thenReturn(Future(mockFilePropertyRow))
     when(fileMetadataRepositoryMock.addFileMetadata(any[FilemetadataRow])).thenReturn(mockMetadataResponse)
 
-    val service = new FileMetadataService(fileMetadataRepositoryMock, filePropertyRepositoryMock, clientFileMetadataServiceMock, FixedTimeSource, new FixedUUIDSource())
+    val service = new FileMetadataService(fileMetadataRepositoryMock, filePropertyRepositoryMock,
+      clientFileMetadataServiceMock, FixedTimeSource, new FixedUUIDSource())
     service.addFileMetadata(AddFileMetadataInput("SomethingElse", fileId, "checksum"), Some(UUID.randomUUID())).futureValue
     verify(fileMetadataRepositoryMock, times(0)).addChecksumValidationResult(any[UUID], any[Option[Boolean]])
   }
@@ -131,7 +133,8 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     val filePropertyRow = Some(FilepropertyRow(fixedPropertyId, Some("SHA256ServerSideChecksum"), Some("Description"), Some("ShortName")))
     val mockPropertyResponse = Future.successful(filePropertyRow)
     when(propertyRepositoryMock.getPropertyByName(any[String])).thenReturn(mockPropertyResponse)
-    val service = new FileMetadataService(mock[FileMetadataRepository], propertyRepositoryMock, clientFileMetadataServiceMock, FixedTimeSource, new FixedUUIDSource)
+    val service = new FileMetadataService(mock[FileMetadataRepository], propertyRepositoryMock,
+      clientFileMetadataServiceMock, FixedTimeSource, new FixedUUIDSource)
     val property = service.getFileProperty("SHA256ServerSideChecksum").futureValue
     property.isDefined should equal(true)
     property.get.propertyid should equal(fixedPropertyId)
@@ -144,7 +147,8 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     val fileMetadataRepositoryMock = mock[FileMetadataRepository]
     val clientFileMetadataServiceMock = mock[ClientFileMetadataService]
     val mockChecksum = "c3d410191fbc6727f350905e974238f585deb752c9fbff27192109d26685a8df"
-    val service = new FileMetadataService(fileMetadataRepositoryMock, mock[FilePropertyRepository], clientFileMetadataServiceMock, FixedTimeSource, new FixedUUIDSource)
+    val service = new FileMetadataService(fileMetadataRepositoryMock, mock[FilePropertyRepository],
+      clientFileMetadataServiceMock, FixedTimeSource, new FixedUUIDSource)
     val fileId = UUID.randomUUID()
     val mockClientFileMetadata = ClientFileMetadata(fileId, Option.empty, Some(mockChecksum), Some("Mock"), 1, 1, Option.empty, 1, UUID.randomUUID)
 
@@ -165,7 +169,8 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     val clientFileMetadataServiceMock = mock[ClientFileMetadataService]
     val mockChecksum = "70933a42ff5990c08e73bf1e97149a5df9825449cca0f55de15862463357493b"
     val mockMismatchedChecksum = "c3d410191fbc6727f350905e974238f585deb752c9fbff27192109d26685a8df"
-    val service = new FileMetadataService(fileMetadataRepositoryMock, mock[FilePropertyRepository], clientFileMetadataServiceMock, FixedTimeSource, new FixedUUIDSource)
+    val service = new FileMetadataService(fileMetadataRepositoryMock, mock[FilePropertyRepository],
+      clientFileMetadataServiceMock, FixedTimeSource, new FixedUUIDSource)
     val fileId = UUID.randomUUID()
     val mockClientFileMetadata = ClientFileMetadata(fileId, Option.empty, Some(mockMismatchedChecksum), Some("Mock"), 1, 1, Option.empty, 1, UUID.randomUUID)
 
