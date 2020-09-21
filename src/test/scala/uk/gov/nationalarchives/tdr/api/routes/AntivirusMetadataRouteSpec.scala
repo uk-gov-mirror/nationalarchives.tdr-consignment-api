@@ -96,6 +96,7 @@ class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequ
 
   private def resetDatabase(): Unit = {
     DbConnection.db.source.createConnection().prepareStatement("delete from AVMetadata").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("delete from FFIDMetadata").executeUpdate()
     DbConnection.db.source.createConnection().prepareStatement("delete from File").executeUpdate()
     DbConnection.db.source.createConnection().prepareStatement("delete from Consignment").executeUpdate()
   }

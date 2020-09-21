@@ -20,6 +20,8 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
 
   override def beforeEach(): Unit = {
     val connection = DbConnection.db.source.createConnection()
+    connection.prepareStatement("delete from FileMetadata").executeUpdate()
+    connection.prepareStatement("delete from FFIDMetadata").executeUpdate()
     connection.prepareStatement("delete from File").executeUpdate()
     connection.prepareStatement("delete from Consignment").executeUpdate()
     connection.close()

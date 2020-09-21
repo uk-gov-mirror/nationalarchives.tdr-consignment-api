@@ -96,6 +96,7 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     when(clientFileMetadataServiceMock.getClientFileMetadata(any[UUID])).thenReturn(Future(mockClientFileMetadata))
     when(filePropertyRepositoryMock.getPropertyByName(any[String])).thenReturn(Future(mockFilePropertyRow))
     when(fileMetadataRepositoryMock.addFileMetadata(any[FilemetadataRow])).thenReturn(mockMetadataResponse)
+    when(fileMetadataRepositoryMock.addChecksumValidationResult(any[UUID], any[Option[Boolean]])).thenReturn(Future(1))
 
     val service = new FileMetadataService(fileMetadataRepositoryMock, filePropertyRepositoryMock, clientFileMetadataServiceMock, FixedTimeSource, new FixedUUIDSource())
     service.addFileMetadata(AddFileMetadataInput("SHA256ServerSideChecksum", fileId, "checksum"), Some(UUID.randomUUID())).futureValue

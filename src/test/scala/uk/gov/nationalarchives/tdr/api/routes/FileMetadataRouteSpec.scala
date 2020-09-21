@@ -13,6 +13,7 @@ import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.FileMetadata
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, TestRequest}
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils.{GraphqlError, getDataFromFile, validBackendChecksToken, _}
+import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach {
   private val addFileMetadataJsonFilePrefix: String = "json/addfilemetadata_"
@@ -125,23 +126,6 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
       "VALUES (?, 'SHA256ServerSideChecksum', 'The checksum calculated after upload', 'Checksum')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, UUID.randomUUID().toString)
-    ps.executeUpdate()
-  }
-
-  // scalastyle:off magic.number
-  private def createClientFileMetadata(fileId: UUID): Unit = {
-    val sql = s"insert into ClientFileMetadata (FileId,OriginalPath,Checksum,ChecksumType,LastModified,CreatedDate,Filesize,Datetime,ClientFileMetadataId) " +
-      s"VALUES (?,?,?,?,?,?,?,?,?)"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.setString(1, fileId.toString)
-    ps.setString(2, "originalPath")
-    ps.setString(3, "checksum")
-    ps.setString(4, "checksumType")
-    ps.setTimestamp(5, Timestamp.from(FixedTimeSource.now))
-    ps.setTimestamp(6, Timestamp.from(FixedTimeSource.now))
-    ps.setString(7, "1")
-    ps.setTimestamp(8, Timestamp.from(FixedTimeSource.now))
-    ps.setString(9, UUID.randomUUID.toString)
     ps.executeUpdate()
   }
 
