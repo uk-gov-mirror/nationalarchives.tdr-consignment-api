@@ -16,27 +16,30 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository, filePr
 
   def addFileMetadata(addFileMetadataInput: AddFileMetadataInput, userId: Option[UUID]): Future[FileMetadata] = {
     //Add checksum validation result to File. We may move this later
-    addFileMetadataInput.filePropertyName match {
+    val addChecksumValidation = addFileMetadataInput.filePropertyName match {
       case "SHA256ServerSideChecksum" =>
         addChecksumValidationResult(addFileMetadataInput).recover {
           case e: Exception => throw InputDataException(e.getLocalizedMessage, Some(e))
         }
-      case _ => ()
+      // We should never need this because we only currently send checksum updates but it keeps it neat-ish
+      case _ => Future.successful(1)
     }
-    getFileProperty(addFileMetadataInput.filePropertyName).flatMap {
-      case Some(property) =>
-        val row = FilemetadataRow(uuidSource.uuid,
-          addFileMetadataInput.fileId,
-          property.propertyid,
-          addFileMetadataInput.value,
-          Timestamp.from(timeSource.now),
-          userId.get)
+    addChecksumValidation.flatMap(_ => {
+      getFileProperty(addFileMetadataInput.filePropertyName).flatMap {
+        case Some(property) =>
+          val row = FilemetadataRow(uuidSource.uuid,
+            addFileMetadataInput.fileId,
+            property.propertyid,
+            addFileMetadataInput.value,
+            Timestamp.from(timeSource.now),
+            userId.get)
 
-        fileMetadataRepository.addFileMetadata(row).map(r => FileMetadata(property.name.get, r.fileid, r.value)).recover {
-          case e: SQLException => throw InputDataException(e.getLocalizedMessage, Some(e))
-        }
-      case None => throw InputDataException(s"The property does not exist", Option.empty)
-    }
+          fileMetadataRepository.addFileMetadata(row).map(r => FileMetadata(property.name.get, r.fileid, r.value)).recover {
+            case e: SQLException => throw InputDataException(e.getLocalizedMessage, Some(e))
+          }
+        case None => throw InputDataException(s"The property does not exist", Option.empty)
+      }
+    })
   }
 
   def addChecksumValidationResult(addFileMetadataInput: AddFileMetadataInput): Future[Int] = {
