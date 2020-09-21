@@ -4,16 +4,25 @@ import java.sql.{SQLException, Timestamp}
 import java.util.UUID
 
 import uk.gov.nationalarchives.Tables.{FilemetadataRow, FilepropertyRow}
-import uk.gov.nationalarchives.tdr.api.db.repository.{FileMetadataRepository, FilePropertyRepository}
+import uk.gov.nationalarchives.tdr.api.db.repository.{ClientFileMetadataRepository, FileMetadataRepository, FilePropertyRepository, FileRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.{AddFileMetadataInput, FileMetadata}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class FileMetadataService(fileMetadataRepository: FileMetadataRepository, filePropertyRepository: FilePropertyRepository,
+                          clientFileMetadataService: ClientFileMetadataService,
                           timeSource: TimeSource, uuidSource: UUIDSource)(implicit val ec: ExecutionContext) {
 
   def addFileMetadata(addFileMetadataInput: AddFileMetadataInput, userId: Option[UUID]): Future[FileMetadata] = {
+    //Add checksum validation result to File. We may move this later
+    addFileMetadataInput.filePropertyName match {
+      case "SHA256ServerSideChecksum" =>
+        addChecksumValidationResult(addFileMetadataInput).recover {
+          case e: Exception => throw InputDataException(e.getLocalizedMessage, Some(e))
+        }
+      case _ => ()
+    }
     getFileProperty(addFileMetadataInput.filePropertyName).flatMap {
       case Some(property) =>
         val row = FilemetadataRow(uuidSource.uuid,
@@ -28,6 +37,14 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository, filePr
         }
       case None => throw InputDataException(s"The property does not exist", Option.empty)
     }
+  }
+
+  def addChecksumValidationResult(addFileMetadataInput: AddFileMetadataInput): Future[Int] = {
+    val fileId = addFileMetadataInput.fileId
+    for {
+      cfm <- clientFileMetadataService.getClientFileMetadata(fileId)
+      cvr <- fileMetadataRepository.addChecksumValidationResult(fileId, cfm.checksum.map(_ == addFileMetadataInput.value))
+    } yield cvr
   }
 
   def getFileProperty(filePropertyName: String): Future[Option[FilepropertyRow]] = {
