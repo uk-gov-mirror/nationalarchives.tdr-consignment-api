@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.tdr.api.routes
 
-import java.sql.{PreparedStatement, ResultSet}
+import java.sql.{PreparedStatement, ResultSet, Timestamp}
 import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
@@ -11,7 +11,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.FileMetadata
-import uk.gov.nationalarchives.tdr.api.utils.TestRequest
+import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, TestRequest}
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils.{GraphqlError, getDataFromFile, validBackendChecksToken, _}
 
 class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach {
@@ -100,6 +100,17 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
     checkNoFileMetadataAdded()
   }
 
+  "addFileMetadata" should "add the checksum validation result if this is a checksum update" in {
+    createClientFileMetadata(defaultFileId)
+    runTestMutation("mutation_alldata", validBackendChecksToken("checksum"))
+    checkValidationResultExists(defaultFileId)
+  }
+
+  "addFileMetadata" should "add the checksum validation result if this is not a checksum update" in {
+    runTestMutation("mutation_notchecksum", validBackendChecksToken("checksum"))
+    checkNoValidationResultExists(defaultFileId)
+  }
+
   private def checkFileMetadataExists(fileId: UUID): Unit = {
     val sql = "select * from FileMetadata where FileId = ?;"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
@@ -111,9 +122,26 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
 
   private def createFileProperty = {
     val sql = "insert into FileProperty (PropertyId , Name, Description, Shortname) " +
-      "VALUES (?, 'ServerSideChecksum', 'The checksum calculated after upload', 'Checksum')"
+      "VALUES (?, 'SHA256ServerSideChecksum', 'The checksum calculated after upload', 'Checksum')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, UUID.randomUUID().toString)
+    ps.executeUpdate()
+  }
+
+  // scalastyle:off magic.number
+  private def createClientFileMetadata(fileId: UUID): Unit = {
+    val sql = s"insert into ClientFileMetadata (FileId,OriginalPath,Checksum,ChecksumType,LastModified,CreatedDate,Filesize,Datetime,ClientFileMetadataId) " +
+      s"VALUES (?,?,?,?,?,?,?,?,?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, fileId.toString)
+    ps.setString(2, "originalPath")
+    ps.setString(3, "checksum")
+    ps.setString(4, "checksumType")
+    ps.setTimestamp(5, Timestamp.from(FixedTimeSource.now))
+    ps.setTimestamp(6, Timestamp.from(FixedTimeSource.now))
+    ps.setString(7, "1")
+    ps.setTimestamp(8, Timestamp.from(FixedTimeSource.now))
+    ps.setString(9, UUID.randomUUID.toString)
     ps.executeUpdate()
   }
 
@@ -131,5 +159,23 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
     val rs: ResultSet = ps.executeQuery()
     rs.last()
     rs.getRow should equal(0)
+  }
+
+  private def checkValidationResultExists(fileId: UUID): Unit = {
+    val sql = "select ChecksumMatches from File where FileId = ?;"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, fileId.toString)
+    val rs: ResultSet = ps.executeQuery()
+    rs.last()
+    rs.getObject(1) should not be(null)
+  }
+
+  private def checkNoValidationResultExists(fileId: UUID): Unit = {
+    val sql = "select ChecksumMatches from File where FileId = ?;"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, fileId.toString)
+    val rs: ResultSet = ps.executeQuery()
+    rs.last()
+    rs.getObject(1) should be(null)
   }
 }
