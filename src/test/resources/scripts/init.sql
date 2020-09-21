@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS Consignment (
   SeriesId uuid DEFAULT '6e3b76c4-1745-4467-8ac5-b4dd736e1b3e',
   UserId uuid DEFAULT NULL,
   Datetime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  ParentFolder text,
   PRIMARY KEY (ConsignmentId)
 );
 
