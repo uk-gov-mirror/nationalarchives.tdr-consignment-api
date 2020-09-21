@@ -78,7 +78,6 @@ object GraphQLServer {
     val fileMetadataRepository = new FileMetadataRepository(db)
     val fileRepository = new FileRepository(db)
     val ffidMetadataRepository = new FFIDMetadataRepository(db)
-
     val consignmentService = new ConsignmentService(consignmentRepository,
       fileMetadataRepository,
       fileRepository,
@@ -91,8 +90,9 @@ object GraphQLServer {
     val fileService = new FileService(fileRepository, consignmentRepository, new CurrentTimeSource, uuidSource)
     val transferringBodyService = new TransferringBodyService(new TransferringBodyRepository(db))
     val antivirusMetadataService = new AntivirusMetadataService(new AntivirusMetadataRepository(db))
-    val fileMetadataService = new FileMetadataService(new FileMetadataRepository(db), new FilePropertyRepository(db), clientFileMetadataService, new CurrentTimeSource, uuidSource)
-    val ffidMetadataService = new FFIDMetadataService(new FFIDMetadataRepository(db), new FFIDMetadataMatchesRepository(db), new CurrentTimeSource, uuidSource)
+    val fileMetadataService = new FileMetadataService(new FileMetadataRepository(db), new FilePropertyRepository(db),
+      clientFileMetadataService, new CurrentTimeSource, uuidSource)
+    val ffidMetadataService = new FFIDMetadataService(ffidMetadataRepository, new FFIDMetadataMatchesRepository(db), new CurrentTimeSource, uuidSource)
 
     val context = ConsignmentApiContext(
       accessToken,

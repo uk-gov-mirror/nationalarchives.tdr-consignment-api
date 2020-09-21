@@ -27,7 +27,7 @@ class FileMetadataRepository(db: Database) {
     db.run(query.result)
   }
 
-  def addChecksumValidationResult(fileId: UUID, validationResult: Option[Boolean]) = {
+  def addChecksumValidationResult(fileId: UUID, validationResult: Option[Boolean]): Future[Int] = {
     val query = for {
       file <- File if file.fileid === fileId
     } yield file.checksummatches
