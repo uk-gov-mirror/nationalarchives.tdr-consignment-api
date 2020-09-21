@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS File (
    FileId uuid NOT NULL DEFAULT '6e3b76c4-1745-4467-8ac5-b4dd736e1b3e',
    ConsignmentId uuid NOT NULL,
    UserId uuid DEFAULT NULL,
+   ChecksumMatches boolean,
    Datetime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
    PRIMARY KEY (FileId)
 );
