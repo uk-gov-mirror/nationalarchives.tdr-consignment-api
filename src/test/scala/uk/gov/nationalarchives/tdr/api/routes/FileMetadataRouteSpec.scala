@@ -151,7 +151,7 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
     ps.setString(1, fileId.toString)
     val rs: ResultSet = ps.executeQuery()
     rs.last()
-    rs.getObject(1) should not be(null)
+    Option(rs.getObject(1)).isDefined should be(true)
   }
 
   private def checkNoValidationResultExists(fileId: UUID): Unit = {
@@ -160,6 +160,6 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
     ps.setString(1, fileId.toString)
     val rs: ResultSet = ps.executeQuery()
     rs.last()
-    rs.getObject(1) should be(null)
+    Option(rs.getObject(1)).isEmpty should be(true)
   }
 }
