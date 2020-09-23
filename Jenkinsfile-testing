@@ -61,7 +61,7 @@ pipeline {
             unstash "Dockerfile"
             script {
               tdr.buildAndPushImage("consignment-api", versionTag)
-              tdr.postToDaTdrSlackChannel(colour: "good", message: "*Consignment API* :whale: Pushed version ${versionTag} to Docker Hub")
+              tdr.postToDaTdrSlackChannel(colour: "good", message: "*Consignment API* :whale: Pushed version ${versionTag} to AWS ECR")
             }
           }
         }
