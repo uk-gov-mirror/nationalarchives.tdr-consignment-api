@@ -1,1 +1,1 @@
-{"data": null,"errors": [{ "message": "The property does not exist", "locations": [{"column": 47,"line": 1} ]}]}
+{"data": null,"errors": [{ "message": "We are only expecting checksum updates for now", "locations": [{"column": 47,"line": 1} ]}]}

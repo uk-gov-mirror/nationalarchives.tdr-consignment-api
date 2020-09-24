@@ -12,6 +12,8 @@ import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers {
 
+  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+
   "countProcessedChecksumInConsignment" should "return 0 if a consignment has no files" in {
     val db = DbConnection.db
     val fileMetadataRepository = new FileMetadataRepository(db)
