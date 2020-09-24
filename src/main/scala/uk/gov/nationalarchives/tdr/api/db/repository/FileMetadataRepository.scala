@@ -2,17 +2,27 @@ package uk.gov.nationalarchives.tdr.api.db.repository
 
 import java.util.UUID
 
+import slick.dbio.Effect
 import slick.jdbc.PostgresProfile.api._
+import slick.sql.FixedSqlAction
+import uk.gov.nationalarchives.Tables
 import uk.gov.nationalarchives.Tables.{File, Filemetadata, FilemetadataRow, Fileproperty}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class FileMetadataRepository(db: Database) {
+class FileMetadataRepository(db: Database)(implicit val executionContext: ExecutionContext) {
   private val insertQuery = Filemetadata returning Filemetadata.map(_.fileid) into
     ((fileMetadata, fileid) => fileMetadata.copy(fileid = fileid))
 
-  def addFileMetadata(fileMetadataRows: FilemetadataRow): Future[FilemetadataRow] = {
-    db.run(insertQuery += fileMetadataRows)
+  def addChecksumMetadata(fileMetadataRow: FilemetadataRow, validationResult: Option[Boolean]): Future[FilemetadataRow] = {
+    val checksumMetadataInsert = insertQuery += fileMetadataRow
+    val checksumValidationUpdate = (for {
+      file <- File if file.fileid === fileMetadataRow.fileid
+    } yield file.checksummatches).update(validationResult)
+
+    val allUpdates = DBIO.seq(checksumMetadataInsert, checksumValidationUpdate).transactionally
+    val result: Future[Unit] = db.run(allUpdates)
+    result.map(_ => fileMetadataRow)
   }
 
   def countProcessedChecksumInConsignment(consignmentId: UUID): Future[Int] = {
@@ -25,13 +35,5 @@ class FileMetadataRepository(db: Database) {
       .map(_._1)
       .length
     db.run(query.result)
-  }
-
-  def addChecksumValidationResult(fileId: UUID, validationResult: Option[Boolean]): Future[Int] = {
-    val query = for {
-      file <- File if file.fileid === fileId
-    } yield file.checksummatches
-    val update = query.update(validationResult)
-    db.run(update)
   }
 }
