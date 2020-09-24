@@ -29,9 +29,7 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository, filePr
           cfm <- clientFileMetadataService.getClientFileMetadata(addFileMetadataInput.fileId) if fileProperty.isDefined
           row <- fileMetadataRepository.addChecksumMetadata(row(fileProperty.get), cfm.checksum.map(_ == addFileMetadataInput.value))
         } yield FileMetadata(fileProperty.flatMap(_.name).get, row.fileid, row.value)) recover {
-          case e: SQLException => throw InputDataException(e.getLocalizedMessage, Some(e))
-          case id: InputDataException => throw id
-          case t: Throwable => throw InputDataException("An unknown error occurred", Some(t))
+          case e: Throwable => throw InputDataException(e.getLocalizedMessage, Some(e))
         }
       case _ => Future.failed(InputDataException("We are only expecting checksum updates for now"))
     }
