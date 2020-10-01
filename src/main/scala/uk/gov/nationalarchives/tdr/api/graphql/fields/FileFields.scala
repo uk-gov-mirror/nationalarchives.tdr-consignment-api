@@ -15,7 +15,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 object FileFields {
   case class Files(fileIds: Seq[UUID])
 
-  case class AddFilesInput(consignmentId: UUID, numberOfFiles: Int) extends UserOwnsConsignment
+  case class AddFilesInput(consignmentId: UUID, numberOfFiles: Int, parentFolder: Option[String]) extends UserOwnsConsignment
   implicit val AddFilesInputType: InputObjectType[AddFilesInput] = deriveInputObjectType[AddFilesInput]()
   implicit val FileType: ObjectType[Unit, Files]  = deriveObjectType[Unit, Files]()
   private val FileInputArg = Argument("addFilesInput", AddFilesInputType)
