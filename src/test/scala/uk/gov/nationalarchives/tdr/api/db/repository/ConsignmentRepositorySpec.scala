@@ -1,10 +1,13 @@
 package uk.gov.nationalarchives.tdr.api.db.repository
 
+import java.sql.Timestamp
+import java.time.{Instant, LocalDateTime}
 import java.util.UUID
 
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import uk.gov.nationalarchives.Tables.ConsignmentRow
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
