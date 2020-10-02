@@ -22,8 +22,9 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository, filePr
       addFileMetadataInput.value,
       Timestamp.from(timeSource.now),
       userId.get)
+    val filePropertyName = addFileMetadataInput.filePropertyName
 
-    addFileMetadataInput.filePropertyName match {
+    filePropertyName match {
       case SHA256ServerSideChecksum =>
         (for {
           fileProperty <- getFileProperty(addFileMetadataInput.filePropertyName)
@@ -32,7 +33,7 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository, filePr
         } yield FileMetadata(fileProperty.flatMap(_.name).get, row.fileid, row.value)) recover {
           case e: Throwable => throw InputDataException(e.getLocalizedMessage, Some(e))
         }
-      case _ => Future.failed(InputDataException("We are only expecting checksum updates for now"))
+      case _ => Future.failed(InputDataException(s"$filePropertyName found. We are only expecting checksum updates for now"))
     }
 
   }
