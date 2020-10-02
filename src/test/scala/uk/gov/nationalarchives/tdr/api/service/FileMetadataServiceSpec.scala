@@ -174,7 +174,7 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     val service = new FileMetadataService(fileMetadataRepositoryMock, filePropertyRepositoryMock,
       clientFileMetadataServiceMock, FixedTimeSource, new FixedUUIDSource())
     val err = service.addFileMetadata(AddFileMetadataInput("SomethingElse", fileId, "checksum"), Some(UUID.randomUUID())).failed.futureValue
-    err.getMessage should equal("We are only expecting checksum updates for now")
+    err.getMessage should equal("SomethingElse found. We are only expecting checksum updates for now")
   }
 
   "getFileProperty" should "return a file property" in {
