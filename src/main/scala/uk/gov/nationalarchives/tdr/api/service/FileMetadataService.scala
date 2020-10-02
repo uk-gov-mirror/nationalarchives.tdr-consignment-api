@@ -7,6 +7,7 @@ import uk.gov.nationalarchives.Tables.{FilemetadataRow, FilepropertyRow}
 import uk.gov.nationalarchives.tdr.api.db.repository.{ClientFileMetadataRepository, FileMetadataRepository, FilePropertyRepository, FileRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.{AddFileMetadataInput, FileMetadata}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256ServerSideChecksum
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -23,7 +24,7 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository, filePr
       userId.get)
 
     addFileMetadataInput.filePropertyName match {
-      case "SHA256ServerSideChecksum" =>
+      case SHA256ServerSideChecksum =>
         (for {
           fileProperty <- getFileProperty(addFileMetadataInput.filePropertyName)
           cfm <- clientFileMetadataService.getClientFileMetadata(addFileMetadataInput.fileId) if fileProperty.isDefined

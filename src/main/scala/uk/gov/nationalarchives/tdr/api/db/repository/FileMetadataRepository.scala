@@ -7,6 +7,7 @@ import slick.jdbc.PostgresProfile.api._
 import slick.sql.FixedSqlAction
 import uk.gov.nationalarchives.Tables
 import uk.gov.nationalarchives.Tables.{File, Filemetadata, FilemetadataRow, Fileproperty}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256ServerSideChecksum
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -30,7 +31,7 @@ class FileMetadataRepository(db: Database)(implicit val executionContext: Execut
       .on(_.fileid === _.fileid).join(Fileproperty)
       .on(_._1.propertyid === _.propertyid)
       .filter(_._1._2.consignmentid === consignmentId)
-      .filter(_._2.name === "SHA256ServerSideChecksum")
+      .filter(_._2.name === SHA256ServerSideChecksum)
       .groupBy(_._1._2.fileid)
       .map(_._1)
       .length
