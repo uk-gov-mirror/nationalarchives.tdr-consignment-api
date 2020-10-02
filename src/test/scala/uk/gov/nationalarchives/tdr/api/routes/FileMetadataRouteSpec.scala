@@ -107,7 +107,7 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
     checkValidationResultExists(defaultFileId)
   }
 
-  "addFileMetadata" should "add the checksum validation result if this is not a checksum update" in {
+  "addFileMetadata" should "not add the checksum validation result if this is not a checksum update" in {
     runTestMutation("mutation_notchecksum", validBackendChecksToken("checksum"))
     checkNoValidationResultExists(defaultFileId)
   }
