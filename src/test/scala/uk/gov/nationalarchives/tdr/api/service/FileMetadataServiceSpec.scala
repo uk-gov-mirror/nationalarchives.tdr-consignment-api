@@ -143,28 +143,6 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     result.value should equal(value)
   }
 
-  "addFileMetadata" should "add the checksum validation result if the update is for a checksum" in {
-    val fileMetadataRepositoryMock = mock[FileMetadataRepository]
-    val filePropertyRepositoryMock = mock[FilePropertyRepository]
-    val clientFileMetadataServiceMock = mock[ClientFileMetadataService]
-    val fileId = UUID.randomUUID()
-    val propertyId = UUID.randomUUID()
-    val mockClientFileMetadata = ClientFileMetadata(fileId, Option.empty, Some("checksum"), Some("Mock"), 1, 1, Option.empty, 1, UUID.randomUUID)
-    val mockFilePropertyRow = Some(FilepropertyRow(propertyId, Some(SHA256ServerSideChecksum), Some("Description"), Some("ShortName")))
-    val mockMetadataResponse = Future.successful(
-      FilemetadataRow(UUID.randomUUID(), fileId, propertyId, "value", Timestamp.from(FixedTimeSource.now), UUID.randomUUID())
-    )
-
-    when(clientFileMetadataServiceMock.getClientFileMetadata(any[UUID])).thenReturn(Future(mockClientFileMetadata))
-    when(filePropertyRepositoryMock.getPropertyByName(any[String])).thenReturn(Future(mockFilePropertyRow))
-    when(fileMetadataRepositoryMock.addChecksumMetadata(any[FilemetadataRow], any[Option[Boolean]])).thenReturn(mockMetadataResponse)
-
-    val service = new FileMetadataService(fileMetadataRepositoryMock, filePropertyRepositoryMock,
-      clientFileMetadataServiceMock, FixedTimeSource, new FixedUUIDSource())
-    service.addFileMetadata(AddFileMetadataInput(SHA256ServerSideChecksum, fileId, "checksum"), Some(UUID.randomUUID())).futureValue
-    verify(fileMetadataRepositoryMock).addChecksumMetadata(any[FilemetadataRow], any[Option[Boolean]])
-  }
-
   "addFileMetadata" should "fail if the update is not for a checksum" in {
     val fileMetadataRepositoryMock = mock[FileMetadataRepository]
     val filePropertyRepositoryMock = mock[FilePropertyRepository]
