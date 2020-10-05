@@ -21,7 +21,8 @@ class FileService(
     val rows: Seq[nationalarchives.Tables.FileRow] = List.fill(addFilesInput.numberOfFiles)(1)
       .map(_ => FileRow(uuidSource.uuid, addFilesInput.consignmentId, userId.get, Timestamp.from(timeSource.now)))
 
-    fileRepository.addFiles(rows).map(_.map(_.fileid)).map(fileids => Files(fileids))
+    consignmentRepository.addParentFolder(addFilesInput.consignmentId, addFilesInput.parentFolder)
+      .flatMap(_ => fileRepository.addFiles(rows).map(_.map(_.fileid)).map(fileids => Files(fileids)))
   }
 
   def getOwnersOfFiles(fileIds: Seq[UUID]): Future[Seq[FileOwnership]] = {
