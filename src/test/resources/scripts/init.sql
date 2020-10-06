@@ -55,7 +55,6 @@ CREATE TABLE IF NOT EXISTS File (
    UserId uuid DEFAULT NULL,
    ChecksumMatches boolean,
    Datetime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-   ChecksumMatches boolean,
    PRIMARY KEY (FileId)
 );
 
