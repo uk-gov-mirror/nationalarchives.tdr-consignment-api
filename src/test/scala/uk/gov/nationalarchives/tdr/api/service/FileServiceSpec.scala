@@ -24,12 +24,17 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     val uuid = UUID.randomUUID()
     val fileId = UUID.randomUUID()
     val consignmentId = UUID.randomUUID()
+
     val fileRepositoryMock = mock[FileRepository]
     val consignmentRepositoryMock = mock[ConsignmentRepository]
-    val mockResponse = Future.successful(List(FileRow(fileId, consignmentId, uuid, Timestamp.from(Instant.now))))
-    when(fileRepositoryMock.addFiles(any[List[FileRow]])).thenReturn(mockResponse)
+
+    val mockFileResponse = Future.successful(List(FileRow(fileId, consignmentId, uuid, Timestamp.from(Instant.now))))
+    when(fileRepositoryMock.addFiles(any[List[FileRow]])).thenReturn(mockFileResponse)
+    val mockConsignmentResponse = Future.successful()
+    when(consignmentRepositoryMock.addParentFolder(consignmentId, Option("Parent folder name"))).thenReturn(mockConsignmentResponse)
+
     val fileService = new FileService(fileRepositoryMock, consignmentRepositoryMock, FixedTimeSource, fixedUuidSource)
-    val result: Files = fileService.addFile(AddFilesInput(consignmentId, 1),Some(uuid)).futureValue
+    val result: Files = fileService.addFile(AddFilesInput(consignmentId, 1, Option("Parent folder name")), Option(uuid)).futureValue
 
     result.fileIds shouldBe List(fileId)
   }
@@ -50,11 +55,14 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     val fileRowThree = FileRow(fileUuidThree, consignmentUuid, userUuid, Timestamp.from(FixedTimeSource.now))
     val expectedArgs = List(fileRowOne, fileRowTwo, fileRowThree)
     val captor: ArgumentCaptor[List[FileRow]] = ArgumentCaptor.forClass(classOf[List[FileRow]])
-    val mockResponse = Future.successful(List(fileRowOne, fileRowTwo, fileRowThree))
 
+    val mockResponse = Future.successful(List(fileRowOne, fileRowTwo, fileRowThree))
     when(fileRepositoryMock.addFiles(captor.capture())).thenReturn(mockResponse)
+    val mockConsignmentResponse = Future.successful()
+    when(consignmentRepositoryMock.addParentFolder(consignmentUuid, Option("Parent folder name"))).thenReturn(mockConsignmentResponse)
+
     val fileService = new FileService(fileRepositoryMock, consignmentRepositoryMock, FixedTimeSource, fixedUuidSource)
-    val result: Files = fileService.addFile(AddFilesInput(consignmentUuid, 3),Some(userUuid)).futureValue
+    val result: Files = fileService.addFile(AddFilesInput(consignmentUuid, 3, Option("Parent folder name")),Some(userUuid)).futureValue
 
     captor.getAllValues.size should equal(1)
     captor.getAllValues.get(0).length should equal(3)
@@ -77,8 +85,10 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     val captor: ArgumentCaptor[List[FileRow]] = ArgumentCaptor.forClass(classOf[List[FileRow]])
     val mockResponse = Future.successful(List(FileRow(fileUuid, consignmentUuid, userId, Timestamp.from(FixedTimeSource.now))))
     when(fileRepositoryMock.addFiles(captor.capture())).thenReturn(mockResponse)
+    val mockConsignmentResponse = Future.successful()
+    when(consignmentRepositoryMock.addParentFolder(consignmentUuid, Option("Parent folder name"))).thenReturn(mockConsignmentResponse)
 
-    fileService.addFile(AddFilesInput(consignmentUuid, 1),Some(userId)).futureValue
+    fileService.addFile(AddFilesInput(consignmentUuid, 1, Option("Parent folder name")),Some(userId)).futureValue
 
     verify(fileRepositoryMock).addFiles(expectedRow)
     captor.getAllValues.size should equal(1)

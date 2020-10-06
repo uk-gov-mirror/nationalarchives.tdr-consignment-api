@@ -3,7 +3,10 @@ package uk.gov.nationalarchives.tdr.api.db.repository
 import java.util.UUID
 
 import slick.jdbc.PostgresProfile.api._
+import slick.lifted.CompiledFunction
+import uk.gov.nationalarchives.Tables
 import uk.gov.nationalarchives.Tables.{Consignment, ConsignmentRow, File}
+import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -33,4 +36,10 @@ class ConsignmentRepository(db: Database) {
     } yield (file.fileid, consignment)
     db.run(query.result)
   }
+
+  def addParentFolder(consignmentId: UUID, parentFolder: Option[String])(implicit executionContext: ExecutionContext): Future[Unit] = {
+    val updateAction = Consignment.filter(_.consignmentid === consignmentId).map(c => c.parentfolder).update(parentFolder)
+    db.run(updateAction).map(_ => ())
+  }
+
 }

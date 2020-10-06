@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS Consignment (
   SeriesId uuid DEFAULT '6e3b76c4-1745-4467-8ac5-b4dd736e1b3e',
   UserId uuid DEFAULT NULL,
   Datetime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  ParentFolder text,
+  ParentFolder varchar(255),
   PRIMARY KEY (ConsignmentId)
 );
 
@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS File (
    UserId uuid DEFAULT NULL,
    ChecksumMatches boolean,
    Datetime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   ChecksumMatches boolean,
    PRIMARY KEY (FileId)
 );
 
