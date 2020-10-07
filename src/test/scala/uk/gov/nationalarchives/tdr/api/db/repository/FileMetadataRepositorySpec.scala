@@ -8,9 +8,12 @@ import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256ServerSideChecksum
 
 
 class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers {
+
+  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
   "countProcessedChecksumInConsignment" should "return 0 if a consignment has no files" in {
     val db = DbConnection.db
@@ -64,7 +67,7 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
     TestUtils.createFile(UUID.fromString(fileTwoId), consignmentOne)
     TestUtils.createFile(UUID.fromString(fileThreeId), consignmentTwo)
 
-    TestUtils.addFileProperty(propertyId, "SHA256ServerSideChecksum")
+    TestUtils.addFileProperty(propertyId, SHA256ServerSideChecksum)
 
 //  Then need to add data to the FileMetadata repository for these files
     TestUtils.addFileMetadata(metadataOneId, fileOneId, propertyId)

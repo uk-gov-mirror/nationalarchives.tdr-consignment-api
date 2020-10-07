@@ -12,6 +12,7 @@ import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 import uk.gov.nationalarchives.tdr.api.utils.{FixedUUIDSource, TestRequest}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256ServerSideChecksum
 
 class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach {
   private val addConsignmentJsonFilePrefix: String = "json/addconsignment_"
@@ -102,7 +103,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     addAntivirusMetadata(fileOneId)
 
     val propertyId = "f62d1f66-db67-4a25-ac6f-b1ded92767b2"
-    addFileProperty(propertyId, "SHA256ServerSideChecksum")
+    addFileProperty(propertyId, SHA256ServerSideChecksum)
     addFileMetadata("06209e0d-95d0-4f13-8933-e5b9d00eb435", fileOneId, propertyId)
     addFileMetadata("c4759aae-dc68-45ec-aee1-5a562c7b42cc", fileTwoId, propertyId)
 

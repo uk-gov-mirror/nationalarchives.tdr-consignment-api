@@ -12,6 +12,7 @@ import FieldTypes._
 
 object FileMetadataFields {
 
+  val SHA256ServerSideChecksum = "SHA256ServerSideChecksum"
   case class FileMetadata(filePropertyName: String, fileId: UUID, value: String)
   case class AddFileMetadataInput(filePropertyName: String, fileId: UUID, value: String)
 
