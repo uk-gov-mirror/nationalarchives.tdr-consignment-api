@@ -22,7 +22,6 @@ class ClientFileMetadataService(clientFileMetadataRepository: ClientFileMetadata
       i.checksum,
       i.checksumType,
       Timestamp.from(Instant.ofEpochMilli(i.lastModified)),
-      Timestamp.from(Instant.ofEpochMilli(i.createdDate)),
       i.fileSize,
       Timestamp.from(Instant.ofEpochMilli(i.datetime))))
 
@@ -45,7 +44,6 @@ class ClientFileMetadataService(clientFileMetadataRepository: ClientFileMetadata
       row.checksum,
       row.checksumtype,
       row.lastmodified.getTime,
-      row.createddate.getTime,
       row.filesize,
       row.datetime.getTime,
       row.clientfilemetadataid
