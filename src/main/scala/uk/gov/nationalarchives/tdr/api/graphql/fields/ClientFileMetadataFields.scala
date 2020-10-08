@@ -16,7 +16,6 @@ object ClientFileMetadataFields {
                                 checksum: Option[String] = None,
                                 checksumType: Option[String] = None,
                                 lastModified: Long,
-                                createdDate: Long,
                                 fileSize: Option[Long] = None,
                                 datetime: Long,
                                 clientFileMetadataId: UUID)
@@ -26,7 +25,6 @@ object ClientFileMetadataFields {
                                         checksum: Option[String] = None,
                                         checksumType: Option[String] = None,
                                         lastModified: Long,
-                                        createdDate: Long,
                                         fileSize: Option[Long] = None,
                                         datetime: Long)
 
