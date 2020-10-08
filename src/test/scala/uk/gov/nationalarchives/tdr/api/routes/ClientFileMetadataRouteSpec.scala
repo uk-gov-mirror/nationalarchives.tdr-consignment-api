@@ -30,7 +30,6 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
                                 checksum: Option[String] = None,
                                 checksumType: Option[String] = None,
                                 lastModified: Option[Long] = None,
-                                createdDate: Option[Long] = None,
                                 fileSize: Option[Long] = None,
                                 datetime: Option[Long] = None,
                                 clientFileMetadataId: Option[UUID] = None

@@ -34,7 +34,7 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     )
     val propertyRow = Some(FilepropertyRow(fixedPropertyId, Some(SHA256ServerSideChecksum), Some("Description"), Some("ShortName")))
     val mockPropertyResponse = Future.successful(propertyRow)
-    val mockClientFileMetadata = ClientFileMetadata(fixedFileUuid, Option.empty, Some("checksum"), Some("Mock"), 1, 1, Option.empty, 1, UUID.randomUUID)
+    val mockClientFileMetadata = ClientFileMetadata(fixedFileUuid, Option.empty, Some("checksum"), Some("Mock"), 1, Option.empty, 1, UUID.randomUUID)
     val fixedUUIDSource = new FixedUUIDSource()
     val metadataId: UUID = fixedUUIDSource.uuid
     fixedUUIDSource.reset
@@ -70,7 +70,7 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     )
     val propertyRow = Some(FilepropertyRow(fixedPropertyId, Some(SHA256ServerSideChecksum), Some("Description"), Some("ShortName")))
     val mockPropertyResponse = Future.successful(propertyRow)
-    val mockClientFileMetadata = ClientFileMetadata(fixedFileUuid, Option.empty, Some("checksum"), Some("Mock"), 1, 1, Option.empty, 1, UUID.randomUUID)
+    val mockClientFileMetadata = ClientFileMetadata(fixedFileUuid, Option.empty, Some("checksum"), Some("Mock"), 1, Option.empty, 1, UUID.randomUUID)
     val fixedUUIDSource = new FixedUUIDSource()
     fixedUUIDSource.reset
 
@@ -97,7 +97,7 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     )
     val propertyRow = Some(FilepropertyRow(fixedPropertyId, Some(SHA256ServerSideChecksum), Some("Description"), Some("ShortName")))
     val mockPropertyResponse = Future.successful(propertyRow)
-    val mockClientFileMetadata = ClientFileMetadata(fixedFileUuid, Option.empty, Some("checksum"), Some("Mock"), 1, 1, Option.empty, 1, UUID.randomUUID)
+    val mockClientFileMetadata = ClientFileMetadata(fixedFileUuid, Option.empty, Some("checksum"), Some("Mock"), 1, Option.empty, 1, UUID.randomUUID)
     val fixedUUIDSource = new FixedUUIDSource()
     fixedUUIDSource.reset
 
@@ -124,7 +124,7 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     val mockMetadataResponse = Future.successful(
       FilemetadataRow(UUID.randomUUID(), fixedFileUuid, fixedPropertyId, value, dummyTimestamp, fixedUserId)
     )
-    val mockClientFileMetadata = ClientFileMetadata(fixedFileUuid, Option.empty, Some("checksum"), Some("Mock"), 1, 1, Option.empty, 1, UUID.randomUUID)
+    val mockClientFileMetadata = ClientFileMetadata(fixedFileUuid, Option.empty, Some("checksum"), Some("Mock"), 1, Option.empty, 1, UUID.randomUUID)
     val propertyName = SHA256ServerSideChecksum
     val mockPropertyResponse = Future.successful(Some(FilepropertyRow(fixedPropertyId, Some(propertyName), Some("Description"), Some("ShortName"))))
     val fixedUUIDSource = new FixedUUIDSource()
