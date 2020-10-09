@@ -30,7 +30,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
 
     val mockFileResponse = Future.successful(List(FileRow(fileId, consignmentId, uuid, Timestamp.from(Instant.now))))
     when(fileRepositoryMock.addFiles(any[List[FileRow]])).thenReturn(mockFileResponse)
-    val mockConsignmentResponse = Future.successful()
+    val mockConsignmentResponse = Future.successful(())
     when(consignmentRepositoryMock.addParentFolder(consignmentId, Option("Parent folder name"))).thenReturn(mockConsignmentResponse)
 
     val fileService = new FileService(fileRepositoryMock, consignmentRepositoryMock, FixedTimeSource, fixedUuidSource)
@@ -58,7 +58,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
 
     val mockResponse = Future.successful(List(fileRowOne, fileRowTwo, fileRowThree))
     when(fileRepositoryMock.addFiles(captor.capture())).thenReturn(mockResponse)
-    val mockConsignmentResponse = Future.successful()
+    val mockConsignmentResponse = Future.successful(())
     when(consignmentRepositoryMock.addParentFolder(consignmentUuid, Option("Parent folder name"))).thenReturn(mockConsignmentResponse)
 
     val fileService = new FileService(fileRepositoryMock, consignmentRepositoryMock, FixedTimeSource, fixedUuidSource)
@@ -85,7 +85,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     val captor: ArgumentCaptor[List[FileRow]] = ArgumentCaptor.forClass(classOf[List[FileRow]])
     val mockResponse = Future.successful(List(FileRow(fileUuid, consignmentUuid, userId, Timestamp.from(FixedTimeSource.now))))
     when(fileRepositoryMock.addFiles(captor.capture())).thenReturn(mockResponse)
-    val mockConsignmentResponse = Future.successful()
+    val mockConsignmentResponse = Future.successful(())
     when(consignmentRepositoryMock.addParentFolder(consignmentUuid, Option("Parent folder name"))).thenReturn(mockConsignmentResponse)
 
     fileService.addFile(AddFilesInput(consignmentUuid, 1, Option("Parent folder name")),Some(userId)).futureValue
