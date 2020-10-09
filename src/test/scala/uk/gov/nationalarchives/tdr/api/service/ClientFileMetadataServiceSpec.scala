@@ -34,7 +34,6 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
       Some("dummyCheckSum"),
       Some("checksumType"),
       dummyTimestamp,
-      dummyTimestamp,
       Some(dummyFileSize),
       dummyTimestamp
     ))
@@ -48,7 +47,6 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
       Some("dummyCheckSum"),
       Some("checksumType"),
       dummyInstant.toEpochMilli,
-      dummyInstant.toEpochMilli,
       Some(dummyFileSize),
       dummyInstant.toEpochMilli))).futureValue
 
@@ -59,7 +57,6 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
     r.checksum.get shouldBe "dummyCheckSum"
     r.checksumType.get shouldBe "checksumType"
     r.lastModified shouldBe dummyInstant.toEpochMilli
-    r.createdDate shouldBe dummyInstant.toEpochMilli
     r.fileSize.get shouldBe dummyFileSize
     r.datetime shouldBe dummyInstant.toEpochMilli
     r.clientFileMetadataId shouldBe clientMetadataUuid
@@ -80,7 +77,6 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
       Some("dummyCheckSum"),
       Some("checksumType"),
       dummyTimestamp,
-      dummyTimestamp,
       Some(dummyFileSize),
       dummyTimestamp
     )))
@@ -94,7 +90,6 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
     result.checksum.get shouldBe "dummyCheckSum"
     result.checksumType.get shouldBe "checksumType"
     result.lastModified shouldBe dummyInstant.toEpochMilli
-    result.createdDate shouldBe dummyInstant.toEpochMilli
     result.fileSize.get shouldBe dummyFileSize
     result.datetime shouldBe dummyInstant.toEpochMilli
     result.clientFileMetadataId shouldBe clientMetadataUuid

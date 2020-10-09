@@ -42,7 +42,6 @@ CREATE TABLE IF NOT EXISTS ClientFileMetadata (
    Checksum varchar(255) DEFAULT NULL,
    ChecksumType varchar(255) DEFAULT NULL,
    LastModified timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-   CreatedDate timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
    Filesize bigint DEFAULT NULL,
    Datetime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
    ClientFileMetadataId uuid NOT NULL DEFAULT '6e3b76c4-1745-4467-8ac5-b4dd736e1b3e',

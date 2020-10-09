@@ -154,18 +154,17 @@ object TestUtils {
   }
 
   def createClientFileMetadata(fileId: UUID): Unit = {
-    val sql = s"insert into ClientFileMetadata (FileId,OriginalPath,Checksum,ChecksumType,LastModified,CreatedDate,Filesize,Datetime,ClientFileMetadataId) " +
-      s"VALUES (?,?,?,?,?,?,?,?,?)"
+    val sql = s"insert into ClientFileMetadata (FileId,OriginalPath,Checksum,ChecksumType,LastModified,Filesize,Datetime,ClientFileMetadataId) " +
+      s"VALUES (?,?,?,?,?,?,?,?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, fileId.toString)
     ps.setString(2, "originalPath")
     ps.setString(3, "checksum")
     ps.setString(4, "checksumType")
     ps.setTimestamp(5, Timestamp.from(FixedTimeSource.now))
-    ps.setTimestamp(6, Timestamp.from(FixedTimeSource.now))
-    ps.setString(7, "1")
-    ps.setTimestamp(8, Timestamp.from(FixedTimeSource.now))
-    ps.setString(9, UUID.randomUUID.toString)
+    ps.setString(6, "1")
+    ps.setTimestamp(7, Timestamp.from(FixedTimeSource.now))
+    ps.setString(8, UUID.randomUUID.toString)
     ps.executeUpdate()
   }
 
