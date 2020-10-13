@@ -17,6 +17,7 @@ object ConsignmentFields {
   case class ChecksumProgress(filesProcessed: Int)
   case class FFIDProgress(filesProcessed: Int)
   case class FileChecks(antivirusProgress: AntivirusProgress, checksumProgress: ChecksumProgress, ffidProgress: FFIDProgress)
+  case class ParentFolder(parentFolder: String)
 
   implicit val FileChecksType: ObjectType[Unit, FileChecks] =
     deriveObjectType[Unit, FileChecks]()
@@ -26,6 +27,8 @@ object ConsignmentFields {
     deriveObjectType[Unit, ChecksumProgress]()
   implicit val FfidProgressType: ObjectType[Unit, FFIDProgress] =
     deriveObjectType[Unit, FFIDProgress]()
+  implicit val ParentFolderType: ObjectType[Unit, ParentFolder] =
+    deriveObjectType[Unit, ParentFolder]
 
   implicit val ConsignmentType: ObjectType[Unit, Consignment] = ObjectType(
     "Consignment",
@@ -56,7 +59,12 @@ object ConsignmentFields {
       arguments=ConsignmentIdArg :: Nil,
       resolve = ctx => ctx.ctx.consignmentService.getConsignment(ctx.arg(ConsignmentIdArg)),
       tags=List(ValidateUserOwnsConsignment(ConsignmentIdArg))
-     )
+     ),
+    Field("getParentFolder", OptionType(ParentFolderType),
+      arguments=ConsignmentIdArg :: Nil,
+      resolve = ctx => ctx.ctx.consignmentService.getConsignmentParentFolder(ctx.arg(ConsignmentIdArg)),
+      tags=List(ValidateUserOwnsConsignment(ConsignmentIdArg))
+    )
   )
 
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
