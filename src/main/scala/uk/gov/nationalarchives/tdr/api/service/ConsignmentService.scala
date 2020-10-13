@@ -40,4 +40,8 @@ class ConsignmentService(
       fileFormatId <- ffidMetadataRepository.countProcessedFfidMetadata(consignmentId)
     } yield FileChecks(AntivirusProgress(processed), ChecksumProgress(checksum), FFIDProgress(fileFormatId))
   }
+
+  def getConsignmentParentFolder(consignmentId: UUID): Future[Option[String]] = {
+    consignmentRepository.getParentFolder(consignmentId)
+  }
 }
