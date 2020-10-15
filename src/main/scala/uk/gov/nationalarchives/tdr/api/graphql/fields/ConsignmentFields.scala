@@ -17,7 +17,9 @@ object ConsignmentFields {
   case class ChecksumProgress(filesProcessed: Int)
   case class FFIDProgress(filesProcessed: Int)
   case class FileChecks(antivirusProgress: AntivirusProgress, checksumProgress: ChecksumProgress, ffidProgress: FFIDProgress)
-  case class ParentFolder(parentFolder: String)
+  case class ParentFolder(parentFolder: Option[String] = None)
+  case class TotalFiles(totalFiles: Int)
+  case class ParentFolderAndFiles(parentFolder: ParentFolder, totalFiles: TotalFiles)
 
   implicit val FileChecksType: ObjectType[Unit, FileChecks] =
     deriveObjectType[Unit, FileChecks]()
@@ -27,8 +29,12 @@ object ConsignmentFields {
     deriveObjectType[Unit, ChecksumProgress]()
   implicit val FfidProgressType: ObjectType[Unit, FFIDProgress] =
     deriveObjectType[Unit, FFIDProgress]()
+  implicit val ParentFolderAndFilesType: ObjectType[Unit, ParentFolderAndFiles] =
+    deriveObjectType[Unit, ParentFolderAndFiles]()
   implicit val ParentFolderType: ObjectType[Unit, ParentFolder] =
-    deriveObjectType[Unit, ParentFolder]
+    deriveObjectType[Unit, ParentFolder]()
+  implicit val TotalFilesType: ObjectType[Unit, TotalFiles] =
+    deriveObjectType[Unit, TotalFiles]()
 
   implicit val ConsignmentType: ObjectType[Unit, Consignment] = ObjectType(
     "Consignment",
@@ -60,9 +66,9 @@ object ConsignmentFields {
       resolve = ctx => ctx.ctx.consignmentService.getConsignment(ctx.arg(ConsignmentIdArg)),
       tags=List(ValidateUserOwnsConsignment(ConsignmentIdArg))
      ),
-    Field("getParentFolder", OptionType(ParentFolderType),
+    Field("getParentFolderAndFiles", OptionType(ParentFolderAndFilesType),
       arguments=ConsignmentIdArg :: Nil,
-      resolve = ctx => ctx.ctx.consignmentService.getConsignmentParentFolder(ctx.arg(ConsignmentIdArg)),
+      resolve = ctx => ctx.ctx.consignmentService.getConsignmentParentFolderAndFiles(ctx.arg(ConsignmentIdArg)),
       tags=List(ValidateUserOwnsConsignment(ConsignmentIdArg))
     )
   )
