@@ -4,7 +4,7 @@ package uk.gov.nationalarchives.tdr.api.graphql
 import java.util.UUID
 
 import sangria.execution.deferred.{Deferred, UnsupportedDeferError}
-import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.FileChecks
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{FileChecks, ParentFolder}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -17,6 +17,10 @@ class DeferredResolver extends sangria.execution.deferred.DeferredResolver[Consi
         consignmentId.map(
           id => context.consignmentService.getConsignmentFileProgress(id)
         ).getOrElse(Future.successful(0))
+      case DeferParentFolder(consignmentId) =>
+        consignmentId.map(
+          id => context.consignmentService.getConsignmentParentFolder(id)
+        ).getOrElse(Future.successful(0))
       case other => throw UnsupportedDeferError(other)
     }
   }
@@ -24,3 +28,4 @@ class DeferredResolver extends sangria.execution.deferred.DeferredResolver[Consi
 
 case class DeferTotalFiles(consignmentId: Option[UUID]) extends Deferred[Int]
 case class DeferFileChecksProgress(consignmentId: Option[UUID]) extends Deferred[FileChecks]
+case class DeferParentFolder(consignmentId: Option[UUID]) extends Deferred[ParentFolder]

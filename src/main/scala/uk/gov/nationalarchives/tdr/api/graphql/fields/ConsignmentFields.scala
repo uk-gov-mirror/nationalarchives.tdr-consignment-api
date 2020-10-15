@@ -8,7 +8,7 @@ import sangria.marshalling.circe._
 import sangria.schema.{Argument, Field, InputObjectType, IntType, ObjectType, OptionType, fields}
 import uk.gov.nationalarchives.tdr.api.auth.{ValidateSeries, ValidateUserOwnsConsignment}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
-import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, DeferFileChecksProgress, DeferTotalFiles}
+import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, DeferFileChecksProgress, DeferParentFolder, DeferTotalFiles}
 
 object ConsignmentFields {
   case class Consignment(consignmentid: Option[UUID] = None, userid: UUID, seriesid: UUID)
@@ -18,8 +18,6 @@ object ConsignmentFields {
   case class FFIDProgress(filesProcessed: Int)
   case class FileChecks(antivirusProgress: AntivirusProgress, checksumProgress: ChecksumProgress, ffidProgress: FFIDProgress)
   case class ParentFolder(parentFolder: Option[String] = None)
-  case class TotalFiles(totalFiles: Int)
-  case class ParentFolderAndFiles(parentFolder: ParentFolder, totalFiles: TotalFiles)
 
   implicit val FileChecksType: ObjectType[Unit, FileChecks] =
     deriveObjectType[Unit, FileChecks]()
@@ -29,12 +27,8 @@ object ConsignmentFields {
     deriveObjectType[Unit, ChecksumProgress]()
   implicit val FfidProgressType: ObjectType[Unit, FFIDProgress] =
     deriveObjectType[Unit, FFIDProgress]()
-  implicit val ParentFolderAndFilesType: ObjectType[Unit, ParentFolderAndFiles] =
-    deriveObjectType[Unit, ParentFolderAndFiles]()
   implicit val ParentFolderType: ObjectType[Unit, ParentFolder] =
     deriveObjectType[Unit, ParentFolder]()
-  implicit val TotalFilesType: ObjectType[Unit, TotalFiles] =
-    deriveObjectType[Unit, TotalFiles]()
 
   implicit val ConsignmentType: ObjectType[Unit, Consignment] = ObjectType(
     "Consignment",
@@ -51,6 +45,11 @@ object ConsignmentFields {
         "fileChecks",
         FileChecksType,
         resolve = context => DeferFileChecksProgress(context.value.consignmentid)
+      ),
+      Field(
+        "parentFolder",
+        ParentFolderType,
+        resolve = context => DeferParentFolder(context.value.consignmentid)
       )
     )
   )
@@ -65,12 +64,7 @@ object ConsignmentFields {
       arguments=ConsignmentIdArg :: Nil,
       resolve = ctx => ctx.ctx.consignmentService.getConsignment(ctx.arg(ConsignmentIdArg)),
       tags=List(ValidateUserOwnsConsignment(ConsignmentIdArg))
-     ),
-    Field("getParentFolderAndFiles", OptionType(ParentFolderAndFilesType),
-      arguments=ConsignmentIdArg :: Nil,
-      resolve = ctx => ctx.ctx.consignmentService.getConsignmentParentFolderAndFiles(ctx.arg(ConsignmentIdArg)),
-      tags=List(ValidateUserOwnsConsignment(ConsignmentIdArg))
-    )
+     )
   )
 
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](

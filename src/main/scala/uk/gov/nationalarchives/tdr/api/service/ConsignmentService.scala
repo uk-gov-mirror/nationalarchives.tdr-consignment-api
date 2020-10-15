@@ -41,11 +41,9 @@ class ConsignmentService(
     } yield FileChecks(AntivirusProgress(processed), ChecksumProgress(checksum), FFIDProgress(fileFormatId))
   }
 
-  def getConsignmentParentFolderAndFiles(consignmentId: UUID): Future[ParentFolderAndFiles] = {
-    consignmentRepository.getParentFolder(consignmentId)
+  def getConsignmentParentFolder(consignmentId: UUID): Future[ParentFolder] = {
     for {
       parentFolder <- consignmentRepository.getParentFolder(consignmentId)
-      totalFiles <- fileRepository.countFilesInConsignment(consignmentId)
-    } yield ParentFolderAndFiles(ParentFolder(parentFolder), TotalFiles(totalFiles))
+    } yield ParentFolder(parentFolder)
   }
 }
