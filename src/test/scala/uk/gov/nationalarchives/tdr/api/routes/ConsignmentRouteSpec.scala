@@ -17,6 +17,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256S
 class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach {
   private val addConsignmentJsonFilePrefix: String = "json/addconsignment_"
   private val getConsignmentJsonFilePrefix: String = "json/getconsignment_"
+  private val getParentFolderAndFilesJsonFilesPrefix: String = "json/getparentfolderandfiles_"
 
   implicit val customConfig: Configuration = Configuration.default.withDefaults
 
@@ -47,6 +48,8 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData = runTestRequest[GraphqlMutationData](addConsignmentJsonFilePrefix)
   val expectedQueryResponse: String => GraphqlQueryData = getDataFromFile[GraphqlQueryData](getConsignmentJsonFilePrefix)
   val expectedMutationResponse: String => GraphqlMutationData = getDataFromFile[GraphqlMutationData](addConsignmentJsonFilePrefix)
+  val runParentFolderTestQuery: (String, OAuth2BearerToken) => GraphqlQueryData = runTestRequest[GraphqlQueryData](getParentFolderAndFilesJsonFilesPrefix)
+  val expectedParentQueryResponse: String => GraphqlQueryData = getDataFromFile[GraphqlQueryData](getParentFolderAndFilesJsonFilesPrefix)
 
   "addConsignment" should "create a consignment if the correct information is provided" in {
     createSeries(UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e"))
@@ -148,6 +151,33 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_error_no_consignmentid")
     val response: GraphqlQueryData = runTestQuery("query_no_consignmentid", validUserToken())
     response.errors.head.message should equal(expectedResponse.errors.head.message)
+  }
+
+  "getParentFolderAndFiles" should "return correct parent folder and number of files for a given consignment" in {
+    val sql = "insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES (?, ?, ?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    val consignmentId = "40d292a3-be1d-485a-8b13-e61006c8312a"
+    val seriesId = "51e897b5-d276-4ddd-bfe7-8fa97c77f4b5"
+    ps.setString(1, consignmentId)
+    ps.setString(2, seriesId)
+    ps.setString(3, userId.toString)
+    ps.executeUpdate()
+
+    val fileOneId = "0219eaa8-7f2f-4607-a247-08bba0c828c7"
+    val fileTwoId = "6b84bc74-21b3-4b88-8454-99333acde953"
+    val fileThreeId = "86ec4fca-e7b0-4173-b5ba-95439fc2f831"
+    val fileFourId = "7293fc34-4eb3-4c20-ab91-8c0607a39c7e"
+
+    createFile(UUID.fromString(fileOneId), UUID.fromString(consignmentId))
+    createFile(UUID.fromString(fileTwoId), UUID.fromString(consignmentId))
+    createFile(UUID.fromString(fileThreeId), UUID.fromString(consignmentId))
+    createFile(UUID.fromString(fileFourId), UUID.fromString(consignmentId))
+
+    addParentFolderName(UUID.fromString(consignmentId), "PARENT FOLDER NAME ROUTE SPEC TEST")
+
+    val expectedResponse: GraphqlQueryData = expectedParentQueryResponse("data_all")
+    val response: GraphqlQueryData = runParentFolderTestQuery("query_alldata", validUserToken())
+    response.data should equal(expectedResponse.data)
   }
 
   private def checkConsignmentExists(consignmentId: UUID): Unit = {
