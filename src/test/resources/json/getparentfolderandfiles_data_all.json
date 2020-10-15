@@ -1,0 +1,12 @@
+{
+  "data": {
+    "getParentFolderAndFiles": {
+      "parentFolder": {
+        "parentFolder": "PARENT FOLDER NAME ROUTE SPEC TEST"
+      },
+      "totalFiles": {
+        "totalFiles": 4
+      }
+    }
+  }
+}

@@ -1,0 +1,1 @@
+{"query":"{getParentFolderAndFiles(consignmentid: \"b130e097-2edc-4e67-a7e9-5364a09ae9cb\"){parentFolder {parentFolder} totalFiles {totalFiles}}}"}
