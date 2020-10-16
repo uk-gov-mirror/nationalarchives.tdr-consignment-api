@@ -12,7 +12,7 @@ import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.ConsignmentRow
 import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentRepository, FFIDMetadataRepository, FileMetadataRepository, FileRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields
-import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AddConsignmentInput, Consignment, FileChecks}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AddConsignmentInput, Consignment, FileChecks, ParentFolder}
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -186,5 +186,29 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
     progress.antivirusProgress.filesProcessed shouldBe filesProcessed
     progress.checksumProgress.filesProcessed shouldBe filesProcessed
     progress.ffidProgress.filesProcessed shouldBe filesProcessed
+  }
+
+  "getConsignmentParentFolder" should "return the parent folder name for a given consignment" in {
+    val consignmentRepoMock = mock[ConsignmentRepository]
+    val fileMetadataRepositoryMock = mock[FileMetadataRepository]
+    val fileRepositoryMock = mock[FileRepository]
+    val ffidMetadataRepositoryMock = mock[FFIDMetadataRepository]
+    val fixedUuidSource = new FixedUUIDSource()
+
+    val service: ConsignmentService = new ConsignmentService(consignmentRepoMock,
+      fileMetadataRepositoryMock,
+      fileRepositoryMock,
+      ffidMetadataRepositoryMock,
+      FixedTimeSource,
+      fixedUuidSource)
+
+    val consignmentId = UUID.fromString("d8383f9f-c277-49dc-b082-f6e266a39618")
+    val parentFolder= Option("CONSIGNMENT SERVICE PARENT FOLDER TEST")
+
+    when(consignmentRepoMock.getParentFolder(consignmentId)).thenReturn(Future.successful(parentFolder))
+
+    val parentFolderResult: ParentFolder = service.getConsignmentParentFolder(consignmentId).futureValue
+
+    parentFolderResult.parentFolder shouldBe parentFolder
   }
 }
