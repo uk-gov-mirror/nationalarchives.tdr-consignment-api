@@ -40,4 +40,16 @@ class ConsignmentRepositorySpec extends AnyFlatSpec with ScalaFutures with Match
 
     parentFolderName should be (Some("TEST GET PARENT FOLDER NAME"))
   }
+
+  "getParentFolder" should "return nothing if no parent folder exists" in {
+    val db = DbConnection.db
+    val consignmentRepository = new ConsignmentRepository(db)
+    val consignmentId = UUID.fromString("8233b9a4-5c2d-4c2d-9355-e6ec5751fea5")
+
+    TestUtils.createConsignment(consignmentId, userId)
+
+    val parentFolderName = consignmentRepository.getParentFolder(consignmentId).futureValue
+
+    parentFolderName should be (None)
+  }
 }
