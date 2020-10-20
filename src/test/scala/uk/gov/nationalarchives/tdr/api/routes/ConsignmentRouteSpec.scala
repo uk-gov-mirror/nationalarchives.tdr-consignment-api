@@ -35,7 +35,8 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
                          userid: Option[UUID] = None,
                          seriesid: Option[UUID] = None,
                          totalFiles: Option[Int],
-                         fileChecks: Option[FileChecks]
+                         fileChecks: Option[FileChecks],
+                         parentFolder: Option[String]
                         )
   case class FileChecks(antivirusProgress: Option[AntivirusProgress], checksumProgress: Option[ChecksumProgress], ffidProgress: Option[FfidProgress])
   case class AntivirusProgress(filesProcessed: Option[Int])

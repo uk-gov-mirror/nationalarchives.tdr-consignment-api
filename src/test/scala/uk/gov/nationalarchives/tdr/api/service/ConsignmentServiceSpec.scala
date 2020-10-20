@@ -12,7 +12,7 @@ import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.ConsignmentRow
 import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentRepository, FFIDMetadataRepository, FileMetadataRepository, FileRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields
-import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AddConsignmentInput, Consignment, FileChecks, ParentFolder}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AddConsignmentInput, Consignment, FileChecks}
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -207,8 +207,8 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
 
     when(consignmentRepoMock.getParentFolder(consignmentId)).thenReturn(Future.successful(parentFolder))
 
-    val parentFolderResult: ParentFolder = service.getConsignmentParentFolder(consignmentId).futureValue
+    val parentFolderResult: String = service.getConsignmentParentFolder(consignmentId).futureValue
 
-    parentFolderResult.parentFolder shouldBe parentFolder
+    parentFolderResult shouldBe parentFolder.get
   }
 }
