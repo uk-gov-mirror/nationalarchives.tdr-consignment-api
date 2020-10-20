@@ -5,7 +5,7 @@ import java.util.UUID
 import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
-import sangria.schema.{Argument, Field, InputObjectType, IntType, ObjectType, OptionType, fields}
+import sangria.schema.{Argument, Field, InputObjectType, IntType, ObjectType, OptionType, fields, StringType}
 import uk.gov.nationalarchives.tdr.api.auth.{ValidateSeries, ValidateUserOwnsConsignment}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, DeferFileChecksProgress, DeferParentFolder, DeferTotalFiles}
@@ -17,7 +17,6 @@ object ConsignmentFields {
   case class ChecksumProgress(filesProcessed: Int)
   case class FFIDProgress(filesProcessed: Int)
   case class FileChecks(antivirusProgress: AntivirusProgress, checksumProgress: ChecksumProgress, ffidProgress: FFIDProgress)
-  case class ParentFolder(parentFolder: Option[String] = None)
 
   implicit val FileChecksType: ObjectType[Unit, FileChecks] =
     deriveObjectType[Unit, FileChecks]()
@@ -27,8 +26,6 @@ object ConsignmentFields {
     deriveObjectType[Unit, ChecksumProgress]()
   implicit val FfidProgressType: ObjectType[Unit, FFIDProgress] =
     deriveObjectType[Unit, FFIDProgress]()
-  implicit val ParentFolderType: ObjectType[Unit, ParentFolder] =
-    deriveObjectType[Unit, ParentFolder]()
 
   implicit val ConsignmentType: ObjectType[Unit, Consignment] = ObjectType(
     "Consignment",
@@ -48,7 +45,7 @@ object ConsignmentFields {
       ),
       Field(
         "parentFolder",
-        ParentFolderType,
+        StringType,
         resolve = context => DeferParentFolder(context.value.consignmentid)
       )
     )

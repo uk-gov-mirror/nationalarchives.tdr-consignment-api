@@ -41,9 +41,7 @@ class ConsignmentService(
     } yield FileChecks(AntivirusProgress(processed), ChecksumProgress(checksum), FFIDProgress(fileFormatId))
   }
 
-  def getConsignmentParentFolder(consignmentId: UUID): Future[ParentFolder] = {
-    for {
-      parentFolder <- consignmentRepository.getParentFolder(consignmentId)
-    } yield ParentFolder(parentFolder)
+  def getConsignmentParentFolder(consignmentId: UUID): Future[String] = {
+    consignmentRepository.getParentFolder(consignmentId).map(name => name.getOrElse("Parent folder not found"))
   }
 }
