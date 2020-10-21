@@ -45,7 +45,7 @@ object ConsignmentFields {
       ),
       Field(
         "parentFolder",
-        StringType,
+        OptionType(StringType),
         resolve = context => DeferParentFolder(context.value.consignmentid)
       )
     )
