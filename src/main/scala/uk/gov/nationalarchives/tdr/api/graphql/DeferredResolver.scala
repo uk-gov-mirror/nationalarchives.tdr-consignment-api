@@ -20,7 +20,7 @@ class DeferredResolver extends sangria.execution.deferred.DeferredResolver[Consi
       case DeferParentFolder(consignmentId) =>
         consignmentId.map(
           id => context.consignmentService.getConsignmentParentFolder(id)
-        ).getOrElse(Future.successful(0))
+        ).get
       case other => throw UnsupportedDeferError(other)
     }
   }
@@ -28,4 +28,4 @@ class DeferredResolver extends sangria.execution.deferred.DeferredResolver[Consi
 
 case class DeferTotalFiles(consignmentId: Option[UUID]) extends Deferred[Int]
 case class DeferFileChecksProgress(consignmentId: Option[UUID]) extends Deferred[FileChecks]
-case class DeferParentFolder(consignmentId: Option[UUID]) extends Deferred[String]
+case class DeferParentFolder(consignmentId: Option[UUID]) extends Deferred[Option[String]]
