@@ -203,12 +203,12 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
       fixedUuidSource)
 
     val consignmentId = UUID.fromString("d8383f9f-c277-49dc-b082-f6e266a39618")
-    val parentFolder= Option("CONSIGNMENT SERVICE PARENT FOLDER TEST")
+    val parentFolder: Option[String] = Option("CONSIGNMENT SERVICE PARENT FOLDER TEST")
 
     when(consignmentRepoMock.getParentFolder(consignmentId)).thenReturn(Future.successful(parentFolder))
 
-    val parentFolderResult: String = service.getConsignmentParentFolder(consignmentId).futureValue
+    val parentFolderResult: Option[String] = service.getConsignmentParentFolder(consignmentId).futureValue
 
-    parentFolderResult shouldBe parentFolder.get
+    parentFolderResult shouldBe parentFolder
   }
 }
