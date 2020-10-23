@@ -10,14 +10,13 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256ServerSideChecksum
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 import uk.gov.nationalarchives.tdr.api.utils.{FixedUUIDSource, TestRequest}
-import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256ServerSideChecksum
 
 class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach {
   private val addConsignmentJsonFilePrefix: String = "json/addconsignment_"
   private val getConsignmentJsonFilePrefix: String = "json/getconsignment_"
-  private val getParentFolderAndFilesJsonFilesPrefix: String = "json/getparentfolderandfiles_"
 
   implicit val customConfig: Configuration = Configuration.default.withDefaults
 
@@ -49,8 +48,6 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData = runTestRequest[GraphqlMutationData](addConsignmentJsonFilePrefix)
   val expectedQueryResponse: String => GraphqlQueryData = getDataFromFile[GraphqlQueryData](getConsignmentJsonFilePrefix)
   val expectedMutationResponse: String => GraphqlMutationData = getDataFromFile[GraphqlMutationData](addConsignmentJsonFilePrefix)
-  val runParentFolderTestQuery: (String, OAuth2BearerToken) => GraphqlQueryData = runTestRequest[GraphqlQueryData](getParentFolderAndFilesJsonFilesPrefix)
-  val expectedParentQueryResponse: String => GraphqlQueryData = getDataFromFile[GraphqlQueryData](getParentFolderAndFilesJsonFilesPrefix)
 
   "addConsignment" should "create a consignment if the correct information is provided" in {
     createSeries(UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e"))
