@@ -1,4 +1,4 @@
-FROM openjdk:8-slim
+FROM openjdk:16-jdk-alpine
 WORKDIR play
 COPY target/scala-2.13/consignmentapi.jar /
 CMD java -Dconfig.resource=application.$ENVIRONMENT.conf \
