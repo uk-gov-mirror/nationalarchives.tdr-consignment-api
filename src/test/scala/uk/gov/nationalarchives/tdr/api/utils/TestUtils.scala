@@ -180,7 +180,7 @@ object TestUtils {
   }
 
   def addParentFolderName(consignmentId: UUID, parentFolderName: String): Unit = {
-    val sql = s"update Consignment set ParentFolder=${parentFolderName} where ConsignmentId=${consignmentId}"
+    val sql = s"update Consignment set ParentFolder=\'${parentFolderName}\' where ConsignmentId=\'${consignmentId}\'"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
 
     ps.executeUpdate()

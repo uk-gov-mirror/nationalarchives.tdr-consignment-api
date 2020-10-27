@@ -5,10 +5,10 @@ import java.util.UUID
 import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
-import sangria.schema.{Argument, Field, InputObjectType, IntType, ObjectType, OptionType, fields}
+import sangria.schema.{Argument, Field, InputObjectType, IntType, ObjectType, OptionType, fields, StringType}
 import uk.gov.nationalarchives.tdr.api.auth.{ValidateSeries, ValidateUserOwnsConsignment}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
-import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, DeferFileChecksProgress, DeferTotalFiles}
+import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, DeferFileChecksProgress, DeferParentFolder, DeferTotalFiles}
 
 object ConsignmentFields {
   case class Consignment(consignmentid: Option[UUID] = None, userid: UUID, seriesid: UUID)
@@ -42,6 +42,11 @@ object ConsignmentFields {
         "fileChecks",
         FileChecksType,
         resolve = context => DeferFileChecksProgress(context.value.consignmentid)
+      ),
+      Field(
+        "parentFolder",
+        OptionType(StringType),
+        resolve = context => DeferParentFolder(context.value.consignmentid)
       )
     )
   )

@@ -10,9 +10,9 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256ServerSideChecksum
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 import uk.gov.nationalarchives.tdr.api.utils.{FixedUUIDSource, TestRequest}
-import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256ServerSideChecksum
 
 class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach {
   private val addConsignmentJsonFilePrefix: String = "json/addconsignment_"
@@ -34,7 +34,8 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
                          userid: Option[UUID] = None,
                          seriesid: Option[UUID] = None,
                          totalFiles: Option[Int],
-                         fileChecks: Option[FileChecks]
+                         fileChecks: Option[FileChecks],
+                         parentFolder: Option[String]
                         )
   case class FileChecks(antivirusProgress: Option[AntivirusProgress], checksumProgress: Option[ChecksumProgress], ffidProgress: Option[FfidProgress])
   case class AntivirusProgress(filesProcessed: Option[Int])
@@ -99,6 +100,8 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     createFile(UUID.fromString(fileOneId), UUID.fromString(consignmentId))
     createFile(UUID.fromString(fileTwoId), UUID.fromString(consignmentId))
     createFile(UUID.fromString(fileThreeId), UUID.fromString(consignmentId))
+
+    addParentFolderName(UUID.fromString(consignmentId), "ALL CONSIGNMENT DATA PARENT FOLDER")
 
     addAntivirusMetadata(fileOneId)
 

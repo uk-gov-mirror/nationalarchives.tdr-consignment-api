@@ -4,6 +4,7 @@ import java.util.UUID
 
 import slick.jdbc.PostgresProfile.api._
 import slick.lifted.CompiledFunction
+import uk.gov.nationalarchives
 import uk.gov.nationalarchives.Tables
 import uk.gov.nationalarchives.Tables.{Consignment, ConsignmentRow, File}
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
@@ -42,4 +43,8 @@ class ConsignmentRepository(db: Database) {
     db.run(updateAction).map(_ => ())
   }
 
+  def getParentFolder(consignmentId: UUID)(implicit executionContext: ExecutionContext): Future[Option[String]] = {
+    val query = Consignment.filter(_.consignmentid === consignmentId).map(_.parentfolder)
+    db.run(query.result).map(_.headOption.flatten)
+  }
 }
