@@ -33,6 +33,10 @@ class FileService(
   def fileCount(consignmentId: UUID): Future[Int] = {
     fileRepository.countFilesInConsignment(consignmentId)
   }
+
+  def getFiles(consignmentId: UUID): Future[Files] = {
+    fileRepository.getFiles(consignmentId).map(r => Files(r.map(_.fileid)))
+  }
 }
 
 case class FileOwnership(fileId: UUID, userId: UUID)

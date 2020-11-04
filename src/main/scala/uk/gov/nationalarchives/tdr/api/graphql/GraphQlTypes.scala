@@ -7,18 +7,19 @@ object GraphQlTypes {
 
   private val QueryType = ObjectType("Query",
     SeriesFields.queryFields ++
-    ConsignmentFields.queryFields ++
-    TransferAgreementFields.queryFields ++
-    ClientFileMetadataFields.queryFields
+      ConsignmentFields.queryFields ++
+      TransferAgreementFields.queryFields ++
+      ClientFileMetadataFields.queryFields ++
+      FileFields.queryFields
   )
   private val MutationType = ObjectType("Mutation",
     ConsignmentFields.mutationFields ++
-    TransferAgreementFields.mutationFields ++
-    ClientFileMetadataFields.mutationFields ++
-    FileFields.mutationFields ++
-    AntivirusMetadataFields.mutationFields ++
-    FileMetadataFields.mutationFields ++
-    FFIDMetadataFields.mutationFields
+      TransferAgreementFields.mutationFields ++
+      ClientFileMetadataFields.mutationFields ++
+      FileFields.mutationFields ++
+      AntivirusMetadataFields.mutationFields ++
+      FileMetadataFields.mutationFields ++
+      FFIDMetadataFields.mutationFields
   )
 
   val schema: Schema[ConsignmentApiContext, Unit] = Schema(QueryType, Some(MutationType))

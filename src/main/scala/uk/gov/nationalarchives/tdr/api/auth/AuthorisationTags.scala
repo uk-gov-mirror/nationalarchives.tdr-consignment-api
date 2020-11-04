@@ -17,6 +17,7 @@ trait AuthorisationTag extends ValidationTag {
   val checksumRole = "checksum"
   val clientFileMetadataRole = "client_file_metadata"
   val fileFormatRole = "file_format"
+  val exportRole = "export"
 }
 
 trait SyncAuthorisationTag extends AuthorisationTag {
@@ -171,6 +172,19 @@ object ValidateHasFFIDMetadataAccess extends SyncAuthorisationTag {
     } else {
       val tokenUserId = token.userId.getOrElse("")
       throw AuthorisationException(s"User '$tokenUserId' does not have permission to update file format metadata")
+    }
+  }
+}
+
+object ValidateHasExportAccess extends SyncAuthorisationTag {
+  override def validateSync(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
+    val token = ctx.ctx.accessToken
+    val exportAccess = token.backendChecksRoles.contains(exportRole)
+    if (exportAccess) {
+      continue
+    } else {
+      val tokenUserId = token.userId.getOrElse("")
+      throw AuthorisationException(s"User '$tokenUserId' does not have permission to export the files")
     }
   }
 }

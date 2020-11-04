@@ -1,13 +1,16 @@
 package uk.gov.nationalarchives.tdr.api.db.repository
 
+import java.sql.Timestamp
 import java.util.UUID
 
 import slick.jdbc.PostgresProfile.api._
 import slick.lifted.CompiledFunction
+import uk.gov
 import uk.gov.nationalarchives
 import uk.gov.nationalarchives.Tables
 import uk.gov.nationalarchives.Tables.{Consignment, ConsignmentRow, File}
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -18,6 +21,20 @@ class ConsignmentRepository(db: Database) {
 
   def addConsignment(consignmentRow: ConsignmentRow): Future[ConsignmentRow] = {
     db.run(insertQuery += consignmentRow)
+  }
+
+  def updateExportLocation(exportLocationInput: ConsignmentFields.UpdateExportLocationInput, timestamp: Timestamp): Future[Int] = {
+    val update = Consignment.filter(_.consignmentid === exportLocationInput.consignmentId)
+      .map(c => (c.exportlocation, c.exportdatetime))
+      .update((Option(exportLocationInput.exportLocation), Option(timestamp)))
+    db.run(update)
+  }
+
+  def updateTransferInitiated(consignmentId: UUID, userId: Option[UUID], timestamp: Timestamp) = {
+    val update = Consignment.filter(_.consignmentid === consignmentId)
+      .map(c => (c.transferinitiateddatetime, c.transferinitiatedby))
+      .update((Option(timestamp), userId))
+    db.run(update)
   }
 
   def getConsignment(consignmentId: UUID): Future[Seq[ConsignmentRow]] = {
