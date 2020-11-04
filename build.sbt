@@ -13,7 +13,8 @@ scalacOptions ++= Seq("-deprecation", "-feature")
 
 resolvers ++= Seq[Resolver](
   "Sonatype Releases" at "https://dl.bintray.com/mockito/maven/",
-  "TDR Releases" at "s3://tdr-releases-mgmt"
+  "TDR Releases" at "s3://tdr-releases-mgmt",
+  "TDR Snapshots" at "s3://tdr-snapshots-mgmt"
 )
 
 mainClass in (Compile, run) := Some("uk.gov.nationalarchives.tdr.api.http.ApiServer")
