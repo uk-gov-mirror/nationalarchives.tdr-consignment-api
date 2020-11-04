@@ -10,11 +10,12 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils.{GraphqlError, getDataFromFile, userId, validUserToken}
+import uk.gov.nationalarchives.tdr.api.utils.TestUtils.{GraphqlError, getDataFromFile, userId, validBackendChecksToken, validUserToken}
 import uk.gov.nationalarchives.tdr.api.utils.{FixedUUIDSource, TestRequest}
 
 class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach  {
   private val addFileJsonFilePrefix: String = "json/addfile_"
+  private val getFilesJsonFilePrefix: String = "json/getfiles_"
 
   implicit val customConfig: Configuration = Configuration.default.withDefaults
 
@@ -28,11 +29,15 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
   }
 
   case class GraphqlMutationData(data: Option[AddFiles], errors: List[GraphqlError] = Nil)
+  case class GraphqlQueryData(data: Option[GetFiles], errors: List[GraphqlError] = Nil)
   case class File(fileIds: Seq[UUID])
   case class AddFiles(addFiles: File)
+  case class GetFiles(getFiles: File)
 
+  val runTestQuery: (String, OAuth2BearerToken) => GraphqlQueryData = runTestRequest[GraphqlQueryData](getFilesJsonFilePrefix)
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData = runTestRequest[GraphqlMutationData](addFileJsonFilePrefix)
   val expectedMutationResponse: String => GraphqlMutationData = getDataFromFile[GraphqlMutationData](addFileJsonFilePrefix)
+  val expectedQueryResponse: String => GraphqlQueryData = getDataFromFile[GraphqlQueryData](getFilesJsonFilePrefix)
 
   val fixedUuidSource = new FixedUUIDSource()
 
@@ -100,6 +105,27 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
     response.errors.head.extensions should equal(expectedResponse.errors.head.extensions)
     response.errors.head.message should equal (expectedResponse.errors.head.message)
     checkNumberOfFiles(1)
+  }
+
+  "The api" should "return all available files" in {
+    val consignmentId = "50df01e6-2e5e-4269-97e7-531a755b417d"
+    val fileIdOne = "7b19b272-d4d1-4d77-bf25-511dc6489d12"
+    val fileIdTwo = "0f70f657-8b19-4ab6-9813-33a8223fec84"
+    insertFile(consignmentId, fileIdOne)
+    insertFile(consignmentId, fileIdTwo)
+    val expectedResponse = expectedQueryResponse("data_all")
+    val response = runTestQuery("mutation_alldata", validBackendChecksToken("export"))
+
+    expectedResponse.data.get.getFiles should equal(response.data.get.getFiles)
+  }
+
+  private def insertFile(consignmentId: String, fileId: String): Unit = {
+    val sql = "insert into File (FileId, ConsignmentId, UserId) values (?, ?, ?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, fileId)
+    ps.setString(2, consignmentId)
+    ps.setString(3, UUID.randomUUID().toString)
+    ps.executeUpdate()
   }
 
   private def checkFileExists(fileId: UUID) = {

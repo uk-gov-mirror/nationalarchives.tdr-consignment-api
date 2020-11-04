@@ -123,4 +123,26 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     owners(0).userId should equal(userId1)
     owners(1).userId should equal(userId2)
   }
+
+  "getFiles" should "return all the files" in {
+    val fixedUuidSource = new FixedUUIDSource()
+    val uuid = UUID.randomUUID()
+    val fileIdOne = UUID.randomUUID()
+    val fileIdTwo = UUID.randomUUID()
+    val consignmentId = UUID.randomUUID()
+
+    val fileRepositoryMock = mock[FileRepository]
+    val consignmentRepositoryMock = mock[ConsignmentRepository]
+
+    val mockFileResponse = Future.successful(List(
+      FileRow(fileIdOne, consignmentId, uuid, Timestamp.from(Instant.now)),
+      FileRow(fileIdTwo, consignmentId, uuid, Timestamp.from(Instant.now))
+    ))
+    when(fileRepositoryMock.getFiles(any[UUID])).thenReturn(mockFileResponse)
+
+    val fileService = new FileService(fileRepositoryMock, consignmentRepositoryMock, FixedTimeSource, fixedUuidSource)
+    val result: Files = fileService.getFiles(consignmentId).futureValue
+
+    result.fileIds shouldBe List(fileIdOne, fileIdTwo)
+  }
 }
