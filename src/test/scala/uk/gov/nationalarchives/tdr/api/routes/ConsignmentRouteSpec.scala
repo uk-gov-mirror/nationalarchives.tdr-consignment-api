@@ -159,16 +159,19 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
   "updateExportLocation" should "update the export location correctly" in {
     insertConsignment()
-    val expectedResponse = getDataFromFile[GraphqlMutationExportLocation]("json/updateexportlocation_")("data_all")
-    val response: GraphqlMutationExportLocation = runTestRequest[GraphqlMutationExportLocation]("json/updateexportlocation_")("mutation_all", validBackendChecksToken("export"))
+    val prefix = "json/updateexportlocation_"
+    val expectedResponse = getDataFromFile[GraphqlMutationExportLocation](prefix)("data_all")
+    val token = validBackendChecksToken("export")
+    val response: GraphqlMutationExportLocation = runTestRequest[GraphqlMutationExportLocation](prefix)("mutation_all", token)
     response.data should equal(expectedResponse.data)
     getConsignmentField(UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e"), "ExportLocation") should equal("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e.tar.gz")
   }
 
   "updateTransferInitiated" should "update the transfer initiated date correctly" in {
     insertConsignment()
-    val expectedResponse = getDataFromFile[GraphqlMutationTransferInitiated]("json/updatetransferinitiated_")("data_all")
-    val response: GraphqlMutationTransferInitiated = runTestRequest[GraphqlMutationTransferInitiated]("json/updatetransferinitiated_")("mutation_all", validUserToken())
+    val prefix = "json/updatetransferinitiated_"
+    val expectedResponse = getDataFromFile[GraphqlMutationTransferInitiated](prefix)("data_all")
+    val response: GraphqlMutationTransferInitiated = runTestRequest[GraphqlMutationTransferInitiated](prefix)("mutation_all", validUserToken())
     response.data should equal(expectedResponse.data)
     val field = getConsignmentField(UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e"), _)
     Option(field("TransferInitiatedDatetime")).isDefined should equal(true)
