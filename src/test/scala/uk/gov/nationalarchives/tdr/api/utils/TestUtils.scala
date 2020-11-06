@@ -88,13 +88,14 @@ object TestUtils {
 
   def seedDatabaseWithDefaultEntries(): Unit = {
     val consignmentId = UUID.fromString("eb197bfb-43f7-40ca-9104-8f6cbda88506")
-    createConsignment(consignmentId, userId)
+    val seriesId = UUID.fromString("1436ad43-73a2-4489-a774-85fa95daff32")
+    createConsignment(consignmentId, seriesId, userId)
     createFile(defaultFileId, consignmentId)
     createClientFileMetadata(defaultFileId)
   }
 
-  def createConsignment(consignmentId: UUID, userId: UUID): Unit = {
-    val sql = s"insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES ('$consignmentId', 1, '$userId')"
+  def createConsignment(consignmentId: UUID, seriesId: UUID, userId: UUID): Unit = {
+    val sql = s"insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES ('$consignmentId', '$seriesId', '$userId')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.executeUpdate()
   }
