@@ -9,10 +9,10 @@ import org.mockito.MockitoSugar
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import uk.gov.nationalarchives.Tables.ConsignmentRow
-import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentRepository, FFIDMetadataRepository, FileMetadataRepository, FileRepository}
-import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields
+import uk.gov.nationalarchives.Tables.{BodyRow, ConsignmentRow, SeriesRow}
+import uk.gov.nationalarchives.tdr.api.db.repository._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AddConsignmentInput, Consignment, FileChecks}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.{ConsignmentFields, SeriesFields}
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -210,5 +210,91 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
     val parentFolderResult: Option[String] = service.getConsignmentParentFolder(consignmentId).futureValue
 
     parentFolderResult shouldBe parentFolder
+  }
+
+  "getSeriesOfConsignment" should "return the series for a given consignment" in {
+    val consignmentRepoMock = mock[ConsignmentRepository]
+    val fileMetadataRepositoryMock = mock[FileMetadataRepository]
+    val fileRepositoryMock = mock[FileRepository]
+    val ffidMetadataRepositoryMock = mock[FFIDMetadataRepository]
+    val fixedUuidSource = new FixedUUIDSource()
+
+    val service: ConsignmentService = new ConsignmentService(consignmentRepoMock,
+      fileMetadataRepositoryMock,
+      fileRepositoryMock,
+      ffidMetadataRepositoryMock,
+      FixedTimeSource,
+      fixedUuidSource)
+
+    val consignmentId = UUID.fromString("d8383f9f-c277-49dc-b082-f6e266a39618")
+    val seriesId = UUID.fromString("bf55455e-2017-11eb-adc1-0242ac120002")
+    val userId = UUID.fromString("ceb8831c-2017-11eb-adc1-0242ac120002")
+    val datetime = Timestamp.from(FixedTimeSource.now)
+    val parentFolder = Option("Parent_folder")
+    val bodyId = UUID.fromString("8eae8ed8-201c-11eb-adc1-0242ac120002")
+    val seriesName = Option("Mock series")
+    val seriesCode = Option("Mock series")
+    val seriesDescription = Option("Series description")
+    val bodyName = Option("Mock department")
+    val bodyCode = Option("Mock department")
+    val bodyDescription = Option("Body description")
+
+    val mockConsignment = ConsignmentRow(consignmentId, seriesId, userId, datetime, parentFolder)
+    val mockSeries = SeriesRow(seriesId, bodyId, seriesName, seriesCode, seriesDescription)
+    val mockBody = BodyRow(bodyId, bodyName, bodyCode, bodyDescription)
+    val consignmentResult = Seq(ConsignmentResult(mockConsignment, mockSeries, mockBody))
+
+    when(consignmentRepoMock.getSeriesAndBodyOfConsignment(consignmentId)).thenReturn(Future.successful(consignmentResult))
+
+    val expectedSeries: SeriesFields.Series = service.getSeriesOfConsignment(consignmentId).futureValue.get
+
+    expectedSeries.seriesid shouldBe mockSeries.seriesid
+    expectedSeries.bodyid shouldBe mockSeries.bodyid
+    expectedSeries.name shouldBe mockSeries.name
+    expectedSeries.code shouldBe mockSeries.code
+    expectedSeries.description shouldBe mockSeries.description
+
+  }
+
+  "getTbOfConsignment" should "return the transferring body for a given consignment" in {
+    val consignmentRepoMock = mock[ConsignmentRepository]
+    val fileMetadataRepositoryMock = mock[FileMetadataRepository]
+    val fileRepositoryMock = mock[FileRepository]
+    val ffidMetadataRepositoryMock = mock[FFIDMetadataRepository]
+    val fixedUuidSource = new FixedUUIDSource()
+
+    val service: ConsignmentService = new ConsignmentService(consignmentRepoMock,
+      fileMetadataRepositoryMock,
+      fileRepositoryMock,
+      ffidMetadataRepositoryMock,
+      FixedTimeSource,
+      fixedUuidSource)
+
+    val consignmentId = UUID.fromString("d8383f9f-c277-49dc-b082-f6e266a39618")
+    val seriesId = UUID.fromString("bf55455e-2017-11eb-adc1-0242ac120002")
+    val userId = UUID.fromString("ceb8831c-2017-11eb-adc1-0242ac120002")
+    val datetime = Timestamp.from(FixedTimeSource.now)
+    val parentFolder = Option("Parent_folder")
+    val bodyId = UUID.fromString("8eae8ed8-201c-11eb-adc1-0242ac120002")
+    val seriesName = Option("Mock series")
+    val seriesCode = Option("Mock series")
+    val seriesDescription = Option("Series description")
+    val bodyName = Option("Mock department")
+    val bodyCode = Option("Mock department")
+    val bodyDescription = Option("Body description")
+
+    val mockConsignment = ConsignmentRow(consignmentId, seriesId, userId, datetime, parentFolder)
+    val mockSeries = SeriesRow(seriesId, bodyId, seriesName, seriesCode, seriesDescription)
+    val mockBody = BodyRow(bodyId, bodyName, bodyCode, bodyDescription)
+    val consignmentResult = Seq(ConsignmentResult(mockConsignment, mockSeries, mockBody))
+
+    when(consignmentRepoMock.getSeriesAndBodyOfConsignment(consignmentId)).thenReturn(Future.successful(consignmentResult))
+
+    val expectedBody: ConsignmentFields.TransferringBody = service.getTbOfConsignment(consignmentId).futureValue.get
+
+    expectedBody.bodyid shouldBe mockBody.bodyid
+    expectedBody.name shouldBe mockBody.name
+    expectedBody.code shouldBe mockBody.code
+    expectedBody.description shouldBe mockBody.description
   }
 }
