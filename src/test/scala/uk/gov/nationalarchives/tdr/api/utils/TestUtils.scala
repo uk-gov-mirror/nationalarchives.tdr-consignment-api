@@ -186,5 +186,15 @@ object TestUtils {
 
     ps.executeUpdate()
   }
+
+  def addSeries(seriesId: UUID, bodyId: UUID, name: String): Unit = {
+    val sql = s"insert into Series (SeriesId, BodyId, Name) VALUES (?, ?, ?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, seriesId.toString)
+    ps.setString(2, bodyId.toString)
+    ps.setString(3, name)
+
+    ps.executeUpdate()
+  }
 }
 
