@@ -13,8 +13,7 @@ scalacOptions ++= Seq("-deprecation", "-feature")
 
 resolvers ++= Seq[Resolver](
   "Sonatype Releases" at "https://dl.bintray.com/mockito/maven/",
-  "TDR Releases" at "s3://tdr-releases-mgmt",
-  "TDR Snapshots" at "s3://tdr-snapshots-mgmt"
+  "TDR Releases" at "s3://tdr-releases-mgmt"
 )
 
 mainClass in (Compile, run) := Some("uk.gov.nationalarchives.tdr.api.http.ApiServer")
@@ -43,7 +42,7 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-optics" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,
   "io.circe" %% "circe-generic-extras" % circeVersion,
-  "uk.gov.nationalarchives" %% "consignment-api-db" % "0.0.34-SNAPSHOT",
+  "uk.gov.nationalarchives" %% "consignment-api-db" % "0.0.34",
   "org.postgresql" % "postgresql" % "42.2.11",
   "com.typesafe.slick" %% "slick" % "3.3.2",
   "com.typesafe.slick" %% "slick-hikaricp" % "3.3.2",
