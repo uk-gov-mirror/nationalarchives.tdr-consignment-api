@@ -11,7 +11,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, DeferFileChecksProgress, DeferParentFolder, DeferTotalFiles}
 
 object ConsignmentFields {
-  case class Consignment(consignmentid: Option[UUID] = None, userid: UUID, seriesid: UUID)
+  case class Consignment(consignmentid: UUID, userid: UUID, seriesid: UUID)
   case class AddConsignmentInput(seriesid: UUID)
   case class AntivirusProgress(filesProcessed: Int)
   case class ChecksumProgress(filesProcessed: Int)
