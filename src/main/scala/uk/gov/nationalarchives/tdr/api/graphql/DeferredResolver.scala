@@ -13,31 +13,19 @@ class DeferredResolver extends sangria.execution.deferred.DeferredResolver[Consi
   // We may at some point need to do authorisation in this method. There is a ensurePermissions method which needs to be called before returning data.
   override def resolve(deferred: Vector[Deferred[Any]], context: ConsignmentApiContext, queryState: Any)(implicit ec: ExecutionContext): Vector[Future[Any]] = {
     deferred.map {
-      case DeferTotalFiles(consignmentId) => consignmentId.map(id => context.fileService.fileCount(id)).getOrElse(Future.successful(0))
+      case DeferTotalFiles(consignmentId) => context.fileService.fileCount(consignmentId)
       case DeferFileChecksProgress(consignmentId) =>
-        consignmentId.map(
-          id => context.consignmentService.getConsignmentFileProgress(id)
-        ).getOrElse(Future.successful(0))
-      case DeferParentFolder(consignmentId) =>
-        consignmentId match {
-          case Some(id) => context.consignmentService.getConsignmentParentFolder(id)
-          case None => Future.successful(None)
-        }
-      case DeferConsignmentSeries(consignmentId) =>
-        consignmentId.map(
-          id => context.consignmentService.getSeriesOfConsignment(id)
-        ).getOrElse(Future.successful(None))
-      case DeferConsignmentBody(consignmentId) =>
-        consignmentId.map(
-          id => context.consignmentService.getTbOfConsignment(id)
-        ).getOrElse(Future.successful(0))
+        context.consignmentService.getConsignmentFileProgress(consignmentId)
+      case DeferParentFolder(consignmentId) => context.consignmentService.getConsignmentParentFolder(consignmentId)
+      case DeferConsignmentSeries(consignmentId) => context.consignmentService.getSeriesOfConsignment(consignmentId)
+      case DeferConsignmentBody(consignmentId) => context.consignmentService.getTbOfConsignment(consignmentId)
       case other => throw UnsupportedDeferError(other)
     }
   }
 }
 
-case class DeferTotalFiles(consignmentId: Option[UUID]) extends Deferred[Int]
-case class DeferFileChecksProgress(consignmentId: Option[UUID]) extends Deferred[FileChecks]
-case class DeferParentFolder(consignmentId: Option[UUID]) extends Deferred[Option[String]]
-case class DeferConsignmentSeries(consignmentId: Option[UUID]) extends Deferred[Option[Series]]
-case class DeferConsignmentBody(consignmentId: Option[UUID]) extends Deferred[TransferringBody]
+case class DeferTotalFiles(consignmentId: UUID) extends Deferred[Int]
+case class DeferFileChecksProgress(consignmentId: UUID) extends Deferred[FileChecks]
+case class DeferParentFolder(consignmentId: UUID) extends Deferred[Option[String]]
+case class DeferConsignmentSeries(consignmentId: UUID) extends Deferred[Option[Series]]
+case class DeferConsignmentBody(consignmentId: UUID) extends Deferred[TransferringBody]

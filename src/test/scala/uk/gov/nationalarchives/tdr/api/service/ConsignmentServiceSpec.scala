@@ -39,11 +39,9 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
       FixedTimeSource,
       fixedUuidSource)
     val result: Consignment = consignmentService.addConsignment(AddConsignmentInput(seriesUuid), Some(userUuid)).futureValue
-    result.consignmentid shouldBe Some(consignmentUuid)
+    result.consignmentid shouldBe consignmentUuid
     result.seriesid shouldBe seriesUuid
     result.userid shouldBe userUuid
-    result.consignmentid shouldBe defined
-    result.consignmentid.get shouldBe consignmentUuid
   }
 
   "createConsignment" should "link a consignment to the user's ID" in {
@@ -94,7 +92,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
 
     verify(consignmentRepoMock, times(1)).getConsignment(any[UUID])
     val consignment: ConsignmentFields.Consignment = response.get
-    consignment.consignmentid should equal(Some(consignmentUuid))
+    consignment.consignmentid should equal(consignmentUuid)
     consignment.seriesid should equal(seriesUuid)
     consignment.userid should equal(userUuid)
   }
