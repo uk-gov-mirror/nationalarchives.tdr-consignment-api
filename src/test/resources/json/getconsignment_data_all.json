@@ -18,10 +18,10 @@
       },
       "parentFolder": "ALL CONSIGNMENT DATA PARENT FOLDER",
       "series": {
-        "name": "Mock Series"
+        "name": "Mock series"
       },
       "transferringBody": {
-        "name": "Mock Department"
+        "name": "Body"
       }
     }
   }
