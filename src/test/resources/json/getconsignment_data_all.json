@@ -16,7 +16,13 @@
           "filesProcessed":  3
         }
       },
-      "parentFolder": "ALL CONSIGNMENT DATA PARENT FOLDER"
+      "parentFolder": "ALL CONSIGNMENT DATA PARENT FOLDER",
+      "series": {
+        "name": "Mock Series"
+      },
+      "transferringBody": {
+        "name": "Mock Department"
+      }
     }
   }
 }

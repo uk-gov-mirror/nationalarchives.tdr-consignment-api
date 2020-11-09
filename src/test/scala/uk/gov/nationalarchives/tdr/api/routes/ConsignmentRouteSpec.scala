@@ -66,7 +66,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   }
 
   "addConsignment" should "link a new consignment to the creating user" in {
-    createSeries(UUID.fromString(("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")))
+    createSeries(UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e"))
 
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
@@ -76,7 +76,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   }
 
   "addConsignment" should "not allow a user to link a consignment to a series from another transferring body" in {
-    createSeries(UUID.fromString(("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")))
+    createSeries(UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e"))
 
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken(body = "some-other-transferring-body"))
 
