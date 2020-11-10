@@ -17,7 +17,7 @@ object ConsignmentFields {
   case class ChecksumProgress(filesProcessed: Int)
   case class FFIDProgress(filesProcessed: Int)
   case class FileChecks(antivirusProgress: AntivirusProgress, checksumProgress: ChecksumProgress, ffidProgress: FFIDProgress)
-  case class TransferringBody(bodyid: UUID, name: Option[String], code: Option[String], description: Option[String])
+  case class TransferringBody(name: Option[String])
 
   implicit val FileChecksType: ObjectType[Unit, FileChecks] =
     deriveObjectType[Unit, FileChecks]()

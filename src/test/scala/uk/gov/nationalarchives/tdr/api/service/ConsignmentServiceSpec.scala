@@ -288,11 +288,8 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
 
     when(consignmentRepoMock.getSeriesAndBodyOfConsignment(consignmentId)).thenReturn(Future.successful(consignmentResult))
 
-    val expectedBody: ConsignmentFields.TransferringBody = service.getTbOfConsignment(consignmentId).futureValue.get
+    val expectedBody: ConsignmentFields.TransferringBody = service.getTransferringBodyOfConsignment(consignmentId).futureValue.get
 
-    expectedBody.bodyid shouldBe mockBody.bodyid
     expectedBody.name shouldBe mockBody.name
-    expectedBody.code shouldBe mockBody.code
-    expectedBody.description shouldBe mockBody.description
   }
 }

@@ -44,7 +44,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   case class ChecksumProgress(filesProcessed: Option[Int])
   case class FfidProgress(filesProcessed: Option[Int])
   case class Series(seriesid: Option[UUID], bodyid: Option[UUID], name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
-  case class TransferringBody(bodyid: Option[UUID], name: Option[String], code: Option[String], description: Option[String])
+  case class TransferringBody(name: Option[String])
   case class GetConsignment(getConsignment: Option[Consignment])
   case class AddConsignment(addConsignment: Consignment)
 
