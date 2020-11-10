@@ -18,7 +18,7 @@ class DeferredResolver extends sangria.execution.deferred.DeferredResolver[Consi
         context.consignmentService.getConsignmentFileProgress(consignmentId)
       case DeferParentFolder(consignmentId) => context.consignmentService.getConsignmentParentFolder(consignmentId)
       case DeferConsignmentSeries(consignmentId) => context.consignmentService.getSeriesOfConsignment(consignmentId)
-      case DeferConsignmentBody(consignmentId) => context.consignmentService.getTbOfConsignment(consignmentId)
+      case DeferConsignmentBody(consignmentId) => context.consignmentService.getTransferringBodyOfConsignment(consignmentId)
       case other => throw UnsupportedDeferError(other)
     }
   }

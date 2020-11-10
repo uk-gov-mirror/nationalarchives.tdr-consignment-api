@@ -36,7 +36,7 @@ class ConsignmentService(
       row => Series(row.series.seriesid, row.series.bodyid, row.series.name, row.series.code, row.series.description)))
   }
 
-  def getTbOfConsignment(consignmentId: UUID): Future[Option[TransferringBody]] = {
+  def getTransferringBodyOfConsignment(consignmentId: UUID): Future[Option[TransferringBody]] = {
     val consignment: Future[Seq[ConsignmentResult]] = consignmentRepository.getSeriesAndBodyOfConsignment(consignmentId)
     consignment.map(rows => rows.headOption.map(
       row => TransferringBody(row.body.name)))

@@ -251,10 +251,9 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
     expectedSeries.name shouldBe mockSeries.name
     expectedSeries.code shouldBe mockSeries.code
     expectedSeries.description shouldBe mockSeries.description
-
   }
 
-  "getTbOfConsignment" should "return the transferring body for a given consignment" in {
+  "getTransferringBodyOfConsignment" should "return the transferring body for a given consignment" in {
     val consignmentRepoMock = mock[ConsignmentRepository]
     val fileMetadataRepositoryMock = mock[FileMetadataRepository]
     val fileRepositoryMock = mock[FileRepository]
