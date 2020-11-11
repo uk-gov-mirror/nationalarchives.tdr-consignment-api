@@ -3,7 +3,7 @@ package uk.gov.nationalarchives.tdr.api.service
 import java.sql.Timestamp
 import java.util.UUID
 
-import uk.gov.nationalarchives.Tables.ConsignmentRow
+import uk.gov.nationalarchives.Tables.{BodyRow, ConsignmentRow, SeriesRow}
 import uk.gov.nationalarchives.tdr.api.db.repository._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.SeriesFields.Series
@@ -21,9 +21,9 @@ class ConsignmentService(
                         )(implicit val executionContext: ExecutionContext) {
 
   def addConsignment(addConsignmentInput: AddConsignmentInput, userId: Option[UUID]): Future[Consignment] = {
-      val consignmentRow = ConsignmentRow(uuidSource.uuid, addConsignmentInput.seriesid, userId.get, Timestamp.from(timeSource.now))
-      consignmentRepository.addConsignment(consignmentRow).map(row => Consignment(row.consignmentid, row.userid, row.seriesid))
-    }
+    val consignmentRow = ConsignmentRow(uuidSource.uuid, addConsignmentInput.seriesid, userId.get, Timestamp.from(timeSource.now))
+    consignmentRepository.addConsignment(consignmentRow).map(row => Consignment(row.consignmentid, row.userid, row.seriesid))
+  }
 
   def getConsignment(consignmentId: UUID): Future[Option[Consignment]] = {
     val consignments = consignmentRepository.getConsignment(consignmentId)
@@ -31,15 +31,15 @@ class ConsignmentService(
   }
 
   def getSeriesOfConsignment(consignmentId: UUID): Future[Option[Series]] = {
-    val consignment: Future[Seq[ConsignmentResult]] = consignmentRepository.getSeriesAndBodyOfConsignment(consignmentId)
+    val consignment: Future[Seq[SeriesRow]] = consignmentRepository.getSeriesOfConsignment(consignmentId)
     consignment.map(rows => rows.headOption.map(
-      row => Series(row.series.seriesid, row.series.bodyid, row.series.name, row.series.code, row.series.description)))
+      series => Series(series.seriesid, series.bodyid, series.name, series.code, series.description)))
   }
 
   def getTransferringBodyOfConsignment(consignmentId: UUID): Future[Option[TransferringBody]] = {
-    val consignment: Future[Seq[ConsignmentResult]] = consignmentRepository.getSeriesAndBodyOfConsignment(consignmentId)
+    val consignment: Future[Seq[BodyRow]] = consignmentRepository.getTransferringBodyOfConsignment(consignmentId)
     consignment.map(rows => rows.headOption.map(
-      row => TransferringBody(row.body.name)))
+      transferringBody => TransferringBody(transferringBody.name)))
   }
 
   def consignmentHasFiles(consignmentId: UUID): Future[Boolean] = {

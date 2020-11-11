@@ -69,7 +69,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
     verify(consignmentRepoMock).addConsignment(expectedRow)
   }
 
-  "getConsignment" should "return the specfic Consignment for the requested consignment id" in {
+  "getConsignment" should "return the specific Consignment for the requested consignment id" in {
     val fixedUuidSource = new FixedUUIDSource()
     val userUuid = UUID.randomUUID()
     val seriesUuid = UUID.randomUUID()
@@ -226,31 +226,22 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
 
     val consignmentId = UUID.fromString("d8383f9f-c277-49dc-b082-f6e266a39618")
     val seriesId = UUID.fromString("bf55455e-2017-11eb-adc1-0242ac120002")
-    val userId = UUID.fromString("ceb8831c-2017-11eb-adc1-0242ac120002")
-    val datetime = Timestamp.from(FixedTimeSource.now)
-    val parentFolder = Option("Parent_folder")
     val bodyId = UUID.fromString("8eae8ed8-201c-11eb-adc1-0242ac120002")
     val seriesName = Option("Mock series")
     val seriesCode = Option("Mock series")
     val seriesDescription = Option("Series description")
-    val bodyName = Option("Mock department")
-    val bodyCode = Option("Mock department")
-    val bodyDescription = Option("Body description")
 
-    val mockConsignment = ConsignmentRow(consignmentId, seriesId, userId, datetime, parentFolder)
-    val mockSeries = SeriesRow(seriesId, bodyId, seriesName, seriesCode, seriesDescription)
-    val mockBody = BodyRow(bodyId, bodyName, bodyCode, bodyDescription)
-    val consignmentResult = Seq(ConsignmentResult(mockConsignment, mockSeries, mockBody))
+    val mockSeries = Seq(SeriesRow(seriesId, bodyId, seriesName, seriesCode, seriesDescription))
 
-    when(consignmentRepoMock.getSeriesAndBodyOfConsignment(consignmentId)).thenReturn(Future.successful(consignmentResult))
+    when(consignmentRepoMock.getSeriesOfConsignment(consignmentId)).thenReturn(Future.successful(mockSeries))
 
     val expectedSeries: SeriesFields.Series = service.getSeriesOfConsignment(consignmentId).futureValue.get
 
-    expectedSeries.seriesid shouldBe mockSeries.seriesid
-    expectedSeries.bodyid shouldBe mockSeries.bodyid
-    expectedSeries.name shouldBe mockSeries.name
-    expectedSeries.code shouldBe mockSeries.code
-    expectedSeries.description shouldBe mockSeries.description
+    expectedSeries.seriesid shouldBe mockSeries.head.seriesid
+    expectedSeries.bodyid shouldBe mockSeries.head.bodyid
+    expectedSeries.name shouldBe mockSeries.head.name
+    expectedSeries.code shouldBe mockSeries.head.code
+    expectedSeries.description shouldBe mockSeries.head.description
   }
 
   "getTransferringBodyOfConsignment" should "return the transferring body for a given consignment" in {
@@ -268,27 +259,17 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers
       fixedUuidSource)
 
     val consignmentId = UUID.fromString("d8383f9f-c277-49dc-b082-f6e266a39618")
-    val seriesId = UUID.fromString("bf55455e-2017-11eb-adc1-0242ac120002")
-    val userId = UUID.fromString("ceb8831c-2017-11eb-adc1-0242ac120002")
-    val datetime = Timestamp.from(FixedTimeSource.now)
-    val parentFolder = Option("Parent_folder")
     val bodyId = UUID.fromString("8eae8ed8-201c-11eb-adc1-0242ac120002")
-    val seriesName = Option("Mock series")
-    val seriesCode = Option("Mock series")
-    val seriesDescription = Option("Series description")
     val bodyName = Option("Mock department")
     val bodyCode = Option("Mock department")
     val bodyDescription = Option("Body description")
 
-    val mockConsignment = ConsignmentRow(consignmentId, seriesId, userId, datetime, parentFolder)
-    val mockSeries = SeriesRow(seriesId, bodyId, seriesName, seriesCode, seriesDescription)
-    val mockBody = BodyRow(bodyId, bodyName, bodyCode, bodyDescription)
-    val consignmentResult = Seq(ConsignmentResult(mockConsignment, mockSeries, mockBody))
+    val mockBody = Seq(BodyRow(bodyId, bodyName, bodyCode, bodyDescription))
 
-    when(consignmentRepoMock.getSeriesAndBodyOfConsignment(consignmentId)).thenReturn(Future.successful(consignmentResult))
+    when(consignmentRepoMock.getTransferringBodyOfConsignment(consignmentId)).thenReturn(Future.successful(mockBody))
 
     val expectedBody: ConsignmentFields.TransferringBody = service.getTransferringBodyOfConsignment(consignmentId).futureValue.get
 
-    expectedBody.name shouldBe mockBody.name
+    expectedBody.name shouldBe mockBody.head.name
   }
 }

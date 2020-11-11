@@ -23,13 +23,21 @@ class ConsignmentRepository(db: Database) {
     db.run(query.result)
   }
 
-  def getSeriesAndBodyOfConsignment(consignmentId: UUID)(implicit executionContext: ExecutionContext): Future[Seq[ConsignmentResult]] = {
+  def getSeriesOfConsignment(consignmentId: UUID)(implicit executionContext: ExecutionContext): Future[Seq[SeriesRow]] = {
+    val query = Consignment.join(Series)
+      .on(_.seriesid === _.seriesid)
+      .filter(_._1.consignmentid === consignmentId)
+      .map(rows => rows._2)
+    db.run(query.result)
+  }
+
+  def getTransferringBodyOfConsignment(consignmentId: UUID)(implicit executionContext: ExecutionContext): Future[Seq[BodyRow]] = {
     val query = Consignment.join(Series)
       .on(_.seriesid === _.seriesid).join(Body)
       .on(_._2.bodyid === _.bodyid)
       .filter(_._1._1.consignmentid === consignmentId)
-      .map(rows => (rows._1._1, rows._1._2, rows._2))
-    db.run(query.result).map(rows => rows.map(result => ConsignmentResult(result._1, result._2, result._3)))
+      .map(rows => rows._2)
+    db.run(query.result)
   }
 
   def consignmentHasFiles(consignmentId: UUID): Future[Boolean] = {
@@ -55,5 +63,3 @@ class ConsignmentRepository(db: Database) {
     db.run(query.result).map(_.headOption.flatten)
   }
 }
-
-case class ConsignmentResult(consignment: ConsignmentRow, series: SeriesRow, body: BodyRow)

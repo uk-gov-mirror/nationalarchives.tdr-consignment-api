@@ -56,21 +56,36 @@ class ConsignmentRepositorySpec extends AnyFlatSpec with ScalaFutures with Match
     parentFolderName should be(None)
   }
 
-  "getSeriesAndBodyOfConsignment" should "get the series name and transferring body name for a consignment" in {
+  "getSeriesOfConsignment" should "get the series for a consignment" in {
     val db = DbConnection.db
     val consignmentRepository = new ConsignmentRepository(db)
     val consignmentId = UUID.fromString("b59a8bfd-5709-46c7-a5e9-71bae146e2f1")
     val seriesId = UUID.fromString("1436ad43-73a2-4489-a774-85fa95daff32")
     val bodyId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
-    val seriesName = "Mock series"
-    val bodyName = "Body"
+    val seriesCode = "Mock series"
 
-    TestUtils.addSeries(seriesId, bodyId, seriesName)
+    TestUtils.addSeries(seriesId, bodyId, seriesCode)
     TestUtils.createConsignment(consignmentId, seriesId, userId)
 
-    val consignmentAndSeriesAndBody = consignmentRepository.getSeriesAndBodyOfConsignment(consignmentId).futureValue.head
+    val consignmentSeries = consignmentRepository.getSeriesOfConsignment(consignmentId).futureValue.head
 
-    consignmentAndSeriesAndBody.series.name.get should be(seriesName)
-    consignmentAndSeriesAndBody.body.name.get should be(bodyName)
+    consignmentSeries.code.get should be(seriesCode)
+  }
+
+  "getTransferringBodyOfConsignment" should "get the transferring body for a consignment" in {
+    val db = DbConnection.db
+    val consignmentRepository = new ConsignmentRepository(db)
+    val consignmentId = UUID.fromString("a3088f8a-59a3-4ab3-9e50-1677648e8186")
+    val seriesId = UUID.fromString("845a4589-d412-49d7-80c6-63969112728a")
+    val bodyId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
+    val seriesCode = "Mock series"
+    val bodyName = "Body"
+
+    TestUtils.addSeries(seriesId, bodyId, seriesCode)
+    TestUtils.createConsignment(consignmentId, seriesId, userId)
+
+    val consignmentBody = consignmentRepository.getTransferringBodyOfConsignment(consignmentId).futureValue.head
+
+    consignmentBody.name.get should be(bodyName)
   }
 }
