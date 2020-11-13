@@ -5,10 +5,10 @@ import java.util.UUID
 import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
-import sangria.schema.{Argument, Field, InputObjectType, IntType, ObjectType, OptionType, fields, StringType}
+import sangria.schema.{Argument, Field, InputObjectType, IntType, ObjectType, OptionType, StringType, fields}
 import uk.gov.nationalarchives.tdr.api.auth.{ValidateSeries, ValidateUserOwnsConsignment}
+import uk.gov.nationalarchives.tdr.api.graphql._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
-import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, DeferFileChecksProgress, DeferParentFolder, DeferTotalFiles}
 
 object ConsignmentFields {
   case class Consignment(consignmentid: UUID, userid: UUID, seriesid: UUID)
@@ -17,6 +17,7 @@ object ConsignmentFields {
   case class ChecksumProgress(filesProcessed: Int)
   case class FFIDProgress(filesProcessed: Int)
   case class FileChecks(antivirusProgress: AntivirusProgress, checksumProgress: ChecksumProgress, ffidProgress: FFIDProgress)
+  case class TransferringBody(name: Option[String])
 
   implicit val FileChecksType: ObjectType[Unit, FileChecks] =
     deriveObjectType[Unit, FileChecks]()
@@ -26,6 +27,8 @@ object ConsignmentFields {
     deriveObjectType[Unit, ChecksumProgress]()
   implicit val FfidProgressType: ObjectType[Unit, FFIDProgress] =
     deriveObjectType[Unit, FFIDProgress]()
+  implicit val TransferringBodyType: ObjectType[Unit, TransferringBody] =
+    deriveObjectType[Unit, TransferringBody]()
 
   implicit val ConsignmentType: ObjectType[Unit, Consignment] = ObjectType(
     "Consignment",
@@ -47,6 +50,16 @@ object ConsignmentFields {
         "parentFolder",
         OptionType(StringType),
         resolve = context => DeferParentFolder(context.value.consignmentid)
+      ),
+      Field(
+        "series",
+        OptionType(SeriesFields.SeriesType),
+        resolve = context => DeferConsignmentSeries(context.value.consignmentid)
+      ),
+      Field(
+        "transferringBody",
+        OptionType(TransferringBodyType),
+        resolve = context => DeferConsignmentBody(context.value.consignmentid)
       )
     )
   )
@@ -58,20 +71,20 @@ object ConsignmentFields {
 
   val queryFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("getConsignment", OptionType(ConsignmentType),
-      arguments=ConsignmentIdArg :: Nil,
+      arguments = ConsignmentIdArg :: Nil,
       resolve = ctx => ctx.ctx.consignmentService.getConsignment(ctx.arg(ConsignmentIdArg)),
-      tags=List(ValidateUserOwnsConsignment(ConsignmentIdArg))
-     )
+      tags = List(ValidateUserOwnsConsignment(ConsignmentIdArg))
+    )
   )
 
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("addConsignment", ConsignmentType,
-      arguments=ConsignmentInputArg :: Nil,
+      arguments = ConsignmentInputArg :: Nil,
       resolve = ctx => ctx.ctx.consignmentService.addConsignment(
         ctx.arg(ConsignmentInputArg),
         ctx.ctx.accessToken.userId.map(id => UUID.fromString(id))
       ),
-      tags=List(ValidateSeries)
+      tags = List(ValidateSeries)
     )
   )
 }

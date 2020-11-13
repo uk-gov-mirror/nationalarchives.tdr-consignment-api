@@ -4,10 +4,8 @@ import java.util.UUID
 
 import slick.jdbc.PostgresProfile.api._
 import slick.lifted.CompiledFunction
-import uk.gov.nationalarchives
-import uk.gov.nationalarchives.Tables
-import uk.gov.nationalarchives.Tables.{Consignment, ConsignmentRow, File}
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
+import uk.gov.nationalarchives.Tables.{Body, BodyRow, Consignment, ConsignmentRow, File, Series, SeriesRow}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -25,13 +23,30 @@ class ConsignmentRepository(db: Database) {
     db.run(query.result)
   }
 
+  def getSeriesOfConsignment(consignmentId: UUID)(implicit executionContext: ExecutionContext): Future[Seq[SeriesRow]] = {
+    val query = Consignment.join(Series)
+      .on(_.seriesid === _.seriesid)
+      .filter(_._1.consignmentid === consignmentId)
+      .map(rows => rows._2)
+    db.run(query.result)
+  }
+
+  def getTransferringBodyOfConsignment(consignmentId: UUID)(implicit executionContext: ExecutionContext): Future[Seq[BodyRow]] = {
+    val query = Consignment.join(Series)
+      .on(_.seriesid === _.seriesid).join(Body)
+      .on(_._2.bodyid === _.bodyid)
+      .filter(_._1._1.consignmentid === consignmentId)
+      .map(rows => rows._2)
+    db.run(query.result)
+  }
+
   def consignmentHasFiles(consignmentId: UUID): Future[Boolean] = {
     val query = File.filter(_.consignmentid === consignmentId).exists
     db.run(query.result)
   }
 
   def getConsignmentsOfFiles(fileIds: Seq[UUID])
-                            (implicit executionContext: ExecutionContext):Future[Seq[(UUID, ConsignmentRow)]] = {
+                            (implicit executionContext: ExecutionContext): Future[Seq[(UUID, ConsignmentRow)]] = {
     val query = for {
       (file, consignment) <- File.join(Consignment).on(_.consignmentid === _.consignmentid).filter(_._1.fileid.inSet(fileIds))
     } yield (file.fileid, consignment)

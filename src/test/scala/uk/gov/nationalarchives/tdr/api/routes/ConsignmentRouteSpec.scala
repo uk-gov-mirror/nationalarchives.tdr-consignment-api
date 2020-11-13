@@ -35,12 +35,16 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
                          seriesid: Option[UUID] = None,
                          totalFiles: Option[Int],
                          fileChecks: Option[FileChecks],
-                         parentFolder: Option[String]
+                         parentFolder: Option[String],
+                         series: Option[Series],
+                         transferringBody: Option[TransferringBody]
                         )
   case class FileChecks(antivirusProgress: Option[AntivirusProgress], checksumProgress: Option[ChecksumProgress], ffidProgress: Option[FfidProgress])
   case class AntivirusProgress(filesProcessed: Option[Int])
   case class ChecksumProgress(filesProcessed: Option[Int])
   case class FfidProgress(filesProcessed: Option[Int])
+  case class Series(seriesid: Option[UUID], bodyid: Option[UUID], name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
+  case class TransferringBody(name: Option[String])
   case class GetConsignment(getConsignment: Option[Consignment])
   case class AddConsignment(addConsignment: Consignment)
 
@@ -62,11 +66,11 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   "addConsignment" should "throw an error if the series id field isn't provided" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_seriesid_missing")
     val response: GraphqlMutationData = runTestMutation("mutation_missingseriesid", validUserToken())
-    response.errors.head.message should equal (expectedResponse.errors.head.message)
+    response.errors.head.message should equal(expectedResponse.errors.head.message)
   }
 
   "addConsignment" should "link a new consignment to the creating user" in {
-    createSeries(UUID.fromString(("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")))
+    createSeries(UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e"))
 
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
@@ -76,7 +80,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   }
 
   "addConsignment" should "not allow a user to link a consignment to a series from another transferring body" in {
-    createSeries(UUID.fromString(("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")))
+    createSeries(UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e"))
 
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken(body = "some-other-transferring-body"))
 
@@ -101,8 +105,6 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     createFile(UUID.fromString(fileTwoId), UUID.fromString(consignmentId))
     createFile(UUID.fromString(fileThreeId), UUID.fromString(consignmentId))
 
-    addParentFolderName(UUID.fromString(consignmentId), "ALL CONSIGNMENT DATA PARENT FOLDER")
-
     addAntivirusMetadata(fileOneId)
 
     val propertyId = "f62d1f66-db67-4a25-ac6f-b1ded92767b2"
@@ -113,6 +115,13 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     addFFIDMetadata(fileOneId)
     addFFIDMetadata(fileTwoId)
     addFFIDMetadata(fileThreeId)
+
+    addParentFolderName(UUID.fromString(consignmentId), "ALL CONSIGNMENT DATA PARENT FOLDER")
+
+    val bodyId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
+    val seriesName = "Mock series"
+    val bodyName = "Body"
+    addSeries(UUID.fromString(seriesId), bodyId, seriesName)
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_all")
     val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())
