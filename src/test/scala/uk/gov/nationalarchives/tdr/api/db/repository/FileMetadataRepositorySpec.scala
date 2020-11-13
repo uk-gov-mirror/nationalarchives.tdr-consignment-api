@@ -19,9 +19,8 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
     val db = DbConnection.db
     val fileMetadataRepository = new FileMetadataRepository(db)
     val consignmentId = UUID.fromString("c03fd4be-58c1-4cee-8d3c-d162bb4f7c01")
-    val seriesId = UUID.fromString("1436ad43-73a2-4489-a774-85fa95daff32")
 
-    TestUtils.createConsignment(consignmentId, seriesId, userId)
+    TestUtils.createConsignment(consignmentId, userId)
 
     val consignmentFiles = fileMetadataRepository.countProcessedChecksumInConsignment(consignmentId).futureValue
 
@@ -35,9 +34,8 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
     val fileOneId = UUID.fromString("2c2dedf5-56a1-497f-9f8a-19102739a056")
     val fileTwoId = UUID.fromString("c2d5c569-0fc4-4688-9523-157c4028f1b1")
     val fileThreeId = UUID.fromString("317c7084-d3d4-435b-acd2-cfb317793844")
-    val seriesId = UUID.fromString("1436ad43-73a2-4489-a774-85fa95daff32")
 
-    TestUtils.createConsignment(consignmentId, seriesId, userId)
+    TestUtils.createConsignment(consignmentId, userId)
     TestUtils.createFile(fileOneId, consignmentId)
     TestUtils.createFile(fileTwoId, consignmentId)
     TestUtils.createFile(fileThreeId, consignmentId)
@@ -54,7 +52,6 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
     val fileMetadataRepository = new FileMetadataRepository(db)
     val consignmentOne = UUID.fromString("049a11d7-06f5-4b11-b786-640000de76e2")
     val consignmentTwo = UUID.fromString("dc2acd2c-3370-44fe-aeae-16aee30dc410")
-    val seriesId = UUID.fromString("1436ad43-73a2-4489-a774-85fa95daff32")
     val fileOneId = "5a102380-25ec-4881-a484-87d56fe9a0b4"
     val fileTwoId = "f616272d-4d80-44cf-90de-996c3984847d"
     val fileThreeId = "40c67a87-70c0-4424-b934-a395459ddbe1"
@@ -64,8 +61,8 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
     val metadataThreeId = "efbd5da6-909a-45b1-964f-87a3baf48816"
 
 //  Need to create a consignment with files in it
-    TestUtils.createConsignment(consignmentOne, seriesId, userId)
-    TestUtils.createConsignment(consignmentTwo, seriesId, userId)
+    TestUtils.createConsignment(consignmentOne, userId)
+    TestUtils.createConsignment(consignmentTwo, userId)
     TestUtils.createFile(UUID.fromString(fileOneId), consignmentOne)
     TestUtils.createFile(UUID.fromString(fileTwoId), consignmentOne)
     TestUtils.createFile(UUID.fromString(fileThreeId), consignmentTwo)
@@ -86,13 +83,12 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
     val db = DbConnection.db
     val fileMetadataRepository = new FileMetadataRepository(db)
     val consignmentId = UUID.fromString("c6f78fef-704a-46a8-82c0-afa465199e66")
-    val seriesId = UUID.fromString("1436ad43-73a2-4489-a774-85fa95daff32")
     val fileOneId = "20e0676a-f0a1-4051-9540-e7df1344ac11"
     val fileTwoId = "b5111f11-4dca-4f92-8239-505da567b9d0"
     val propertyId = "7a1b272c-e2f7-4b8f-8291-5e9dc312edb7"
     val metadataId = "f4440f43-20c6-4b6c-811d-349e633617e5"
 
-    TestUtils.createConsignment(consignmentId, seriesId, userId)
+    TestUtils.createConsignment(consignmentId, userId)
     TestUtils.createFile(UUID.fromString(fileOneId), consignmentId)
     TestUtils.createFile(UUID.fromString(fileTwoId), consignmentId)
 

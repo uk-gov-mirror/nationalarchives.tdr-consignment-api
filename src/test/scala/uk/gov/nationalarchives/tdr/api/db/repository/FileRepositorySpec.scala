@@ -16,9 +16,8 @@ class FileRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers {
     val db = DbConnection.db
     val fileRepository = new FileRepository(db)
     val consignmentId = UUID.fromString("c03fd4be-58c1-4cee-8d3c-d162bb4f7c02")
-    val seriesId = UUID.fromString("1436ad43-73a2-4489-a774-85fa95daff32")
 
-    TestUtils.createConsignment(consignmentId, seriesId, userId)
+    TestUtils.createConsignment(consignmentId, userId)
 
     val consignmentFiles = fileRepository.countFilesInConsignment(consignmentId).futureValue
 
@@ -29,9 +28,8 @@ class FileRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers {
     val db = DbConnection.db
     val fileRepository = new FileRepository(db)
     val consignmentId = UUID.fromString("2e31c0ce-25e6-4bd7-a8a7-dc8bbb9335ba")
-    val seriesId = UUID.fromString("1436ad43-73a2-4489-a774-85fa95daff32")
 
-    TestUtils.createConsignment(consignmentId, seriesId, userId)
+    TestUtils.createConsignment(consignmentId, userId)
 
     TestUtils.createFile(UUID.fromString("4bde68aa-6212-45dc-9097-769b9f77dbd9"), consignmentId)
     TestUtils.createFile(UUID.fromString("d870fb86-0dd5-4025-98d3-11232690918b"), consignmentId)
@@ -47,9 +45,8 @@ class FileRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers {
     val db = DbConnection.db
     val fileRepository = new FileRepository(db)
     val consignmentId = UUID.fromString("64456c78-49bb-4bff-85c8-2fff053b9f8e")
-    val seriesId = UUID.fromString("1436ad43-73a2-4489-a774-85fa95daff32")
 
-    TestUtils.createConsignment(consignmentId, seriesId, userId)
+    TestUtils.createConsignment(consignmentId, userId)
     TestUtils.createFile(UUID.fromString("2c2dedf5-56a1-497f-9f8a-19102739a055"), consignmentId)
     TestUtils.createFile(UUID.fromString("c2d5c569-0fc4-4688-9523-157c4028f1b0"), consignmentId)
     TestUtils.createFile(UUID.fromString("317c7084-d3d4-435b-acd2-cfb317793843"), consignmentId)
@@ -66,14 +63,13 @@ class FileRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers {
     val fileRepository = new FileRepository(db)
     val consignmentOne = "049a11d7-06f5-4b11-b786-640000de76e1"
     val consignmentTwo = "dc2acd2c-3370-44fe-aeae-16aee30dc41f"
-    val seriesId = UUID.fromString("1436ad43-73a2-4489-a774-85fa95daff32")
     val fileOneId = "5a102380-25ec-4881-a484-87d56fe9a0b3"
     val fileTwoId = "f616272d-4d80-44cf-90de-996c3984847c"
     val fileThreeId = "40c67a87-70c0-4424-b934-a395459ddbe0"
 
 //  Need to create a consignment with files in it
-    TestUtils.createConsignment(UUID.fromString(consignmentOne), seriesId, userId)
-    TestUtils.createConsignment(UUID.fromString(consignmentTwo), seriesId, userId)
+    TestUtils.createConsignment(UUID.fromString(consignmentOne), userId)
+    TestUtils.createConsignment(UUID.fromString(consignmentTwo), userId)
     TestUtils.createFile(UUID.fromString(fileOneId), UUID.fromString(consignmentOne))
     TestUtils.createFile(UUID.fromString(fileTwoId), UUID.fromString(consignmentOne))
     TestUtils.createFile(UUID.fromString(fileThreeId), UUID.fromString(consignmentTwo))
@@ -92,11 +88,10 @@ class FileRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers {
     val db = DbConnection.db
     val fileRepository = new FileRepository(db)
     val consignmentId = "c6f78fef-704a-46a8-82c0-afa465199e65"
-    val seriesId = UUID.fromString("1436ad43-73a2-4489-a774-85fa95daff32")
     val fileOneId = "20e0676a-f0a1-4051-9540-e7df1344ac10"
     val fileTwoId = "b5111f11-4dca-4f92-8239-505da567b9df"
 
-    TestUtils.createConsignment(UUID.fromString(consignmentId), seriesId, userId)
+    TestUtils.createConsignment(UUID.fromString(consignmentId), userId)
     TestUtils.createFile(UUID.fromString(fileOneId), UUID.fromString(consignmentId))
     TestUtils.createFile(UUID.fromString(fileTwoId), UUID.fromString(consignmentId))
 
