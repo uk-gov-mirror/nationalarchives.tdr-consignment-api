@@ -22,8 +22,8 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
 
   val fixedUuidSource: FixedUUIDSource = mock[FixedUUIDSource]
   val bodyId: UUID = UUID.fromString("8eae8ed8-201c-11eb-adc1-0242ac120002")
-  val userId: UUID = UUID.randomUUID()
-  val seriesId: UUID = UUID.randomUUID()
+  val userId: UUID = UUID.fromString("8d415358-f68b-403b-a90a-daab3fd60109")
+  val seriesId: UUID = UUID.fromString("b6b19341-8c33-4272-8636-aafa1e3d98de")
   val consignmentId: UUID = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
   val seriesName: Option[String] = Option("Mock series")
   val seriesCode: Option[String] = Option("Mock series")
