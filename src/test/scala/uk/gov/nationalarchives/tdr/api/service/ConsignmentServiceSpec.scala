@@ -127,19 +127,19 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
     val mockSeries = Seq(SeriesRow(seriesId, bodyId, seriesName, seriesCode, seriesDescription))
     when(consignmentRepoMock.getSeriesOfConsignment(consignmentId)).thenReturn(Future.successful(mockSeries))
 
-    val expectedSeries: SeriesFields.Series = consignmentService.getSeriesOfConsignment(consignmentId).futureValue.get
-    expectedSeries.seriesid shouldBe mockSeries.head.seriesid
-    expectedSeries.bodyid shouldBe mockSeries.head.bodyid
-    expectedSeries.name shouldBe mockSeries.head.name
-    expectedSeries.code shouldBe mockSeries.head.code
-    expectedSeries.description shouldBe mockSeries.head.description
+    val series: SeriesFields.Series = consignmentService.getSeriesOfConsignment(consignmentId).futureValue.get
+    series.seriesid shouldBe mockSeries.head.seriesid
+    series.bodyid shouldBe mockSeries.head.bodyid
+    series.name shouldBe mockSeries.head.name
+    series.code shouldBe mockSeries.head.code
+    series.description shouldBe mockSeries.head.description
   }
 
   "getTransferringBodyOfConsignment" should "return the transferring body for a given consignment" in {
     val mockBody = Seq(BodyRow(bodyId, bodyName, bodyCode, bodyDescription))
     when(consignmentRepoMock.getTransferringBodyOfConsignment(consignmentId)).thenReturn(Future.successful(mockBody))
 
-    val expectedBody: ConsignmentFields.TransferringBody = consignmentService.getTransferringBodyOfConsignment(consignmentId).futureValue.get
-    expectedBody.name shouldBe mockBody.head.name
+    val body: ConsignmentFields.TransferringBody = consignmentService.getTransferringBodyOfConsignment(consignmentId).futureValue.get
+    body.name shouldBe mockBody.head.name
   }
 }
