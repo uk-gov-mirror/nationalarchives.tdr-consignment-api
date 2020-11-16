@@ -31,7 +31,7 @@ class Routes(val config: Config) extends Cors {
   def tokenAuthenticator(credentials: Credentials): Future[Option[Token]] = {
     credentials match {
       case Credentials.Provided(token) => Future {
-        KeycloakUtils(url).token(token)
+        KeycloakUtils(url).token(token).left.map(e => logger.error(e.getMessage, e)).toOption
       }
       case _ => Future.successful(None)
     }

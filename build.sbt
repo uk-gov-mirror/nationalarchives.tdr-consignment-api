@@ -13,7 +13,8 @@ scalacOptions ++= Seq("-deprecation", "-feature")
 
 resolvers ++= Seq[Resolver](
   "Sonatype Releases" at "https://dl.bintray.com/mockito/maven/",
-  "TDR Releases" at "s3://tdr-releases-mgmt"
+  "TDR Releases" at "s3://tdr-releases-mgmt",
+  "TDR Snapshots" at "s3://tdr-snapshots-mgmt"
 )
 
 mainClass in (Compile, run) := Some("uk.gov.nationalarchives.tdr.api.http.ApiServer")
@@ -58,7 +59,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-testkit" % "2.6.3" % Test,
   "com.tngtech.keycloakmock" % "mock" % "0.2.0" % Test,
   "com.h2database" % "h2" % "1.4.200" % Test,
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.13",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.20-SNAPSHOT",
   "io.github.hakky54" % "logcaptor" % "2.1.0" % Test
 )
 
