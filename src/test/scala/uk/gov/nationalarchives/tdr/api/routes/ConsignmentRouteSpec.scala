@@ -175,7 +175,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     response.data should equal(expectedResponse.data)
     val field = getConsignmentField(UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e"), _)
     Option(field("TransferInitiatedDatetime")).isDefined should equal(true)
-    field("TransferInitiatedBy") should equal("4ab14990-ed63-4615-8336-56fbb9960300")
+    field("TransferInitiatedBy") should equal(userId.toString)
   }
 
   private def insertConsignment(): Unit = {
