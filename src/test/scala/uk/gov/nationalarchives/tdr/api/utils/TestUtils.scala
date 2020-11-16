@@ -88,13 +88,14 @@ object TestUtils {
 
   def seedDatabaseWithDefaultEntries(): Unit = {
     val consignmentId = UUID.fromString("eb197bfb-43f7-40ca-9104-8f6cbda88506")
-    createConsignment(consignmentId, userId)
+    val seriesId = UUID.fromString("1436ad43-73a2-4489-a774-85fa95daff32")
+    createConsignment(consignmentId, userId, seriesId)
     createFile(defaultFileId, consignmentId)
     createClientFileMetadata(defaultFileId)
   }
 
-  def createConsignment(consignmentId: UUID, userId: UUID): Unit = {
-    val sql = s"insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES ('$consignmentId', 1, '$userId')"
+  def createConsignment(consignmentId: UUID, userId: UUID, seriesId: UUID = UUID.fromString("9e2e2a51-c2d0-4b99-8bef-2ca322528861")): Unit = {
+    val sql = s"insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES ('$consignmentId', '$seriesId', '$userId')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.executeUpdate()
   }
@@ -182,6 +183,16 @@ object TestUtils {
   def addParentFolderName(consignmentId: UUID, parentFolderName: String): Unit = {
     val sql = s"update Consignment set ParentFolder=\'${parentFolderName}\' where ConsignmentId=\'${consignmentId}\'"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+
+    ps.executeUpdate()
+  }
+
+  def addSeries(seriesId: UUID, bodyId: UUID, code: String): Unit = {
+    val sql = s"insert into Series (SeriesId, BodyId, Code) VALUES (?, ?, ?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, seriesId.toString)
+    ps.setString(2, bodyId.toString)
+    ps.setString(3, code)
 
     ps.executeUpdate()
   }

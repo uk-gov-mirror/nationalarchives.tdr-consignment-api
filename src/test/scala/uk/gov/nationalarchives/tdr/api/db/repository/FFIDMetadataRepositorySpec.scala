@@ -72,7 +72,6 @@ class FFIDMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
     val ffidMetadataRepository = new FFIDMetadataRepository(db)
     val consignmentId = UUID.fromString("21061d4d-ed73-485f-b433-c48b0868fffb")
 
-
     val fileOneId = "50f4f290-cdcc-4a0f-bd26-3bb40f320b71"
     val fileTwoId = "7f55565e-bfa5-4cf9-9e02-7e75ff033b3b"
     val fileThreeId = "89b6183d-e761-4af9-9e37-2ffa09922dba"
