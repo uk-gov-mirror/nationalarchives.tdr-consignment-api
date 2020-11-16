@@ -47,7 +47,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
 
   "createConsignment" should "create a consignment given correct arguments" in {
     when(consignmentRepoMock.addConsignment(any[ConsignmentRow])).thenReturn(mockResponse)
-    val result: Consignment = consignmentService.addConsignment(AddConsignmentInput(seriesId), Some(userId)).futureValue
+    val result: Consignment = consignmentService.addConsignment(AddConsignmentInput(seriesId), userId).futureValue
     result.consignmentid shouldBe consignmentId
     result.seriesid shouldBe seriesId
     result.userid shouldBe userId
@@ -58,7 +58,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
     val mockResponse = Future.successful(mockConsignment)
     when(consignmentRepoMock.addConsignment(any[ConsignmentRow])).thenReturn(mockResponse)
     when(fixedUuidSource.uuid).thenReturn(consignmentId)
-    consignmentService.addConsignment(AddConsignmentInput(seriesId), Some(userId)).futureValue
+    consignmentService.addConsignment(AddConsignmentInput(seriesId), userId).futureValue
 
     verify(consignmentRepoMock).addConsignment(expectedRow)
   }
@@ -162,9 +162,9 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
 
     val consignmentId = UUID.fromString("d8383f9f-c277-49dc-b082-f6e266a39618")
     val userId = UUID.randomUUID()
-    when(consignmentRepoMock.updateTransferInitiated(consignmentId, Option(userId), Timestamp.from(FixedTimeSource.now))).thenReturn(Future(1))
+    when(consignmentRepoMock.updateTransferInitiated(consignmentId, userId, Timestamp.from(FixedTimeSource.now))).thenReturn(Future(1))
 
-    val response = service.updateTransferInitiated(consignmentId, Option(userId)).futureValue
+    val response = service.updateTransferInitiated(consignmentId, userId).futureValue
 
     response should be(1)
   }

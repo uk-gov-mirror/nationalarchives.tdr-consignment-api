@@ -92,14 +92,14 @@ object ConsignmentFields {
       arguments = ConsignmentInputArg :: Nil,
       resolve = ctx => ctx.ctx.consignmentService.addConsignment(
         ctx.arg(ConsignmentInputArg),
-        ctx.ctx.accessToken.userId.map(id => UUID.fromString(id))
+        ctx.ctx.accessToken.userId
       ),
       tags = List(ValidateSeries)
     ),
     Field("updateTransferInitiated", OptionType(IntType),
       arguments = ConsignmentIdArg :: Nil,
       resolve = ctx => ctx.ctx.consignmentService.updateTransferInitiated(ctx.arg(ConsignmentIdArg),
-        ctx.ctx.accessToken.userId.map(id => UUID.fromString(id))),
+        ctx.ctx.accessToken.userId),
       tags = List(ValidateUserOwnsConsignment(ConsignmentIdArg))
     ),
     Field("updateExportLocation", OptionType(IntType),

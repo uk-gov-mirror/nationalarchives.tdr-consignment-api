@@ -20,7 +20,7 @@ class ConsignmentService(
                           uuidSource: UUIDSource
                         )(implicit val executionContext: ExecutionContext) {
 
-  def updateTransferInitiated(consignmentId: UUID, userId: Option[UUID]): Future[Int] = {
+  def updateTransferInitiated(consignmentId: UUID, userId: UUID): Future[Int] = {
     consignmentRepository.updateTransferInitiated(consignmentId, userId, Timestamp.from(timeSource.now))
   }
 
@@ -28,8 +28,8 @@ class ConsignmentService(
     consignmentRepository.updateExportLocation(exportLocationInput, Timestamp.from(timeSource.now))
   }
 
-  def addConsignment(addConsignmentInput: AddConsignmentInput, userId: Option[UUID]): Future[Consignment] = {
-    val consignmentRow = ConsignmentRow(uuidSource.uuid, addConsignmentInput.seriesid, userId.get, Timestamp.from(timeSource.now))
+  def addConsignment(addConsignmentInput: AddConsignmentInput, userId: UUID): Future[Consignment] = {
+    val consignmentRow = ConsignmentRow(uuidSource.uuid, addConsignmentInput.seriesid, userId, Timestamp.from(timeSource.now))
     consignmentRepository.addConsignment(consignmentRow).map(row => Consignment(row.consignmentid, row.userid, row.seriesid))
   }
 

@@ -24,7 +24,7 @@ object FileMetadataFields {
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("addFileMetadata", FileMetadataType,
       arguments=FileMetadataInputArg :: Nil,
-      resolve = ctx => ctx.ctx.fileMetadataService.addFileMetadata(ctx.arg(FileMetadataInputArg), ctx.ctx.accessToken.userId.map(id => UUID.fromString(id))),
+      resolve = ctx => ctx.ctx.fileMetadataService.addFileMetadata(ctx.arg(FileMetadataInputArg), ctx.ctx.accessToken.userId),
       tags=List(ValidateHasChecksumMetadataAccess)
     ))
 }

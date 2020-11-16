@@ -13,6 +13,7 @@ import akka.stream.Materializer
 import com.typesafe.config._
 import com.typesafe.scalalogging.Logger
 import spray.json.JsValue
+import uk.gov.nationalarchives.tdr.api.auth.AuthorisationException
 import uk.gov.nationalarchives.tdr.keycloak.{KeycloakUtils, Token}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -31,7 +32,11 @@ class Routes(val config: Config) extends Cors {
   def tokenAuthenticator(credentials: Credentials): Future[Option[Token]] = {
     credentials match {
       case Credentials.Provided(token) => Future {
-        KeycloakUtils(url).token(token).left.map(e => logger.error(e.getMessage, e)).toOption
+        KeycloakUtils(url).token(token).left.map(
+          e => {
+            logger.error(e.getMessage, e)
+            AuthorisationException(e.getMessage)
+          }).toOption
       }
       case _ => Future.successful(None)
     }

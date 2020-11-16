@@ -37,7 +37,7 @@ object ValidateBody extends SyncAuthorisationTag {
     val bodyFromToken: String = token.transferringBody.getOrElse("")
 
     if(bodyFromToken != bodyArg) {
-      val msg = s"Body for user ${token.userId.getOrElse("")} was $bodyArg in the query and $bodyFromToken in the token"
+      val msg = s"Body for user ${token.userId} was $bodyArg in the query and $bodyFromToken in the token"
       throw AuthorisationException(msg)
     }
     continue
@@ -49,7 +49,7 @@ object ValidateSeries extends AuthorisationTag {
                        (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val token = ctx.ctx.accessToken
     val userBody = token.transferringBody.getOrElse(
-      throw AuthorisationException(s"No transferring body in user token for user '${token.userId.getOrElse("")}'"))
+      throw AuthorisationException(s"No transferring body in user token for user '${token.userId}'"))
 
     val addConsignmentInput = ctx.arg[AddConsignmentInput]("addConsignmentInput")
     val bodyResult = ctx.ctx.transferringBodyService.getBody(addConsignmentInput.seriesid)
@@ -72,7 +72,7 @@ case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends Authori
   override def validateAsync(ctx: Context[ConsignmentApiContext, _])
                        (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val token = ctx.ctx.accessToken
-    val userId = token.userId.getOrElse("")
+    val userId = token.userId
 
     val arg: T = ctx.arg[T](argument.name)
     val consignmentId: UUID = arg match {
@@ -87,7 +87,7 @@ case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends Authori
           throw AuthorisationException("Invalid consignment id")
         }
 
-        if (consignment.get.userid.toString == userId) {
+        if (consignment.get.userid == userId) {
           continue
         } else {
           throw AuthorisationException(s"User '$userId' does not own consignment '$consignmentId'")
@@ -100,8 +100,7 @@ object ValidateUserOwnsFiles extends AuthorisationTag {
   override def validateAsync(ctx: Context[ConsignmentApiContext, _])
                        (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val token = ctx.ctx.accessToken
-    val tokenUserId = token.userId.getOrElse(
-      throw AuthorisationException(s"No user ID in token"))
+    val tokenUserId = token.userId
 
     val queryInput = ctx.arg[Seq[AddClientFileMetadataInput]]("addClientFileMetadataInput")
 
@@ -109,7 +108,7 @@ object ValidateUserOwnsFiles extends AuthorisationTag {
     ctx.ctx.fileService
       .getOwnersOfFiles(fileIds)
       .map(fileOwnership => {
-        val otherUsersFiles = fileOwnership.filter(_.userId.toString != tokenUserId)
+        val otherUsersFiles = fileOwnership.filter(_.userId != tokenUserId)
 
         otherUsersFiles match {
           case Nil => continue
@@ -128,7 +127,7 @@ object ValidateHasAntiVirusMetadataAccess extends SyncAuthorisationTag {
     if (antivirusAccess) {
       continue
     } else {
-      val tokenUserId = token.userId.getOrElse("")
+      val tokenUserId = token.userId
       throw AuthorisationException(s"User '$tokenUserId' does not have permission to update antivirus metadata")
     }
   }
@@ -142,7 +141,7 @@ object ValidateHasChecksumMetadataAccess extends SyncAuthorisationTag {
     if (checksumAccess) {
       continue
     } else {
-      val tokenUserId = token.userId.getOrElse("")
+      val tokenUserId = token.userId
       throw AuthorisationException(s"User '$tokenUserId' does not have permission to update checksum metadata")
     }
   }
@@ -157,7 +156,7 @@ object ValidateHasClientFileMetadataAccess extends SyncAuthorisationTag {
     if (clientFileMetadataAccess) {
       continue
     } else {
-      val tokenUserId = token.userId.getOrElse("")
+      val tokenUserId = token.userId
       throw AuthorisationException(s"User '$tokenUserId' does not have permission to access the client file metadata for file $fileId")
     }
   }
@@ -170,7 +169,7 @@ object ValidateHasFFIDMetadataAccess extends SyncAuthorisationTag {
     if (fileFormatAccess) {
       continue
     } else {
-      val tokenUserId = token.userId.getOrElse("")
+      val tokenUserId = token.userId
       throw AuthorisationException(s"User '$tokenUserId' does not have permission to update file format metadata")
     }
   }
@@ -183,7 +182,7 @@ object ValidateHasExportAccess extends SyncAuthorisationTag {
     if (exportAccess) {
       continue
     } else {
-      val tokenUserId = token.userId.getOrElse("")
+      val tokenUserId = token.userId
       throw AuthorisationException(s"User '$tokenUserId' does not have permission to export the files")
     }
   }

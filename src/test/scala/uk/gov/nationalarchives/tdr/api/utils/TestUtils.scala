@@ -57,6 +57,7 @@ object TestUtils {
 
   def invalidBackendChecksToken(): OAuth2BearerToken = OAuth2BearerToken(tdrMock.getAccessToken(
     aTokenConfig()
+      .withClaim("user_id", backendChecksUser)
       .withResourceRole("tdr-backend-checks", "some_role").build
   ))
 

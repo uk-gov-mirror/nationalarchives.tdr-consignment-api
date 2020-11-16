@@ -25,10 +25,10 @@ class ConsignmentRepository(db: Database) {
     db.run(update)
   }
 
-  def updateTransferInitiated(consignmentId: UUID, userId: Option[UUID], timestamp: Timestamp): Future[Int] = {
+  def updateTransferInitiated(consignmentId: UUID, userId: UUID, timestamp: Timestamp): Future[Int] = {
     val update = Consignment.filter(_.consignmentid === consignmentId)
       .map(c => (c.transferinitiateddatetime, c.transferinitiatedby))
-      .update((Option(timestamp), userId))
+      .update((Option(timestamp), Some(userId)))
     db.run(update)
   }
 
