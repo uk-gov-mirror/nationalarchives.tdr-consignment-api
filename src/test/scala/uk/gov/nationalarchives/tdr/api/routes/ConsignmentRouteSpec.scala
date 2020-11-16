@@ -158,7 +158,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   }
 
   "updateExportLocation" should "update the export location correctly" in {
-    insertConsignment()
+    createConsignment(new FixedUUIDSource().uuid, userId)
     val prefix = "json/updateexportlocation_"
     val expectedResponse = getDataFromFile[GraphqlMutationExportLocation](prefix)("data_all")
     val token = validBackendChecksToken("export")
@@ -168,7 +168,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   }
 
   "updateTransferInitiated" should "update the transfer initiated date correctly" in {
-    insertConsignment()
+    createConsignment(new FixedUUIDSource().uuid, userId)
     val prefix = "json/updatetransferinitiated_"
     val expectedResponse = getDataFromFile[GraphqlMutationTransferInitiated](prefix)("data_all")
     val response: GraphqlMutationTransferInitiated = runTestRequest[GraphqlMutationTransferInitiated](prefix)("mutation_all", validUserToken())
@@ -176,18 +176,6 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     val field = getConsignmentField(UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e"), _)
     Option(field("TransferInitiatedDatetime")).isDefined should equal(true)
     field("TransferInitiatedBy") should equal(userId.toString)
-  }
-
-  private def insertConsignment(): Unit = {
-    val fixedUuidSource = new FixedUUIDSource()
-    fixedUuidSource.reset
-    val sql = "insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES (?,?,?)"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    val uuid = fixedUuidSource.uuid.toString
-    ps.setString(1, uuid)
-    ps.setString(2, uuid)
-    ps.setString(3, userId.toString)
-    ps.executeUpdate()
   }
 
   private def getConsignment(consignmentId: UUID) = {
