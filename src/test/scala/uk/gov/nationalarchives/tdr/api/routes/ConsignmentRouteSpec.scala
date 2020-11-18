@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.tdr.api.routes
 
-import java.sql.{Connection, PreparedStatement, ResultSet}
+import java.sql.{Connection, PreparedStatement}
 import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
@@ -191,19 +191,19 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     val sql = s"select * from Consignment where ConsignmentId = ?"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, consignmentId.toString)
-    ps.executeQuery()
+    val result = ps.executeQuery()
+    result.next()
+    result
   }
 
   private def checkConsignmentExists(consignmentId: UUID): Unit = {
-    val rs = getConsignment(consignmentId)
-    rs.next()
-    rs.getString("ConsignmentId") should equal(consignmentId.toString)
+    val result = getConsignment(consignmentId)
+    result.getString("ConsignmentId") should equal(consignmentId.toString)
   }
 
   private def getConsignmentField(consignmentId: UUID, field: String): String = {
-    val rs = getConsignment(consignmentId)
-    rs.next()
-    rs.getString(field)
+    val result = getConsignment(consignmentId)
+    result.getString(field)
   }
 
   private def createSeries(bodyId: UUID): Unit = {
