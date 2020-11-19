@@ -21,6 +21,10 @@ CREATE TABLE IF NOT EXISTS Consignment (
   UserId uuid DEFAULT NULL,
   Datetime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   ParentFolder varchar(255),
+  TransferInitiatedDatetime timestamp with time zone,
+  TransferInitiatedBy uuid,
+  ExportDatetime timestamp with time zone,
+  ExportLocation text,
   PRIMARY KEY (ConsignmentId)
 );
 

@@ -10,10 +10,10 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.{BodyRow, ConsignmentRow, SeriesRow}
-import uk.gov.nationalarchives.tdr.api.db.repository._
-import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AddConsignmentInput, Consignment, FileChecks}
+import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentRepository, FFIDMetadataRepository, FileMetadataRepository, FileRepository}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AddConsignmentInput, Consignment, FileChecks, UpdateExportLocationInput}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.{ConsignmentFields, SeriesFields}
-import uk.gov.nationalarchives.tdr.api.utils.FixedTimeSource
+import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -47,7 +47,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
 
   "createConsignment" should "create a consignment given correct arguments" in {
     when(consignmentRepoMock.addConsignment(any[ConsignmentRow])).thenReturn(mockResponse)
-    val result: Consignment = consignmentService.addConsignment(AddConsignmentInput(seriesId), Some(userId)).futureValue
+    val result: Consignment = consignmentService.addConsignment(AddConsignmentInput(seriesId), userId).futureValue
     result.consignmentid shouldBe consignmentId
     result.seriesid shouldBe seriesId
     result.userid shouldBe userId
@@ -58,7 +58,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
     val mockResponse = Future.successful(mockConsignment)
     when(consignmentRepoMock.addConsignment(any[ConsignmentRow])).thenReturn(mockResponse)
     when(fixedUuidSource.uuid).thenReturn(consignmentId)
-    consignmentService.addConsignment(AddConsignmentInput(seriesId), Some(userId)).futureValue
+    consignmentService.addConsignment(AddConsignmentInput(seriesId), userId).futureValue
 
     verify(consignmentRepoMock).addConsignment(expectedRow)
   }
@@ -121,6 +121,52 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
 
     val parentFolderResult: Option[String] = consignmentService.getConsignmentParentFolder(consignmentId).futureValue
     parentFolderResult shouldBe parentFolder
+  }
+
+  "updateExportLocation" should "update the export location for a given consignment" in {
+    val consignmentRepoMock = mock[ConsignmentRepository]
+    val fileMetadataRepositoryMock = mock[FileMetadataRepository]
+    val fileRepositoryMock = mock[FileRepository]
+    val ffidMetadataRepositoryMock = mock[FFIDMetadataRepository]
+    val fixedUuidSource = new FixedUUIDSource()
+
+    val service: ConsignmentService = new ConsignmentService(consignmentRepoMock,
+      fileMetadataRepositoryMock,
+      fileRepositoryMock,
+      ffidMetadataRepositoryMock,
+      FixedTimeSource,
+      fixedUuidSource)
+
+    val consignmentId = UUID.fromString("d8383f9f-c277-49dc-b082-f6e266a39618")
+    val input = UpdateExportLocationInput(consignmentId, "exportLocation")
+    when(consignmentRepoMock.updateExportLocation(input, Timestamp.from(FixedTimeSource.now))).thenReturn(Future(1))
+
+    val response = service.updateExportLocation(input).futureValue
+
+    response should be(1)
+  }
+
+  "updateTransferInitiated" should "update the transfer initiated fields for a given consignment" in {
+    val consignmentRepoMock = mock[ConsignmentRepository]
+    val fileMetadataRepositoryMock = mock[FileMetadataRepository]
+    val fileRepositoryMock = mock[FileRepository]
+    val ffidMetadataRepositoryMock = mock[FFIDMetadataRepository]
+    val fixedUuidSource = new FixedUUIDSource()
+
+    val service: ConsignmentService = new ConsignmentService(consignmentRepoMock,
+      fileMetadataRepositoryMock,
+      fileRepositoryMock,
+      ffidMetadataRepositoryMock,
+      FixedTimeSource,
+      fixedUuidSource)
+
+    val consignmentId = UUID.fromString("d8383f9f-c277-49dc-b082-f6e266a39618")
+    val userId = UUID.randomUUID()
+    when(consignmentRepoMock.updateTransferInitiated(consignmentId, userId, Timestamp.from(FixedTimeSource.now))).thenReturn(Future(1))
+
+    val response = service.updateTransferInitiated(consignmentId, userId).futureValue
+
+    response should be(1)
   }
 
   "getSeriesOfConsignment" should "return the series for a given consignment" in {

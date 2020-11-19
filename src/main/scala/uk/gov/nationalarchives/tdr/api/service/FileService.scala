@@ -17,9 +17,9 @@ class FileService(
                    uuidSource: UUIDSource
                  )(implicit val executionContext: ExecutionContext) {
 
-  def addFile(addFilesInput: AddFilesInput, userId: Option[UUID]): Future[Files] = {
+  def addFile(addFilesInput: AddFilesInput, userId: UUID): Future[Files] = {
     val rows: Seq[nationalarchives.Tables.FileRow] = List.fill(addFilesInput.numberOfFiles)(1)
-      .map(_ => FileRow(uuidSource.uuid, addFilesInput.consignmentId, userId.get, Timestamp.from(timeSource.now)))
+      .map(_ => FileRow(uuidSource.uuid, addFilesInput.consignmentId, userId, Timestamp.from(timeSource.now)))
 
     consignmentRepository.addParentFolder(addFilesInput.consignmentId, addFilesInput.parentFolder)
       .flatMap(_ => fileRepository.addFiles(rows).map(_.map(_.fileid)).map(fileids => Files(fileids)))
@@ -32,6 +32,10 @@ class FileService(
 
   def fileCount(consignmentId: UUID): Future[Int] = {
     fileRepository.countFilesInConsignment(consignmentId)
+  }
+
+  def getFiles(consignmentId: UUID): Future[Files] = {
+    fileRepository.getFiles(consignmentId).map(r => Files(r.map(_.fileid)))
   }
 }
 

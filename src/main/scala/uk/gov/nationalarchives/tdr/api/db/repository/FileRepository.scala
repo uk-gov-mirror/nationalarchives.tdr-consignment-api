@@ -11,6 +11,11 @@ import scala.concurrent.Future
 class FileRepository(db: Database) {
   private val insertQuery = File  returning File.map(_.fileid)into ((file, fileid) => file.copy(fileid = fileid))
 
+  def getFiles(consignmentId: UUID): Future[Seq[Tables.FileRow]] = {
+    val query = File.filter(_.consignmentid === consignmentId)
+    db.run(query.result)
+  }
+
   def addFiles(fileRows: Seq[FileRow]): Future[Seq[Tables.FileRow]] = {
     db.run(insertQuery ++= fileRows)
   }
