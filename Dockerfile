@@ -1,9 +1,6 @@
 FROM openjdk:16-jdk-alpine
 #For alpine versions need to create a group before adding a user to the image
 RUN addgroup --system apigroup && adduser --system apiuser -G apigroup
-RUN apk update
-RUN apk upgrade
-RUN apk add bash
 WORKDIR api
 COPY target/scala-2.13/consignmentapi.jar /api
 RUN chown -R apiuser /api
