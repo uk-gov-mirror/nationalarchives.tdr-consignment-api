@@ -34,7 +34,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     when(consignmentRepositoryMock.addParentFolder(consignmentId, Option("Parent folder name"))).thenReturn(mockConsignmentResponse)
 
     val fileService = new FileService(fileRepositoryMock, consignmentRepositoryMock, FixedTimeSource, fixedUuidSource)
-    val result: Files = fileService.addFile(AddFilesInput(consignmentId, 1, Option("Parent folder name")), Option(uuid)).futureValue
+    val result: Files = fileService.addFile(AddFilesInput(consignmentId, 1, Option("Parent folder name")), uuid).futureValue
 
     result.fileIds shouldBe List(fileId)
   }
@@ -62,7 +62,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     when(consignmentRepositoryMock.addParentFolder(consignmentUuid, Option("Parent folder name"))).thenReturn(mockConsignmentResponse)
 
     val fileService = new FileService(fileRepositoryMock, consignmentRepositoryMock, FixedTimeSource, fixedUuidSource)
-    val result: Files = fileService.addFile(AddFilesInput(consignmentUuid, 3, Option("Parent folder name")),Some(userUuid)).futureValue
+    val result: Files = fileService.addFile(AddFilesInput(consignmentUuid, 3, Option("Parent folder name")),userUuid).futureValue
 
     captor.getAllValues.size should equal(1)
     captor.getAllValues.get(0).length should equal(3)
@@ -88,7 +88,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     val mockConsignmentResponse = Future.successful(())
     when(consignmentRepositoryMock.addParentFolder(consignmentUuid, Option("Parent folder name"))).thenReturn(mockConsignmentResponse)
 
-    fileService.addFile(AddFilesInput(consignmentUuid, 1, Option("Parent folder name")),Some(userId)).futureValue
+    fileService.addFile(AddFilesInput(consignmentUuid, 1, Option("Parent folder name")),userId).futureValue
 
     verify(fileRepositoryMock).addFiles(expectedRow)
     captor.getAllValues.size should equal(1)
@@ -122,5 +122,27 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
 
     owners(0).userId should equal(userId1)
     owners(1).userId should equal(userId2)
+  }
+
+  "getFiles" should "return all the files" in {
+    val fixedUuidSource = new FixedUUIDSource()
+    val uuid = UUID.randomUUID()
+    val fileIdOne = UUID.randomUUID()
+    val fileIdTwo = UUID.randomUUID()
+    val consignmentId = UUID.randomUUID()
+
+    val fileRepositoryMock = mock[FileRepository]
+    val consignmentRepositoryMock = mock[ConsignmentRepository]
+
+    val mockFileResponse = Future.successful(List(
+      FileRow(fileIdOne, consignmentId, uuid, Timestamp.from(Instant.now)),
+      FileRow(fileIdTwo, consignmentId, uuid, Timestamp.from(Instant.now))
+    ))
+    when(fileRepositoryMock.getFiles(any[UUID])).thenReturn(mockFileResponse)
+
+    val fileService = new FileService(fileRepositoryMock, consignmentRepositoryMock, FixedTimeSource, fixedUuidSource)
+    val result: Files = fileService.getFiles(consignmentId).futureValue
+
+    result.fileIds shouldBe List(fileIdOne, fileIdTwo)
   }
 }

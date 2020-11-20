@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.tdr.api.routes
 
-import java.sql.{Connection, PreparedStatement, ResultSet}
+import java.sql.{Connection, PreparedStatement}
 import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
@@ -30,6 +30,8 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
   case class GraphqlQueryData(data: Option[GetConsignment], errors: List[GraphqlError] = Nil)
   case class GraphqlMutationData(data: Option[AddConsignment], errors: List[GraphqlError] = Nil)
+  case class GraphqlMutationExportLocation(data: Option[UpdateExportLocation])
+  case class GraphqlMutationTransferInitiated(data: Option[UpdateTransferInitiated])
   case class Consignment(consignmentid: Option[UUID] = None,
                          userid: Option[UUID] = None,
                          seriesid: Option[UUID] = None,
@@ -47,6 +49,8 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   case class TransferringBody(name: Option[String])
   case class GetConsignment(getConsignment: Option[Consignment])
   case class AddConsignment(addConsignment: Consignment)
+  case class UpdateExportLocation(updateExportLocation: Int)
+  case class UpdateTransferInitiated(updateTransferInitiated: Int)
 
   val runTestQuery: (String, OAuth2BearerToken) => GraphqlQueryData = runTestRequest[GraphqlQueryData](getConsignmentJsonFilePrefix)
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData = runTestRequest[GraphqlMutationData](addConsignmentJsonFilePrefix)
@@ -162,13 +166,44 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     response.errors.head.message should equal(expectedResponse.errors.head.message)
   }
 
-  private def checkConsignmentExists(consignmentId: UUID): Unit = {
+  "updateExportLocation" should "update the export location correctly" in {
+    createConsignment(new FixedUUIDSource().uuid, userId)
+    val prefix = "json/updateexportlocation_"
+    val expectedResponse = getDataFromFile[GraphqlMutationExportLocation](prefix)("data_all")
+    val token = validBackendChecksToken("export")
+    val response: GraphqlMutationExportLocation = runTestRequest[GraphqlMutationExportLocation](prefix)("mutation_all", token)
+    response.data should equal(expectedResponse.data)
+    getConsignmentField(UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e"), "ExportLocation") should equal("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e.tar.gz")
+  }
+
+  "updateTransferInitiated" should "update the transfer initiated date correctly" in {
+    createConsignment(new FixedUUIDSource().uuid, userId)
+    val prefix = "json/updatetransferinitiated_"
+    val expectedResponse = getDataFromFile[GraphqlMutationTransferInitiated](prefix)("data_all")
+    val response: GraphqlMutationTransferInitiated = runTestRequest[GraphqlMutationTransferInitiated](prefix)("mutation_all", validUserToken())
+    response.data should equal(expectedResponse.data)
+    val field = getConsignmentField(UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e"), _)
+    Option(field("TransferInitiatedDatetime")).isDefined should equal(true)
+    field("TransferInitiatedBy") should equal(userId.toString)
+  }
+
+  private def getConsignment(consignmentId: UUID) = {
     val sql = s"select * from Consignment where ConsignmentId = ?"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, consignmentId.toString)
-    val rs: ResultSet = ps.executeQuery()
-    rs.next()
-    rs.getString("ConsignmentId") should equal(consignmentId.toString)
+    val result = ps.executeQuery()
+    result.next()
+    result
+  }
+
+  private def checkConsignmentExists(consignmentId: UUID): Unit = {
+    val result = getConsignment(consignmentId)
+    result.getString("ConsignmentId") should equal(consignmentId.toString)
+  }
+
+  private def getConsignmentField(consignmentId: UUID, field: String): String = {
+    val result = getConsignment(consignmentId)
+    result.getString(field)
   }
 
   private def createSeries(bodyId: UUID): Unit = {

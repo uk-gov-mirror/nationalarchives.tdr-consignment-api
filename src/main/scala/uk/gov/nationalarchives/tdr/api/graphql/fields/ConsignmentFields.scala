@@ -6,18 +6,26 @@ import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
 import sangria.schema.{Argument, Field, InputObjectType, IntType, ObjectType, OptionType, StringType, fields}
-import uk.gov.nationalarchives.tdr.api.auth.{ValidateSeries, ValidateUserOwnsConsignment}
+import uk.gov.nationalarchives.tdr.api.auth.{ValidateHasExportAccess, ValidateSeries, ValidateUserOwnsConsignment}
 import uk.gov.nationalarchives.tdr.api.graphql._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 
 object ConsignmentFields {
+
   case class Consignment(consignmentid: UUID, userid: UUID, seriesid: UUID)
+
   case class AddConsignmentInput(seriesid: UUID)
+
   case class AntivirusProgress(filesProcessed: Int)
+
   case class ChecksumProgress(filesProcessed: Int)
+
   case class FFIDProgress(filesProcessed: Int)
+
   case class FileChecks(antivirusProgress: AntivirusProgress, checksumProgress: ChecksumProgress, ffidProgress: FFIDProgress)
   case class TransferringBody(name: Option[String])
+
+  case class UpdateExportLocationInput(consignmentId: UUID, exportLocation: String)
 
   implicit val FileChecksType: ObjectType[Unit, FileChecks] =
     deriveObjectType[Unit, FileChecks]()
@@ -65,9 +73,11 @@ object ConsignmentFields {
   )
 
   implicit val AddConsignmentInputType: InputObjectType[AddConsignmentInput] = deriveInputObjectType[AddConsignmentInput]()
+  implicit val UpdateExportLocationInputType: InputObjectType[UpdateExportLocationInput] = deriveInputObjectType[UpdateExportLocationInput]()
 
   val ConsignmentInputArg: Argument[AddConsignmentInput] = Argument("addConsignmentInput", AddConsignmentInputType)
   val ConsignmentIdArg: Argument[UUID] = Argument("consignmentid", UuidType)
+  val ExportLocationArg: Argument[UpdateExportLocationInput] = Argument("exportLocation", UpdateExportLocationInputType)
 
   val queryFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("getConsignment", OptionType(ConsignmentType),
@@ -82,9 +92,20 @@ object ConsignmentFields {
       arguments = ConsignmentInputArg :: Nil,
       resolve = ctx => ctx.ctx.consignmentService.addConsignment(
         ctx.arg(ConsignmentInputArg),
-        ctx.ctx.accessToken.userId.map(id => UUID.fromString(id))
+        ctx.ctx.accessToken.userId
       ),
       tags = List(ValidateSeries)
+    ),
+    Field("updateTransferInitiated", OptionType(IntType),
+      arguments = ConsignmentIdArg :: Nil,
+      resolve = ctx => ctx.ctx.consignmentService.updateTransferInitiated(ctx.arg(ConsignmentIdArg),
+        ctx.ctx.accessToken.userId),
+      tags = List(ValidateUserOwnsConsignment(ConsignmentIdArg))
+    ),
+    Field("updateExportLocation", OptionType(IntType),
+      arguments = ExportLocationArg :: Nil,
+      resolve = ctx => ctx.ctx.consignmentService.updateExportLocation(ctx.arg(ExportLocationArg)),
+      tags = List(ValidateHasExportAccess)
     )
   )
 }

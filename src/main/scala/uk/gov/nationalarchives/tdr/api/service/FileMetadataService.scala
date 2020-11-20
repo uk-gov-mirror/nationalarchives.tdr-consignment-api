@@ -15,13 +15,13 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository, filePr
                           clientFileMetadataService: ClientFileMetadataService,
                           timeSource: TimeSource, uuidSource: UUIDSource)(implicit val ec: ExecutionContext) {
 
-  def addFileMetadata(addFileMetadataInput: AddFileMetadataInput, userId: Option[UUID]): Future[FileMetadata] = {
+  def addFileMetadata(addFileMetadataInput: AddFileMetadataInput, userId: UUID): Future[FileMetadata] = {
     def row(property: FilepropertyRow) = FilemetadataRow(uuidSource.uuid,
       addFileMetadataInput.fileId,
       property.propertyid,
       addFileMetadataInput.value,
       Timestamp.from(timeSource.now),
-      userId.get)
+      userId)
     val filePropertyName = addFileMetadataInput.filePropertyName
 
     filePropertyName match {
