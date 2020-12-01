@@ -1,9 +1,13 @@
 FROM openjdk:16-jdk-alpine
 #For alpine versions need to create a group before adding a user to the image
-RUN addgroup --system apigroup && adduser --system apiuser -G apigroup
 WORKDIR api
+RUN addgroup --system apigroup && adduser --system apiuser -G apigroup && \
+    apk update && \
+    apk add ca-certificates && \
+    chown -R apiuser /api && \
+    wget https://s3.amazonaws.com/rds-downloads/rds-ca-2019-root.pem -O /usr/local/share/ca-certificates/aws.pem && \
+    update-ca-certificates
 COPY target/scala-2.13/consignmentapi.jar /api
-RUN chown -R apiuser /api
 
 USER apiuser
 CMD java -Dconfig.resource=application.$ENVIRONMENT.conf \
