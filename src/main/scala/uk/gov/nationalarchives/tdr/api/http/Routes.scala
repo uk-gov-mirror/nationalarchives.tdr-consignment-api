@@ -26,9 +26,8 @@ class Routes(val config: Config) extends Cors {
   implicit val materializer: Materializer = Materializer(system)
   implicit val executionContext: ExecutionContext = system.dispatcher
   val url: String = config.getString("auth.url")
-  implicit val keycloakDeployment: TdrKeycloakDeployment = TdrKeycloakDeployment(url, "tdr", 3600)
-
-  val ttlSeconds: Int = 10
+  val ttlSeconds: Int = 3600
+  implicit val keycloakDeployment: TdrKeycloakDeployment = TdrKeycloakDeployment(url, "tdr", ttlSeconds)
 
   // We return None rather than a failed future because we're following the async authenticator docs
   // https://doc.akka.io/docs/akka-http/10.0/routing-dsl/directives/security-directives/authenticateOAuth2Async.html
