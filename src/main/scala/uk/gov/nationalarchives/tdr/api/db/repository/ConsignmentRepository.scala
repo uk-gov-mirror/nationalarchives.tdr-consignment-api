@@ -67,8 +67,8 @@ class ConsignmentRepository(db: Database) {
     db.run(query.result)
   }
 
-  def addParentFolder(consignmentId: UUID, parentFolder: Option[String])(implicit executionContext: ExecutionContext): Future[Unit] = {
-    val updateAction = Consignment.filter(_.consignmentid === consignmentId).map(c => c.parentfolder).update(parentFolder)
+  def addParentFolder(consignmentId: UUID, parentFolder: String)(implicit executionContext: ExecutionContext): Future[Unit] = {
+    val updateAction = Consignment.filter(_.consignmentid === consignmentId).map(c => c.parentfolder).update(Option(parentFolder))
     db.run(updateAction).map(_ => ())
   }
 
