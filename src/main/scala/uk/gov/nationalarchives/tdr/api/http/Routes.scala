@@ -30,7 +30,6 @@ class Routes(val config: Config) extends Cors {
 
   val ttlSeconds: Int = 10
 
-
   // We return None rather than a failed future because we're following the async authenticator docs
   // https://doc.akka.io/docs/akka-http/10.0/routing-dsl/directives/security-directives/authenticateOAuth2Async.html
   def tokenAuthenticator(credentials: Credentials): Future[Option[Token]] = {
