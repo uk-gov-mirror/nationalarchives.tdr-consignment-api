@@ -14,7 +14,7 @@ import com.typesafe.config._
 import com.typesafe.scalalogging.Logger
 import spray.json.JsValue
 import uk.gov.nationalarchives.tdr.api.auth.AuthorisationException
-import uk.gov.nationalarchives.tdr.keycloak.{KeycloakUtils, Token}
+import uk.gov.nationalarchives.tdr.keycloak.{KeycloakUtils, TdrKeycloakDeployment, Token}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -25,16 +25,18 @@ class Routes(val config: Config) extends Cors {
   implicit val system: ActorSystem = ActorSystem("consignmentApi")
   implicit val materializer: Materializer = Materializer(system)
   implicit val executionContext: ExecutionContext = system.dispatcher
+  val url: String = config.getString("auth.url")
+  implicit val keycloakDeployment: TdrKeycloakDeployment = TdrKeycloakDeployment(url, "tdr", 3600)
 
   val ttlSeconds: Int = 10
-  val url: String = config.getString("auth.url")
+
 
   // We return None rather than a failed future because we're following the async authenticator docs
   // https://doc.akka.io/docs/akka-http/10.0/routing-dsl/directives/security-directives/authenticateOAuth2Async.html
   def tokenAuthenticator(credentials: Credentials): Future[Option[Token]] = {
     credentials match {
       case Credentials.Provided(token) => Future {
-        KeycloakUtils(url).token(token).left.map(
+        KeycloakUtils().token(token).left.map(
           e => {
             logger.error(e.getMessage, e)
             AuthorisationException(e.getMessage)
