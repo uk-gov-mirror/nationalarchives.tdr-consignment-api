@@ -21,7 +21,7 @@ class ConsignmentRepositorySpec extends AnyFlatSpec with ScalaFutures with Match
 
     TestUtils.createConsignment(consignmentId, userId)
 
-    consignmentRepository.addParentFolder(consignmentId, Option("TEST ADD PARENT FOLDER NAME")).futureValue
+    consignmentRepository.addParentFolder(consignmentId, "TEST ADD PARENT FOLDER NAME").futureValue
 
     val parentFolderName = consignmentRepository.getConsignment(consignmentId).futureValue.map(consignment => consignment.parentfolder)
 
@@ -34,7 +34,7 @@ class ConsignmentRepositorySpec extends AnyFlatSpec with ScalaFutures with Match
     val consignmentId = UUID.fromString("b6da7577-3800-4ebc-821b-9d33e52def9e")
 
     TestUtils.createConsignment(consignmentId, userId)
-    consignmentRepository.addParentFolder(consignmentId, Option("TEST GET PARENT FOLDER NAME"))
+    consignmentRepository.addParentFolder(consignmentId, "TEST GET PARENT FOLDER NAME")
 
     val parentFolderName = consignmentRepository.getParentFolder(consignmentId).futureValue
 
