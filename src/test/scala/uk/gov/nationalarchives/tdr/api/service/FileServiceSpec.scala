@@ -138,7 +138,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
       FileRow(fileIdOne, consignmentId, uuid, Timestamp.from(Instant.now)),
       FileRow(fileIdTwo, consignmentId, uuid, Timestamp.from(Instant.now))
     ))
-    when(fileRepositoryMock.getFiles(any[UUID])).thenReturn(mockFileResponse)
+    when(fileRepositoryMock.getFilesWithPassedAntivirus(any[UUID])).thenReturn(mockFileResponse)
 
     val fileService = new FileService(fileRepositoryMock, consignmentRepositoryMock, FixedTimeSource, fixedUuidSource)
     val result: Files = fileService.getFiles(consignmentId).futureValue
