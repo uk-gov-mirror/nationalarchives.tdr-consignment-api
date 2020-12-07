@@ -10,7 +10,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils.{addAntivirusMetadata, GraphqlError, createFile, getDataFromFile, userId, validBackendChecksToken, validUserToken}
+import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 import uk.gov.nationalarchives.tdr.api.utils.{FixedUUIDSource, TestRequest}
 
 class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach  {
