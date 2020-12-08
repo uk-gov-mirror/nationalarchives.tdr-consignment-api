@@ -11,8 +11,12 @@ import scala.concurrent.Future
 class FileRepository(db: Database) {
   private val insertQuery = File  returning File.map(_.fileid)into ((file, fileid) => file.copy(fileid = fileid))
 
-  def getFiles(consignmentId: UUID): Future[Seq[Tables.FileRow]] = {
-    val query = File.filter(_.consignmentid === consignmentId)
+  def getFilesWithPassedAntivirus(consignmentId: UUID): Future[Seq[Tables.FileRow]] = {
+    val query = Avmetadata.join(File)
+      .on(_.fileid === _.fileid)
+      .filter(_._2.consignmentid === consignmentId)
+      .filter(_._1.result === "")
+      .map(_._2)
     db.run(query.result)
   }
 

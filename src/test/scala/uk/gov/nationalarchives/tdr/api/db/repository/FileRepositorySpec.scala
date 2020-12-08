@@ -102,4 +102,23 @@ class FileRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers {
 
     avMetadataFiles shouldBe 2
   }
+
+  "getFilesWithPassedAntivirus" should "return only files where the antivirus has found no virus" in {
+    val db = DbConnection.db
+    val fileRepository = new FileRepository(db)
+    val consignmentId = UUID.fromString("dba4515f-474c-4a5a-a297-260b6ba1ffa3")
+    val fileOneId = UUID.fromString("92756098-b394-4f46-8b4d-bbd1953660c9")
+    val fileTwoId = UUID.fromString("53d2927e-89dd-48a8-bb19-d33b7baa4e44")
+
+    TestUtils.createConsignment(consignmentId, userId)
+    TestUtils.createFile(fileOneId, consignmentId)
+    TestUtils.createFile(fileTwoId, consignmentId)
+
+    TestUtils.addAntivirusMetadata(fileOneId.toString, "")
+    TestUtils.addAntivirusMetadata(fileTwoId.toString)
+    val files = fileRepository.getFilesWithPassedAntivirus(consignmentId).futureValue
+
+    files.size shouldBe 1
+    files.head.fileid shouldBe fileOneId
+  }
 }

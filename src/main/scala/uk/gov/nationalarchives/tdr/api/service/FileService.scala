@@ -35,7 +35,7 @@ class FileService(
   }
 
   def getFiles(consignmentId: UUID): Future[Files] = {
-    fileRepository.getFiles(consignmentId).map(r => Files(r.map(_.fileid)))
+    fileRepository.getFilesWithPassedAntivirus(consignmentId).map(r => Files(r.map(_.fileid)))
   }
 }
 

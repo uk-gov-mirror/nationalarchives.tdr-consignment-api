@@ -112,14 +112,14 @@ object TestUtils {
   }
 
   //scalastyle:off magic.number
-  def addAntivirusMetadata(fileId: String): Unit = {
+  def addAntivirusMetadata(fileId: String, result: String = "Result of AVMetadata processing"): Unit = {
     val sql = s"insert into AVMetadata (FileId, Software, SoftwareVersion, DatabaseVersion, Result, Datetime) VALUES (?, ?, ?, ?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, fileId)
     ps.setString(2, "Some antivirus software")
     ps.setString(3, "Some software version")
     ps.setString(4, "Some database version")
-    ps.setString(5, "Result of AVMetadata processing")
+    ps.setString(5, result)
     ps.setTimestamp(6, Timestamp.from(FixedTimeSource.now))
     ps.executeUpdate()
   }

@@ -10,7 +10,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils.{GraphqlError, createFile, getDataFromFile, userId, validBackendChecksToken, validUserToken}
+import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 import uk.gov.nationalarchives.tdr.api.utils.{FixedUUIDSource, TestRequest}
 
 class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach  {
@@ -113,8 +113,24 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
     val fileIdTwo = UUID.fromString("0f70f657-8b19-4ab6-9813-33a8223fec84")
     createFile(fileIdOne, consignmentId)
     createFile(fileIdTwo, consignmentId)
+    addAntivirusMetadata(fileIdOne.toString, "")
+    addAntivirusMetadata(fileIdTwo.toString, "")
     val expectedResponse = expectedQueryResponse("data_all")
     val response = runTestQuery("mutation_alldata", validBackendChecksToken("export"))
+
+    expectedResponse.data.get.getFiles should equal(response.data.get.getFiles)
+  }
+
+  "The api" should "not return files with a virus" in {
+    val consignmentId = UUID.fromString("fc13c325-71f8-4cf3-954d-38e212df3ff3")
+    val fileIdOne = UUID.fromString("3976840e-adee-4cfa-8cee-6d790934e152")
+    val fileIdTwo = UUID.fromString("d4aced21-3c3f-4007-bbb8-9e94967ff89e")
+    createFile(fileIdOne, consignmentId)
+    createFile(fileIdTwo, consignmentId)
+    addAntivirusMetadata(fileIdOne.toString, "")
+    addAntivirusMetadata(fileIdTwo.toString)
+    val expectedResponse = expectedQueryResponse("data_onefile")
+    val response = runTestQuery("mutation_onevirusfailed", validBackendChecksToken("export"))
 
     expectedResponse.data.get.getFiles should equal(response.data.get.getFiles)
   }
