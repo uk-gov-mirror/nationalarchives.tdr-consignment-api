@@ -13,9 +13,9 @@ import uk.gov.nationalarchives.Tables.{FilemetadataRow, FilepropertyRow}
 import uk.gov.nationalarchives.tdr.api.db.repository.{FileMetadataRepository, FilePropertyRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ClientFileMetadataFields.ClientFileMetadata
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields
-import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.AddFileMetadataInput
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.{AddFileMetadataInput, SHA256ClientSideChecksum, SHA256ServerSideChecksum}
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
-import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256ServerSideChecksum
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.ChecksumMetadata
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -153,6 +153,110 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
       clientFileMetadataServiceMock, FixedTimeSource, new FixedUUIDSource())
     val err = service.addFileMetadata(AddFileMetadataInput("SomethingElse", fileId, "checksum"), UUID.randomUUID()).failed.futureValue
     err.getMessage should equal("SomethingElse found. We are only expecting checksum updates for now")
+  }
+
+  "addFileMetadata" should "call the metadata repository with the correct arguments for multiple updates" in {
+    val fixedFileUuidOne = UUID.fromString("07a3a4bd-0281-4a6d-a4c1-8fa3239e1313")
+    val fixedPropertyId = UUID.fromString("6929ca2a-c920-41d3-bf8d-25a7da5d8ae2")
+    val fixedFileUuidTwo = UUID.fromString("07a3a4bd-0281-4a6d-a4c1-8fa3239e1313")
+    val fixedUserId = UUID.fromString("61b49923-daf7-4140-98f1-58ba6cbed61f")
+    val metadataRepositoryMock = mock[FileMetadataRepository]
+    val propertyRepositoryMock = mock[FilePropertyRepository]
+    val clientFileMetadataServiceMock = mock[ClientFileMetadataService]
+    val valueOne = "valueOne"
+    val valueTwo = "valueTwo"
+    val mockMetadataResponse = Future.successful(
+      Seq(
+        FilemetadataRow(UUID.randomUUID(), fixedFileUuidOne, fixedPropertyId, valueOne, Timestamp.from(FixedTimeSource.now), fixedUserId),
+        FilemetadataRow(UUID.randomUUID(), fixedFileUuidTwo, fixedPropertyId, valueTwo, Timestamp.from(FixedTimeSource.now), fixedUserId)
+      )
+    )
+
+    val propertyRow = FilepropertyRow(fixedPropertyId, Some(SHA256ServerSideChecksum), Some("Description"), Some("ShortName"))
+    val mockPropertyResponse = Future.successful(Seq(propertyRow))
+    val fixedUUIDSource = new FixedUUIDSource()
+
+    val captor: ArgumentCaptor[Seq[ChecksumMetadata]] = ArgumentCaptor.forClass(classOf[Seq[ChecksumMetadata]])
+    when(metadataRepositoryMock.addChecksumMetadata(captor.capture()))
+      .thenReturn(mockMetadataResponse)
+
+    when(metadataRepositoryMock.getFileMetadata(any[UUID], any[String])).thenReturn(Future(Option.empty))
+    when(metadataRepositoryMock.addMetadata(any[Seq[FilemetadataRow]])).thenReturn(Future(Seq()))
+    when(propertyRepositoryMock.getPropertiesByName(any[List[String]])).thenReturn(mockPropertyResponse)
+
+    val service = new FileMetadataService(metadataRepositoryMock, propertyRepositoryMock, clientFileMetadataServiceMock, FixedTimeSource, fixedUUIDSource)
+    service.addFileMetadata(Seq(
+      AddFileMetadataInput(SHA256ServerSideChecksum, fixedFileUuidOne, valueOne),
+      AddFileMetadataInput(SHA256ServerSideChecksum, fixedFileUuidTwo, valueTwo),
+    ), fixedUserId).futureValue
+    fixedUUIDSource.reset
+
+    val rowOne = captor.getValue.toList.head.fileMetadataRow
+    rowOne.propertyid should equal(fixedPropertyId)
+    rowOne.value should equal(valueOne)
+    rowOne.fileid should equal(fixedFileUuidOne)
+    rowOne.userid should equal(fixedUserId)
+    rowOne.datetime should equal(Timestamp.from(FixedTimeSource.now))
+    rowOne.metadataid.shouldBe(fixedUUIDSource.uuid)
+
+    val rowTwo = captor.getValue.toList.last.fileMetadataRow
+    rowTwo.propertyid should equal(fixedPropertyId)
+    rowTwo.value should equal(valueTwo)
+    rowTwo.fileid should equal(fixedFileUuidTwo)
+    rowTwo.userid should equal(fixedUserId)
+    rowTwo.datetime should equal(Timestamp.from(FixedTimeSource.now))
+    rowTwo.metadataid.shouldBe(fixedUUIDSource.uuid)
+  }
+
+  "addFileMetadata" should "return the correct data for multiple updates" in {
+    val fixedFileUuidOne = UUID.fromString("07a3a4bd-0281-4a6d-a4c1-8fa3239e1313")
+    val fixedPropertyId = UUID.fromString("6929ca2a-c920-41d3-bf8d-25a7da5d8ae2")
+    val fixedFileUuidTwo = UUID.fromString("07a3a4bd-0281-4a6d-a4c1-8fa3239e1313")
+    val fixedUserId = UUID.fromString("61b49923-daf7-4140-98f1-58ba6cbed61f")
+    val metadataRepositoryMock = mock[FileMetadataRepository]
+    val propertyRepositoryMock = mock[FilePropertyRepository]
+    val clientFileMetadataServiceMock = mock[ClientFileMetadataService]
+    val valueOne = "valueOne"
+    val valueTwo = "valueTwo"
+    val mockMetadataResponse = Future.successful(
+      Seq(
+        FilemetadataRow(UUID.randomUUID(), fixedFileUuidOne, fixedPropertyId, valueOne, Timestamp.from(FixedTimeSource.now), fixedUserId),
+        FilemetadataRow(UUID.randomUUID(), fixedFileUuidTwo, fixedPropertyId, valueTwo, Timestamp.from(FixedTimeSource.now), fixedUserId)
+      )
+    )
+
+    val propertyRowOne = FilepropertyRow(fixedPropertyId, Some(SHA256ServerSideChecksum), Some("ServerDescription"), Some("ShortName"))
+    val propertyRowTwo = FilepropertyRow(fixedPropertyId, Some(SHA256ClientSideChecksum), Some("ClientDescription"), Some("ShortName"))
+    val mockPropertyResponse = Future.successful(Seq(propertyRowOne, propertyRowTwo))
+    val fixedUUIDSource = new FixedUUIDSource()
+
+    when(metadataRepositoryMock.addChecksumMetadata(any[Seq[ChecksumMetadata]]))
+      .thenReturn(mockMetadataResponse)
+
+    when(metadataRepositoryMock.getFileMetadata(any[UUID], any[String])).thenReturn(Future(Option.empty))
+    when(metadataRepositoryMock.addMetadata(any[Seq[FilemetadataRow]])).thenReturn(Future(Seq()))
+    when(propertyRepositoryMock.getPropertiesByName(any[List[String]])).thenReturn(mockPropertyResponse)
+
+
+    val service = new FileMetadataService(metadataRepositoryMock, propertyRepositoryMock, clientFileMetadataServiceMock, FixedTimeSource, fixedUUIDSource)
+    val result = service.addFileMetadata(Seq(
+      AddFileMetadataInput(SHA256ServerSideChecksum, fixedFileUuidOne, valueOne),
+      AddFileMetadataInput(SHA256ClientSideChecksum, fixedFileUuidTwo, valueTwo),
+    ), fixedUserId).futureValue
+
+
+  }
+
+  "addFileMetadata" should "update the checksum validation if one update is for server side checksum and the checksum matches" in {
+
+  }
+
+  "addFileMetadata" should "update the checksum validation if one update is for server side checksum and the checksum doesn't match" in {
+
+  }
+
+  "addFileMetadata" should "not update the checksum validation if no updates are for server side checksum" in {
+
   }
 
   "getFileProperty" should "return a file property" in {

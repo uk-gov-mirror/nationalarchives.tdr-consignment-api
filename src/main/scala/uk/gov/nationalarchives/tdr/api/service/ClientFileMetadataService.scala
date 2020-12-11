@@ -5,16 +5,18 @@ import java.time.Instant
 import java.util.UUID
 
 import uk.gov.nationalarchives.Tables.ClientfilemetadataRow
-import uk.gov.nationalarchives.tdr.api.db.repository.ClientFileMetadataRepository
+import uk.gov.nationalarchives.tdr.api.db.repository.{ClientFileMetadataRepository, FileMetadataRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ClientFileMetadataFields.{AddClientFileMetadataInput, ClientFileMetadata}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ClientFileMetadataService(clientFileMetadataRepository: ClientFileMetadataRepository, uuidSource: UUIDSource)
+class ClientFileMetadataService(clientFileMetadataRepository: ClientFileMetadataRepository, fileMetadataRepository: FileMetadataRepository, uuidSource: UUIDSource)
                                (implicit val executionContext: ExecutionContext) {
 
+  @deprecated("This is only used for the client file metadata fields which are being deleted")
   def addClientFileMetadata(inputs: Seq[AddClientFileMetadataInput]): Future[Seq[ClientFileMetadata]] = {
+    fileMetadataRepository.addMetadata()
     val rows: Seq[ClientfilemetadataRow] = inputs.map(i => ClientfilemetadataRow(
       uuidSource.uuid,
       i.fileId,
@@ -30,6 +32,7 @@ class ClientFileMetadataService(clientFileMetadataRepository: ClientFileMetadata
     })
   }
 
+  @deprecated("This is only used for the client file metadata fields which are being deleted")
   def getClientFileMetadata(fileId: UUID): Future[ClientFileMetadata] = {
     clientFileMetadataRepository.getClientFileMetadata(fileId).map(_.head).map(rowToOutput).recover {
       case nse: NoSuchElementException => throw InputDataException(s"Could not find metadata for file $fileId", Some(nse))

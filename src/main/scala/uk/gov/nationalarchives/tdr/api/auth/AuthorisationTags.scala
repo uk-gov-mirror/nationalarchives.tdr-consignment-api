@@ -4,10 +4,15 @@ import java.util.UUID
 
 import sangria.execution.BeforeFieldResult
 import sangria.schema.{Argument, Context}
+import uk.gov.nationalarchives.tdr.api.auth.ValidateHasChecksumMetadataAccess.{checksumRole, continue}
+import uk.gov.nationalarchives.tdr.api.auth.ValidateUserOwnsFiles.continue
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ClientFileMetadataFields.AddClientFileMetadataInput
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.AddConsignmentInput
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields._
 import uk.gov.nationalarchives.tdr.api.graphql.validation.UserOwnsConsignment
 import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, ValidationTag}
+import uk.gov.nationalarchives.tdr.api.service.FileService
+import uk.gov.nationalarchives.tdr.keycloak.Token
 
 import scala.concurrent._
 import scala.language.postfixOps
@@ -22,7 +27,7 @@ trait AuthorisationTag extends ValidationTag {
 
 trait SyncAuthorisationTag extends AuthorisationTag {
   final def validateAsync(ctx: Context[ConsignmentApiContext, _])
-                    (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
+                         (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     Future.successful(validateSync(ctx))
   }
 
@@ -36,7 +41,7 @@ object ValidateBody extends SyncAuthorisationTag {
     val bodyArg: String = ctx.arg("body")
     val bodyFromToken: String = token.transferringBody.getOrElse("")
 
-    if(bodyFromToken != bodyArg) {
+    if (bodyFromToken != bodyArg) {
       val msg = s"Body for user ${token.userId} was $bodyArg in the query and $bodyFromToken in the token"
       throw AuthorisationException(msg)
     }
@@ -46,7 +51,7 @@ object ValidateBody extends SyncAuthorisationTag {
 
 object ValidateSeries extends AuthorisationTag {
   override def validateAsync(ctx: Context[ConsignmentApiContext, _])
-                       (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
+                            (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val token = ctx.ctx.accessToken
     val userBody = token.transferringBody.getOrElse(
       throw AuthorisationException(s"No transferring body in user token for user '${token.userId}'"))
@@ -70,7 +75,7 @@ object ValidateSeries extends AuthorisationTag {
 
 case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends AuthorisationTag {
   override def validateAsync(ctx: Context[ConsignmentApiContext, _])
-                       (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
+                            (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val token = ctx.ctx.accessToken
     val userId = token.userId
 
@@ -83,7 +88,7 @@ case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends Authori
     ctx.ctx.consignmentService
       .getConsignment(consignmentId)
       .map(consignment => {
-        if(consignment.isEmpty) {
+        if (consignment.isEmpty) {
           throw AuthorisationException("Invalid consignment id")
         }
 
@@ -96,9 +101,10 @@ case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends Authori
   }
 }
 
+@deprecated("This is only used for the client file metadata fields which are being deleted")
 object ValidateUserOwnsFiles extends AuthorisationTag {
   override def validateAsync(ctx: Context[ConsignmentApiContext, _])
-                       (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
+                            (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val token = ctx.ctx.accessToken
     val tokenUserId = token.userId
 
@@ -133,6 +139,46 @@ object ValidateHasAntiVirusMetadataAccess extends SyncAuthorisationTag {
   }
 }
 
+object ValidateAddFileMetadataAccess extends AuthorisationTag {
+  def hasChecksumMetadataAccess(token: Token) =
+    if (token.backendChecksRoles.contains(checksumRole)) {
+      continue
+    } else {
+      val tokenUserId = token.userId
+      throw AuthorisationException(s"User '$tokenUserId' does not have permission to update checksum metadata")
+    }
+
+  def userOwnsFiles(token: Token, fileService: FileService, fileIds: List[UUID])(implicit executionContext: ExecutionContext) = {
+    val tokenUserId = token.userId
+
+    fileService
+      .getOwnersOfFiles(fileIds)
+      .map(fileOwnership => {
+        val otherUsersFiles = fileOwnership.filter(_.userId != tokenUserId)
+
+        otherUsersFiles match {
+          case Nil => continue
+          case files => throw AuthorisationException(
+            s"User '$tokenUserId' does not have permission to updatefiles: ${files.map(_.fileId)}")
+        }
+      })
+  }
+
+  override def validateAsync(ctx: Context[ConsignmentApiContext, _])(implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
+    val clientFileMetadataProperties = List(ClientSideOriginalFilepath, ClientSideFileSize, ClientSideFileLastModifiedDate, SHA256ClientSideChecksum)
+    val inputs = ctx.arg[Seq[AddFileMetadataInput]]("addFileMetadataInputs")
+    val clientFileMetadataInputs = inputs.filter(p => clientFileMetadataProperties.contains(p))
+    if (inputs.exists(p => p.filePropertyName == SHA256ServerSideChecksum)) {
+      Future(hasChecksumMetadataAccess(ctx.ctx.accessToken))
+    } else if (clientFileMetadataInputs.nonEmpty) {
+      userOwnsFiles(ctx.ctx.accessToken, ctx.ctx.fileService, clientFileMetadataInputs.map(_.fileId).toList)
+    } else {
+      throw AuthorisationException(s"User ${ctx.ctx.accessToken.userId} does not have permission to add file metadata")
+    }
+  }
+}
+
+@deprecated("This is only used for the single argument addFileMetadata field which will be deleted")
 object ValidateHasChecksumMetadataAccess extends SyncAuthorisationTag {
   override def validateSync(ctx: Context[ConsignmentApiContext, _]): BeforeFieldResult[ConsignmentApiContext, Unit] = {
     val token = ctx.ctx.accessToken
