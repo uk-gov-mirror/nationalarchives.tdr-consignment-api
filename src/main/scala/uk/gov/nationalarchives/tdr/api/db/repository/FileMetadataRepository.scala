@@ -19,8 +19,9 @@ class FileMetadataRepository(db: Database)(implicit val executionContext: Execut
     Filemetadata returning Filemetadata.join(Fileproperty).on(_.propertyid === _.propertyid).map(_._2) into
       ((fileMetadata, fileproperty) => sqlRowToFileMetadata(fileproperty.name.get, fileMetadata))
 
-  def addFileMetadata(rows: Seq[FileMetadataRowWithName]) =
+  def addFileMetadata(rows: Seq[FileMetadataRowWithName]): Future[Seq[FileMetadataRowWithName]] = {
     db.run(DBIO.seq(rows.map(fileMetadataRowAction): _*).transactionally).map(_ => rows)
+  }
 
   def addChecksumMetadata(row: FileMetadataRowWithName, validationResult: Option[Boolean]): Future[FileMetadataRowWithName] = {
     val checksumMetadataInsert = fileMetadataRowAction(row)
