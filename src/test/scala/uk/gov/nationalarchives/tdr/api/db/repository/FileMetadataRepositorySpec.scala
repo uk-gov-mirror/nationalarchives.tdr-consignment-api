@@ -1,19 +1,34 @@
 package uk.gov.nationalarchives.tdr.api.db.repository
 
+import java.sql.{PreparedStatement, Timestamp}
+import java.time.Instant
 import java.util.UUID
 
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.{Seconds, Span}
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
+import uk.gov.nationalarchives.tdr.api.db.repository.FileMetadataRepository.FileMetadataRowWithName
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256ServerSideChecksum
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
-import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256ServerSideChecksum
+
 
 
 class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers {
 
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  override implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = Span(2, Seconds))
+
+  def getFileChecksumMatches(fileId: UUID): Boolean = {
+    val sql = s"SELECT ChecksumMatches FROM File where FileId = ?"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, fileId.toString)
+    val rs = ps.executeQuery()
+    rs.next()
+    rs.getBoolean("ChecksumMatches")
+  }
 
   "countProcessedChecksumInConsignment" should "return 0 if a consignment has no files" in {
     val db = DbConnection.db
@@ -98,5 +113,51 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
     val fileMetadataFiles = fileMetadataRepository.countProcessedChecksumInConsignment(consignmentId).futureValue
 
     fileMetadataFiles shouldBe 2
+  }
+
+  "addFileMetadata" should "add metadata with the correct values" in {
+    val db = DbConnection.db
+    val fileMetadataRepository = new FileMetadataRepository(db)
+    val propertyId = UUID.randomUUID()
+    val consignmentId = UUID.fromString("d4c053c5-f83a-4547-aefe-878d496bc5d2")
+    val fileId = UUID.fromString("ba176f90-f0fd-42ef-bb28-81ba3ffb6f05")
+    addFileProperty(propertyId.toString, "FileProperty")
+    createConsignment(consignmentId, userId)
+    createFile(fileId, consignmentId)
+    val input = Seq(FileMetadataRowWithName("FileProperty", UUID.randomUUID(), fileId, "value", Timestamp.from(Instant.now()), UUID.randomUUID()))
+    val result = fileMetadataRepository.addFileMetadata(input).futureValue.head
+    result.propertyName should equal("FileProperty")
+    result.value should equal("value")
+  }
+
+  "addChecksumMetadata" should "update the checksum validation field on the file table" in {
+    val db = DbConnection.db
+    val fileMetadataRepository = new FileMetadataRepository(db)
+    val propertyId = UUID.randomUUID()
+    val consignmentId = UUID.fromString("f25fc436-12f1-48e8-8e1a-3fada106940a")
+    val fileId = UUID.fromString("59ce7106-57f2-48ff-b451-4148e6bf74f9")
+    createFile(fileId, consignmentId)
+    addFileProperty(propertyId.toString, "FileProperty")
+    addFileMetadata(UUID.randomUUID().toString, fileId.toString, propertyId.toString)
+    createConsignment(consignmentId, userId)
+    val input = FileMetadataRowWithName("FileProperty", UUID.randomUUID(), fileId, "value", Timestamp.from(Instant.now()), UUID.randomUUID())
+    fileMetadataRepository.addChecksumMetadata(input, Option(true)).futureValue
+    getFileChecksumMatches(fileId) should equal(true)
+  }
+
+  "getFileMetadata" should "return the correct metadata" in {
+    val db = DbConnection.db
+    val fileMetadataRepository = new FileMetadataRepository(db)
+    val propertyId = UUID.randomUUID()
+    val consignmentId = UUID.fromString("d511ecee-89ac-4643-b62d-76a41984a92b")
+    val fileId = UUID.fromString("4d5a5a00-77b4-4a97-aa3f-a75f7b13f284")
+    createFile(fileId, consignmentId)
+    addFileProperty(propertyId.toString, "FileProperty")
+    addFileMetadata(UUID.randomUUID().toString, fileId.toString, propertyId.toString)
+    createConsignment(consignmentId, userId)
+    val response = fileMetadataRepository.getFileMetadata(fileId, "FileProperty").futureValue.head
+    response.value should equal("Result of FileMetadata processing")
+    response.propertyName should equal("FileProperty")
+    response.fileid should equal(fileId)
   }
 }
