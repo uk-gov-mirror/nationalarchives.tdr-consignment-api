@@ -16,7 +16,7 @@ class FixedUUIDSource extends UUIDSource {
       UUID.fromString("47e365a4-fc1e-4375-b2f6-dccb6d361f5f"),
       UUID.fromString("0824d319-9c58-4b15-81eb-b71fb460fa36"),
       UUID.fromString("15eddae1-f319-4da1-b2da-cda3bd8f840a"),
-      UUID.fromString("854b1c99-5998-4126-a209-6f1bcc38bf74"),
+      UUID.fromString("854b1c99-5998-4126-a209-6f1bcc38bf74")
     )(idx)
   }
 

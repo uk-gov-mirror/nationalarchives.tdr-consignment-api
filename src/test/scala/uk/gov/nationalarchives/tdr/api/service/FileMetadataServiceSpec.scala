@@ -56,7 +56,8 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     val fixedFileUuid = UUID.fromString("07a3a4bd-0281-4a6d-a4c1-8fa3239e1313")
     val fixedUserId = UUID.fromString("61b49923-daf7-4140-98f1-58ba6cbed61f")
     val metadataRepositoryMock = mock[FileMetadataRepository]
-    val mockClientChecksumRow = FileMetadataRowWithName(SHA256ClientSideChecksum, UUID.randomUUID(), fixedFileUuid, "checksum", Timestamp.from(FixedTimeSource.now), fixedUserId)
+    val timestamp = Timestamp.from(FixedTimeSource.now)
+    val mockClientChecksumRow = FileMetadataRowWithName(SHA256ClientSideChecksum, UUID.randomUUID(), fixedFileUuid, "checksum", timestamp, fixedUserId)
     val mockClientChecksumResponse = Future(Seq(mockClientChecksumRow))
     val mockMetadataResponse = Future.successful(
       FileMetadataRowWithName(SHA256ServerSideChecksum, UUID.randomUUID(), fixedFileUuid, "value", Timestamp.from(FixedTimeSource.now), fixedUserId)
@@ -81,7 +82,8 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     val mockMetadataResponse = Future.successful(
       FileMetadataRowWithName(SHA256ServerSideChecksum, UUID.randomUUID(), fixedFileUuid, "value", Timestamp.from(FixedTimeSource.now), fixedUserId)
     )
-    val mockClientChecksumRow = FileMetadataRowWithName(SHA256ClientSideChecksum, UUID.randomUUID(), fixedFileUuid, "checksum", Timestamp.from(FixedTimeSource.now), fixedUserId)
+    val timestamp = Timestamp.from(FixedTimeSource.now)
+    val mockClientChecksumRow = FileMetadataRowWithName(SHA256ClientSideChecksum, UUID.randomUUID(), fixedFileUuid, "checksum", timestamp, fixedUserId)
     val mockClientChecksumResponse = Future(Seq(mockClientChecksumRow))
 
     val fixedUUIDSource = new FixedUUIDSource()
@@ -107,7 +109,8 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     )
     val propertyName = SHA256ServerSideChecksum
     val fixedUUIDSource = new FixedUUIDSource()
-    val mockClientChecksumRow = FileMetadataRowWithName(SHA256ClientSideChecksum, UUID.randomUUID(), fixedFileUuid, "checksum", Timestamp.from(FixedTimeSource.now), fixedUserId)
+    val timestamp = Timestamp.from(FixedTimeSource.now)
+    val mockClientChecksumRow = FileMetadataRowWithName(SHA256ClientSideChecksum, UUID.randomUUID(), fixedFileUuid, "checksum", timestamp, fixedUserId)
     val mockClientChecksumResponse = Future(Seq(mockClientChecksumRow))
 
 
