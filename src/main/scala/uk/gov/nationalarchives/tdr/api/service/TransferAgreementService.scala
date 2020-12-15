@@ -16,7 +16,7 @@ class TransferAgreementService(transferAgreementRepository: TransferAgreementRep
       input.allPublicRecords,
       input.allCrownCopyright,
       input.allEnglish,
-      input.allDigital,
+      None,
       input.appraisalSelectionSignedOff,
       input.sensitivityReviewSignedOff)
 
