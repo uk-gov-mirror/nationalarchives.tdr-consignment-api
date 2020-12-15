@@ -1,6 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.utils
 
 import java.sql.{PreparedStatement, Timestamp}
+import java.time.Instant
 import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
@@ -11,6 +12,7 @@ import com.tngtech.keycloakmock.api.TokenConfig.aTokenConfig
 import io.circe.Decoder
 import io.circe.parser.decode
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
 
 import scala.concurrent.ExecutionContext
 import scala.io.Source.fromResource
@@ -92,6 +94,7 @@ object TestUtils {
     val seriesId = UUID.fromString("1436ad43-73a2-4489-a774-85fa95daff32")
     createConsignment(consignmentId, userId, seriesId)
     createFile(defaultFileId, consignmentId)
+    addClientSideProperties()
     createClientFileMetadata(defaultFileId)
   }
 
@@ -156,18 +159,29 @@ object TestUtils {
   }
 
   def createClientFileMetadata(fileId: UUID): Unit = {
-    val sql = s"insert into ClientFileMetadata (FileId,OriginalPath,Checksum,ChecksumType,LastModified,Filesize,Datetime,ClientFileMetadataId) " +
-      s"VALUES (?,?,?,?,?,?,?,?)"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.setString(1, fileId.toString)
-    ps.setString(2, "originalPath")
-    ps.setString(3, "checksum")
-    ps.setString(4, "checksumType")
-    ps.setTimestamp(5, Timestamp.from(FixedTimeSource.now))
-    ps.setString(6, "1")
-    ps.setTimestamp(7, Timestamp.from(FixedTimeSource.now))
-    ps.setString(8, UUID.randomUUID.toString)
-    ps.executeUpdate()
+    val sql = "INSERT INTO FileMetadata(MetadataId, FileId, PropertyId, Value, Datetime, UserId) VALUES (?,?,?,?,?,?)"
+    clientSideProperties.foreach(propertyName => {
+      val selectSql = "SELECT PropertyId FROM FileProperty where Name = ?"
+      val psSelect: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(selectSql)
+      psSelect.setString(1, propertyName)
+      val rs = psSelect.executeQuery()
+      rs.next()
+      val value = propertyName match {
+        case ClientSideFileLastModifiedDate => Timestamp.from(Instant.now()).toString
+        case ClientSideFileSize => "1"
+        case _ => s"$propertyName Value"
+      }
+      val propertyId = rs.getString("PropertyId")
+      val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+      ps.setString(1, UUID.randomUUID().toString)
+      ps.setString(2, fileId.toString)
+      ps.setString(3, propertyId)
+      ps.setString(4, value)
+      ps.setTimestamp(5, Timestamp.from(Instant.now()))
+      ps.setString(6, UUID.randomUUID().toString)
+      ps.executeUpdate()
+    })
+
   }
 
   //scalastyle:on magic.number
@@ -196,6 +210,12 @@ object TestUtils {
     ps.setString(3, code)
 
     ps.executeUpdate()
+  }
+
+  def addClientSideProperties(): Unit = {
+    clientSideProperties.foreach(propertyName => {
+      addFileProperty(UUID.randomUUID().toString, propertyName)
+    })
   }
 }
 

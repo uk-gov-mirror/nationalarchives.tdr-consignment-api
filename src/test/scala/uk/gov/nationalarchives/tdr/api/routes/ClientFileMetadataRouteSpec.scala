@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.tdr.api.routes
 
-import java.sql.{PreparedStatement, ResultSet, Timestamp}
+import java.sql.{PreparedStatement, ResultSet}
 import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
@@ -10,7 +10,8 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, TestRequest}
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
+import uk.gov.nationalarchives.tdr.api.utils.TestRequest
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach  {
@@ -30,15 +31,14 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
                                 checksum: Option[String] = None,
                                 checksumType: Option[String] = None,
                                 lastModified: Option[Long] = None,
-                                fileSize: Option[Long] = None,
-                                datetime: Option[Long] = None,
-                                clientFileMetadataId: Option[UUID] = None
+                                fileSize: Option[Long] = None
                               )
   case class AddClientFileMetadata(addClientFileMetadata: List[ClientFileMetadata]) extends TestRequest
   case class GetClientFileMetadata(getClientFileMetadata: ClientFileMetadata) extends TestRequest
 
   override def beforeEach(): Unit = {
     resetDatabase()
+    addClientSideProperties()
   }
 
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData =
@@ -59,7 +59,7 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
     response.data.get.addClientFileMetadata should equal(expectedResponse.data.get.addClientFileMetadata)
 
-    checkClientFileMetadataExists(response.data.get.addClientFileMetadata.head.clientFileMetadataId.get)
+    checkClientFileMetadataExists(response.data.get.addClientFileMetadata.head.fileId.get)
   }
 
   "addClientFileMetadata" should "return the expected data from inserted Client File metadata object" in {
@@ -71,7 +71,7 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
     val response: GraphqlMutationData = runTestMutation("mutation_somedata", validUserToken())
     response.data.get.addClientFileMetadata should equal(expectedResponse.data.get.addClientFileMetadata)
 
-    checkClientFileMetadataExists(response.data.get.addClientFileMetadata.head.clientFileMetadataId.get)
+    checkClientFileMetadataExists(response.data.get.addClientFileMetadata.head.fileId.get)
   }
 
   "addClientFileMetadata" should "not allow a user to add metadata to a consignment they do not own" in {
@@ -112,7 +112,7 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
   }
 
   "getClientFileMetadata" should "return the requested fields" in {
-    createClientFileMetadata(defaultFileId)
+    seedDatabaseWithDefaultEntries()
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_all")
     val response: GraphqlQueryData = runTestQuery("query_alldata", validBackendChecksToken("client_file_metadata"))
     val responseData: ClientFileMetadata = response.data.get.getClientFileMetadata
@@ -152,16 +152,21 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
     ps.executeUpdate()
   }
 
-  private def checkClientFileMetadataExists(clientFileMetadataId: UUID): Unit = {
-    val sql = "select * from ClientFileMetadata where ClientFileMetadataId = ?;"
+  private def checkClientFileMetadataExists(fileId: UUID): Unit = {
+    val sql = "select * from FileMetadata cfm JOIN FileProperty fp ON fp.PropertyId = cfm.PropertyId where FileId = ? AND fp.Name IN (?,?,?,?);"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.setString(1, clientFileMetadataId.toString)
+    ps.setString(1, fileId.toString)
+    clientSideProperties.zipWithIndex.foreach {
+      case (a, b) => ps.setString(b + 2, a)
+    }
     val rs: ResultSet = ps.executeQuery()
     rs.next()
-    rs.getString("ClientFileMetadataId") should equal(clientFileMetadataId.toString)
+    rs.getString("FileId") should equal(fileId.toString)
   }
 
   private def resetDatabase(): Unit = {
+    DbConnection.db.source.createConnection().prepareStatement("delete from FileMetadata").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("delete from FileProperty").executeUpdate()
     DbConnection.db.source.createConnection().prepareStatement("delete from ClientFileMetadata").executeUpdate()
     DbConnection.db.source.createConnection().prepareStatement("delete from File").executeUpdate()
     DbConnection.db.source.createConnection().prepareStatement("delete from Consignment").executeUpdate()

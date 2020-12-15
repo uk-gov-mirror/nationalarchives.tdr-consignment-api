@@ -32,6 +32,7 @@ class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequ
 
   override def beforeEach(): Unit = {
     resetDatabase()
+    seedDatabaseWithDefaultEntries()
   }
 
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData =
@@ -40,8 +41,6 @@ class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequ
     getDataFromFile[GraphqlMutationData](addAVMetadataJsonFilePrefix)
 
   "addAntivirusMetadata" should "return all requested fields from inserted antivirus metadata object" in {
-    seedDatabaseWithDefaultEntries()
-
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validBackendChecksToken("antivirus"))
     response.data.get.addAntivirusMetadata should equal(expectedResponse.data.get.addAntivirusMetadata)
@@ -50,8 +49,6 @@ class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequ
   }
 
   "addAntivirusMetadata" should "return the expected data from inserted antivirus metadata object" in {
-    seedDatabaseWithDefaultEntries()
-
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_some")
     val response: GraphqlMutationData = runTestMutation("mutation_somedata", validBackendChecksToken("antivirus"))
     response.data.get.addAntivirusMetadata should equal(expectedResponse.data.get.addAntivirusMetadata)
@@ -60,8 +57,6 @@ class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequ
   }
 
   "addAntivirusMetadata" should "not allow updating of antivirus metadata with incorrect authorisation" in {
-    seedDatabaseWithDefaultEntries()
-
     val response: GraphqlMutationData = runTestMutation("mutation_somedata", invalidBackendChecksToken())
 
     response.errors should have size 1
@@ -97,6 +92,8 @@ class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequ
   private def resetDatabase(): Unit = {
     DbConnection.db.source.createConnection().prepareStatement("delete from AVMetadata").executeUpdate()
     DbConnection.db.source.createConnection().prepareStatement("delete from FFIDMetadata").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("delete from FileMetadata").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("delete from FileProperty").executeUpdate()
     DbConnection.db.source.createConnection().prepareStatement("delete from File").executeUpdate()
     DbConnection.db.source.createConnection().prepareStatement("delete from Consignment").executeUpdate()
   }

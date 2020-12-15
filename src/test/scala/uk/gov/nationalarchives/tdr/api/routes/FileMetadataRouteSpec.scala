@@ -31,6 +31,8 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
   val expectedMutationResponse: String => GraphqlMutationData =
     getDataFromFile[GraphqlMutationData](addFileMetadataJsonFilePrefix)
 
+  val serverSideChecksumPropertyId = UUID.randomUUID()
+
   override def beforeEach(): Unit = {
     resetDatabase()
     seedDatabaseWithDefaultEntries()
@@ -113,9 +115,10 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
   }
 
   private def checkFileMetadataExists(fileId: UUID): Unit = {
-    val sql = "select * from FileMetadata where FileId = ?;"
+    val sql = "select * from FileMetadata where FileId = ? AND PropertyId = ?;"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, fileId.toString)
+    ps.setString(2, serverSideChecksumPropertyId.toString)
     val rs: ResultSet = ps.executeQuery()
     rs.next()
     rs.getString("FileId") should equal(fileId.toString)
@@ -125,7 +128,7 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
     val sql = "insert into FileProperty (PropertyId , Name, Description, Shortname) " +
       "VALUES (?, 'SHA256ServerSideChecksum', 'The checksum calculated after upload', 'Checksum')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.setString(1, UUID.randomUUID().toString)
+    ps.setString(1, serverSideChecksumPropertyId.toString)
     ps.executeUpdate()
   }
 
@@ -138,8 +141,9 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
   }
 
   private def checkNoFileMetadataAdded(): Unit = {
-    val sql = "select * from FileMetadata;"
+    val sql = "select * from FileMetadata WHERE PropertyId = ?;"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, serverSideChecksumPropertyId.toString)
     val rs: ResultSet = ps.executeQuery()
     rs.last()
     rs.getRow should equal(0)
