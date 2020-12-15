@@ -4,49 +4,58 @@ import java.sql.{SQLException, Timestamp}
 import java.time.Instant
 import java.util.UUID
 
-import uk.gov.nationalarchives.Tables.ClientfilemetadataRow
-import uk.gov.nationalarchives.tdr.api.db.repository.ClientFileMetadataRepository
+import uk.gov.nationalarchives.tdr.api.db.repository.FileMetadataRepository
+import uk.gov.nationalarchives.tdr.api.db.repository.FileMetadataRepository.FileMetadataRowWithName
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ClientFileMetadataFields.{AddClientFileMetadataInput, ClientFileMetadata}
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ClientFileMetadataService(clientFileMetadataRepository: ClientFileMetadataRepository, uuidSource: UUIDSource)
+class ClientFileMetadataService(fileMetadataRepository: FileMetadataRepository,
+                                uuidSource: UUIDSource, timeSource: TimeSource)
                                (implicit val executionContext: ExecutionContext) {
 
-  def addClientFileMetadata(inputs: Seq[AddClientFileMetadataInput]): Future[Seq[ClientFileMetadata]] = {
-    val rows: Seq[ClientfilemetadataRow] = inputs.map(i => ClientfilemetadataRow(
-      uuidSource.uuid,
-      i.fileId,
-      i.originalPath,
-      i.checksum,
-      i.checksumType,
-      Timestamp.from(Instant.ofEpochMilli(i.lastModified)),
-      i.fileSize,
-      Timestamp.from(Instant.ofEpochMilli(i.datetime))))
+  implicit class LongUtils(value: Long) {
+    def toTimestampString: String = Timestamp.from(Instant.ofEpochMilli(value)).toString
+  }
 
-    clientFileMetadataRepository.addClientFileMetadata(rows).map(r => {
-      r.map(rowToOutput)
+  def addClientFileMetadata(inputs: Seq[AddClientFileMetadataInput], userId: UUID): Future[List[ClientFileMetadata]] = {
+    val time = Timestamp.from(timeSource.now)
+    val inputRows = inputs.flatMap(input => {
+      List(
+        FileMetadataRowWithName(ClientSideOriginalFilepath, uuidSource.uuid, input.fileId, input.originalPath.getOrElse(""), time, userId),
+        FileMetadataRowWithName(ClientSideFileLastModifiedDate, uuidSource.uuid, input.fileId, input.lastModified.toTimestampString , time, userId),
+        FileMetadataRowWithName(ClientSideFileSize, uuidSource.uuid, input.fileId, input.fileSize.map(_.toString).getOrElse(""), time, userId),
+        FileMetadataRowWithName(SHA256ClientSideChecksum, uuidSource.uuid, input.fileId, input.checksum.getOrElse(""), time, userId)
+      )
+    })
+    fileMetadataRepository.addFileMetadata(inputRows).map(rows => {
+      val fileToRow = rows.groupBy(f => f.fileid)
+      fileToRow.map {
+        case (fileId, rows) => convertToResponse(fileId, rows)
+      }.toList
     })
   }
 
+
   def getClientFileMetadata(fileId: UUID): Future[ClientFileMetadata] = {
-    clientFileMetadataRepository.getClientFileMetadata(fileId).map(_.head).map(rowToOutput).recover {
-      case nse: NoSuchElementException => throw InputDataException(s"Could not find metadata for file $fileId", Some(nse))
-      case e: SQLException => throw InputDataException(e.getLocalizedMessage, Some(e))
-    }
+    fileMetadataRepository.getFileMetadata(fileId, clientSideProperties: _*)
+      .map(rows => convertToResponse(fileId, rows))
+      .recover {
+        case nse: NoSuchElementException => throw InputDataException(s"Could not find metadata for file $fileId", Some(nse))
+        case e: SQLException => throw InputDataException(e.getLocalizedMessage, Some(e))
+      }
   }
 
-  private def rowToOutput(row: ClientfilemetadataRow): ClientFileMetadata = {
-    ClientFileMetadata(
-      row.fileid,
-      row.originalpath,
-      row.checksum,
-      row.checksumtype,
-      row.lastmodified.getTime,
-      row.filesize,
-      row.datetime.getTime,
-      row.clientfilemetadataid
+  private def convertToResponse(fileId: UUID, rows: Seq[FileMetadataRowWithName]): ClientFileMetadata = {
+    val propertyNameToValue = rows.map(row => row.propertyName -> row.value).toMap
+    ClientFileMetadata(fileId,
+      propertyNameToValue.get(ClientSideOriginalFilepath),
+      propertyNameToValue.get(SHA256ClientSideChecksum),
+      Some("SHA256"),
+      Timestamp.valueOf(propertyNameToValue(ClientSideFileLastModifiedDate)).getTime,
+      propertyNameToValue.get(ClientSideFileSize).map(_.toLong)
     )
   }
 }
