@@ -27,7 +27,6 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
       Some(true),
       Some(true),
       Some(true),
-      Some(true),
       Some(true)))
 
     when(repositoryMock.addTransferAgreement(any[TransferagreementRow])).thenReturn(mockResponse)
@@ -41,7 +40,6 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
 
     result.consignmentId shouldBe consignmentUuid
     result.allCrownCopyright.get shouldBe true
-    result.allDigital.get shouldBe true
     result.allEnglish.get shouldBe true
     result.allPublicRecords.get shouldBe true
     result.appraisalSelectionSignedOff.get shouldBe true
