@@ -59,7 +59,8 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
     response.data.get.addTransferAgreement should equal(expectedResponse.data.get.addTransferAgreement)
-    //checkTransferAgreementExists(response.data.get.addTransferAgreement.consignmentId.get)
+
+    checkTransferAgreementExists(response.data.get.addTransferAgreement.consignmentId.get)
   }
 
   "The api" should "return the expected data from inserted transfer agreement consignment metadata properties" in {
@@ -74,7 +75,7 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
     val response: GraphqlMutationData = runTestMutation("mutation_somedata", validUserToken())
     response.data.get.addTransferAgreement should equal(expectedResponse.data.get.addTransferAgreement)
 
-    //checkTransferAgreementExists(response.data.get.addTransferAgreement.transferAgreementId.get)
+    checkTransferAgreementExists(response.data.get.addTransferAgreement.consignmentId.get)
   }
 
   "The api" should "throw an error if the consignment id field is not provided" in {
@@ -163,11 +164,11 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
   }
 
   private def checkTransferAgreementExists(consignmentId: UUID): Unit = {
-    val sql = "SELECT * FROM ConsignmentMetadata cm JOIN ConsignmentProperty cp ON cp.PropertyId = cm.PropertyId WHERE ConsignmentId = ? AND cp.Name IN (?,?,?,?);"
+    val sql = "SELECT * FROM ConsignmentMetadata cm JOIN ConsignmentProperty cp ON cp.PropertyId = cm.PropertyId WHERE ConsignmentId = ? AND cp.Name IN (?,?,?,?,?);"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, consignmentId.toString)
     transferAgreementProperties.zipWithIndex.foreach {
-      case (a, b) => ps.setString(b + 1, a)
+      case (a, b) => ps.setString(b + 2, a)
     }
     val rs: ResultSet = ps.executeQuery()
     rs.next()
