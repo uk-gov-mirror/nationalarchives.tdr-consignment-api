@@ -1,6 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.utils
 
 import java.sql.{PreparedStatement, Timestamp}
+import java.time.Instant
 import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
@@ -11,6 +12,7 @@ import com.tngtech.keycloakmock.api.TokenConfig.aTokenConfig
 import io.circe.Decoder
 import io.circe.parser.decode
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
+import uk.gov.nationalarchives.tdr.api.service.TransferAgreementService._
 
 import scala.concurrent.ExecutionContext
 import scala.io.Source.fromResource
@@ -93,6 +95,8 @@ object TestUtils {
     createConsignment(consignmentId, userId, seriesId)
     createFile(defaultFileId, consignmentId)
     createClientFileMetadata(defaultFileId)
+    addTransferAgreementProperties()
+    createConsignmentMetadata(consignmentId)
   }
 
   def createConsignment(consignmentId: UUID, userId: UUID, seriesId: UUID = UUID.fromString("9e2e2a51-c2d0-4b99-8bef-2ca322528861")): Unit = {
@@ -196,6 +200,59 @@ object TestUtils {
     ps.setString(3, code)
 
     ps.executeUpdate()
+  }
+
+  def addConsignmentProperty(propertyId: String, name: String): Unit = {
+    insertProperty("ConsignmentProperty", propertyId, name)
+  }
+
+  //scalastyle:on magic.number
+  def addConsignmentMetadata(metadataId: String, consignmentId: String, propertyId: String): Unit = {
+    val sql = s"insert into ConsignmentMetadata (MetadataId, ConsignmentId, PropertyId, Value, Datetime, UserId) VALUES (?, ?, ?, ?, ?, ?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, metadataId)
+    ps.setString(2, consignmentId)
+    ps.setString(3, propertyId)
+    ps.setString(4, "Result of ConsignmentMetadata processing")
+    ps.setTimestamp(5, Timestamp.from(FixedTimeSource.now))
+    ps.setString(6, userId.toString)
+
+    ps.executeUpdate()
+  }
+
+  private def insertProperty(propertyTable: String, propertyId: String, name: String): Unit = {
+    val sql = s"insert into ${propertyTable} (PropertyId, Name) VALUES (?, ?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, propertyId)
+    ps.setString(2, name)
+
+    ps.executeUpdate()
+  }
+
+  def createConsignmentMetadata(consignmentId: UUID): Unit = {
+    val sql = "INSERT INTO ConsignmentMetadata(MetadataId, ConsignmentId, PropertyId, Value, Datetime, UserId) VALUES (?,?,?,?,?,?)"
+    transferAgreementProperties.foreach(propertyName => {
+      val selectSql = "SELECT PropertyId FROM ConsignmentProperty where Name = ?"
+      val psSelect: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(selectSql)
+      psSelect.setString(1, propertyName)
+      val rs = psSelect.executeQuery()
+      rs.next()
+      val propertyId = rs.getString("PropertyId")
+      val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+      ps.setString(1, UUID.randomUUID().toString)
+      ps.setString(2, consignmentId.toString)
+      ps.setString(3, propertyId)
+      ps.setString(4, true.toString)
+      ps.setTimestamp(5, Timestamp.from(Instant.now()))
+      ps.setString(6, UUID.randomUUID().toString)
+      ps.executeUpdate()
+    })
+  }
+
+  def addTransferAgreementProperties(): Unit = {
+    transferAgreementProperties.foreach(propertyName => {
+      addConsignmentProperty(UUID.randomUUID().toString, propertyName)
+    })
   }
 }
 

@@ -19,7 +19,6 @@ object TransferAgreementFields {
                                allEnglish: Option[Boolean] = None,
                                appraisalSelectionSignedOff: Option[Boolean] = None,
                                sensitivityReviewSignedOff: Option[Boolean] = None,
-                               transferAgreementId: Option[UUID] = None,
                                isAgreementComplete: Boolean)
 
   case class AddTransferAgreementInput(consignmentId: UUID,
@@ -38,7 +37,7 @@ object TransferAgreementFields {
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("addTransferAgreement", TransferAgreementType,
       arguments=TransferAgreementInputArg :: Nil,
-      resolve = ctx => ctx.ctx.transferAgreementService.addTransferAgreement(ctx.arg(TransferAgreementInputArg)),
+      resolve = ctx => ctx.ctx.transferAgreementService.addTransferAgreement(ctx.arg(TransferAgreementInputArg), ctx.ctx.accessToken.userId),
       tags=List(ValidateUserOwnsConsignment(TransferAgreementInputArg))
     ))
 
