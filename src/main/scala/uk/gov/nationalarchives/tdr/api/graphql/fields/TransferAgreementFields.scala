@@ -18,6 +18,7 @@ object TransferAgreementFields {
                                allCrownCopyright: Option[Boolean] = None,
                                allEnglish: Option[Boolean] = None,
                                appraisalSelectionSignedOff: Option[Boolean] = None,
+                               initialOpenRecords: Option[Boolean] = None,
                                sensitivityReviewSignedOff: Option[Boolean] = None,
                                isAgreementComplete: Boolean)
 
@@ -26,6 +27,7 @@ object TransferAgreementFields {
                                        allCrownCopyright: Option[Boolean] = None,
                                        allEnglish: Option[Boolean] = None,
                                        appraisalSelectionSignedOff: Option[Boolean] = None,
+                                       initialOpenRecords: Option[Boolean] = None,
                                        sensitivityReviewSignedOff: Option[Boolean] = None) extends UserOwnsConsignment
 
   implicit val TransferAgreementType: ObjectType[Unit, TransferAgreement] = deriveObjectType[Unit, TransferAgreement]()

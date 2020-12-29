@@ -33,9 +33,10 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
       ConsignmentMetadataRowWithName(name, metadataId, Some(consignmentId),  Some(value), Timestamp.from(FixedTimeSource.now), userId)
     val mockResponse = Future.successful(Seq(
       row("AllEnglishConfirmed", "true"),
+      row("CrownCopyrightConfirmed", "true"),
       row("AppraisalSelectionSignOffConfirmed", "true"),
       row("InitialOpenRecordsConfirmed", "true"),
-      row("CrownCopyrightConfirmed", "true"),
+      row("PublicRecordsConfirmed", "true"),
       row("SensitivityReviewSignOffConfirmed", "true")
     ))
 
@@ -47,9 +48,11 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
       Some(true),
       Some(true),
       Some(true),
+      Some(true),
       Some(true)), userId).futureValue
 
     result.consignmentId shouldBe consignmentId
+    result.initialOpenRecords.get shouldBe true
     result.allCrownCopyright.get shouldBe true
     result.allEnglish.get shouldBe true
     result.allPublicRecords.get shouldBe true

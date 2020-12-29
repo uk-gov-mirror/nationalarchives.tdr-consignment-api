@@ -30,13 +30,17 @@ class TransferAgreementService(consignmentMetadataRepository: ConsignmentMetadat
     val consignmentId = input.consignmentId
     Seq(
       ConsignmentMetadataRowWithName(
+        PublicRecordsConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.allPublicRecords.get.toString), time, userId),
+      ConsignmentMetadataRowWithName(
         AllEnglishConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.allEnglish.get.toString), time, userId),
       ConsignmentMetadataRowWithName(
         AppraisalSelectionSignOffConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.appraisalSelectionSignedOff.get.toString), time, userId),
       ConsignmentMetadataRowWithName(
         CrownCopyrightConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.allCrownCopyright.get.toString), time, userId),
       ConsignmentMetadataRowWithName(
-        InitialOpenRecordsConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.allPublicRecords.get.toString), time, userId),
+        //initialOpenRecordsConfirmed field to be added to frontend
+        //temporarily default to true until value passed from frontend input
+        InitialOpenRecordsConfirmed, uuidSource.uuid, Some(consignmentId), Some("true"), time, userId),
       ConsignmentMetadataRowWithName(
         SensitivityReviewSignOffConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.sensitivityReviewSignedOff.get.toString), time, userId)
     )
@@ -45,10 +49,11 @@ class TransferAgreementService(consignmentMetadataRepository: ConsignmentMetadat
   private def convertDbRowsToTransferAgreement(consignmentId: UUID, rows: Seq[ConsignmentMetadataRowWithName]): TransferAgreement = {
     val propertyNameToValue = rows.map(row => row.propertyName -> row.value.map(_.toBoolean)).toMap
     TransferAgreement(consignmentId,
-      propertyNameToValue(InitialOpenRecordsConfirmed),
+      propertyNameToValue(PublicRecordsConfirmed),
       propertyNameToValue(CrownCopyrightConfirmed),
       propertyNameToValue(AllEnglishConfirmed),
       propertyNameToValue(AppraisalSelectionSignOffConfirmed),
+      propertyNameToValue(InitialOpenRecordsConfirmed),
       propertyNameToValue(SensitivityReviewSignOffConfirmed),
       isAgreementComplete(propertyNameToValue)
     )
@@ -74,13 +79,15 @@ class TransferAgreementService(consignmentMetadataRepository: ConsignmentMetadat
 
 object TransferAgreementService {
   val AllEnglishConfirmed = "AllEnglishConfirmed"
+  val PublicRecordsConfirmed = "PublicRecordsConfirmed"
   val AppraisalSelectionSignOffConfirmed = "AppraisalSelectionSignOffConfirmed"
-  val InitialOpenRecordsConfirmed = "InitialOpenRecordsConfirmed"
   val CrownCopyrightConfirmed = "CrownCopyrightConfirmed"
+  val InitialOpenRecordsConfirmed = "InitialOpenRecordsConfirmed"
   val SensitivityReviewSignOffConfirmed = "SensitivityReviewSignOffConfirmed"
 
   val transferAgreementProperties = List(
     AllEnglishConfirmed,
+    PublicRecordsConfirmed,
     AppraisalSelectionSignOffConfirmed,
     InitialOpenRecordsConfirmed,
     CrownCopyrightConfirmed,
