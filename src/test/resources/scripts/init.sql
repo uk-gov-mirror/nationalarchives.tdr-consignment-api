@@ -33,7 +33,6 @@ CREATE TABLE IF NOT EXISTS TransferAgreement (
   AllPublicRecords BOOLEAN DEFAULT NULL,
   AllCrownCopyright BOOLEAN DEFAULT NULL,
   AllEnglish BOOLEAN DEFAULT NULL,
-  AllDigital BOOLEAN DEFAULT NULL,
   AppraisalSelectionSignedOff BOOLEAN DEFAULT NULL,
   SensitivityReviewSignedOff BOOLEAN DEFAULT NULL,
   TransferAgreementId uuid NOT NULL DEFAULT '6e3b76c4-1745-4467-8ac5-b4dd736e1b3e',

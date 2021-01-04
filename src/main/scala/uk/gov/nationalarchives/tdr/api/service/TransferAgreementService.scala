@@ -16,7 +16,6 @@ class TransferAgreementService(transferAgreementRepository: TransferAgreementRep
       input.allPublicRecords,
       input.allCrownCopyright,
       input.allEnglish,
-      input.allDigital,
       input.appraisalSelectionSignedOff,
       input.sensitivityReviewSignedOff)
 
@@ -40,7 +39,6 @@ class TransferAgreementService(transferAgreementRepository: TransferAgreementRep
       row.allpublicrecords,
       row.allcrowncopyright,
       row.allenglish,
-      row.alldigital,
       row.appraisalselectionsignedoff,
       row.sensitivityreviewsignedoff,
       Some(row.transferagreementid),

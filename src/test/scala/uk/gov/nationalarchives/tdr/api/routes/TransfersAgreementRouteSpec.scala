@@ -27,7 +27,6 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
                                 allPublicRecords: Option[Boolean] = None,
                                 allCrownCopyright: Option[Boolean] = None,
                                 allEnglish: Option[Boolean] = None,
-                                allDigital: Option[Boolean] = None,
                                 appraisalSelectionSignedOff: Option[Boolean] = None,
                                 sensitivityReviewSignedOff: Option[Boolean] = None,
                                 transferAgreementId: Option[UUID] = None
@@ -115,8 +114,8 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
     val fixedUUIDSource = new FixedUUIDSource()
     val consignmentSql = s"insert into Consignment (SeriesId, UserId) VALUES (1,'$userId')"
     val sql = "INSERT INTO TransferAgreement (ConsignmentId, AllPublicRecords, AllCrownCopyright, " +
-      "AllEnglish, AllDigital, AppraisalSelectionSignedOff, SensitivityReviewSignedOff, TransferAgreementId) " +
-      "VALUES (?, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, ?);"
+      "AllEnglish, AppraisalSelectionSignedOff, SensitivityReviewSignedOff, TransferAgreementId) " +
+      "VALUES (?, TRUE, TRUE, TRUE, TRUE, TRUE, ?);"
     val psConsignment: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(consignmentSql)
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     val uuid = fixedUUIDSource.uuid.toString
