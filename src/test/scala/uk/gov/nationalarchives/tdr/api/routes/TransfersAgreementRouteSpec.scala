@@ -29,6 +29,7 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
                                 allCrownCopyright: Option[Boolean] = None,
                                 allEnglish: Option[Boolean] = None,
                                 appraisalSelectionSignedOff: Option[Boolean] = None,
+                                initialOpenRecords: Option[Boolean] = None,
                                 sensitivityReviewSignedOff: Option[Boolean] = None
                               )
   case class AddTransferAgreement(addTransferAgreement: TransferAgreement) extends TestRequest
