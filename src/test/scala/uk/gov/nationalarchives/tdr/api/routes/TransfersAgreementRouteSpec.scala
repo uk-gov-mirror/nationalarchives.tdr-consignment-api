@@ -164,7 +164,8 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
   }
 
   private def checkTransferAgreementExists(consignmentId: UUID): Unit = {
-    val sql = "SELECT * FROM ConsignmentMetadata cm JOIN ConsignmentProperty cp ON cp.PropertyId = cm.PropertyId WHERE ConsignmentId = ? AND cp.Name IN (?,?,?,?,?,?);"
+    val sql = "SELECT * FROM ConsignmentMetadata cm JOIN ConsignmentProperty cp ON cp.PropertyId = cm.PropertyId " +
+      "WHERE ConsignmentId = ? AND cp.Name IN (?,?,?,?,?,?);"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, consignmentId.toString)
     transferAgreementProperties.zipWithIndex.foreach {
