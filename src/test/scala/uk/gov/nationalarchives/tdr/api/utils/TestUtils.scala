@@ -206,7 +206,7 @@ object TestUtils {
     insertProperty("ConsignmentProperty", propertyId, name)
   }
 
-  //scalastyle:on magic.number
+  //scalastyle:off magic.number
   def addConsignmentMetadata(metadataId: String, consignmentId: String, propertyId: String): Unit = {
     val sql = s"insert into ConsignmentMetadata (MetadataId, ConsignmentId, PropertyId, Value, Datetime, UserId) VALUES (?, ?, ?, ?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
@@ -248,6 +248,8 @@ object TestUtils {
       ps.executeUpdate()
     })
   }
+
+  //scalastyle:on magic.number
 
   def addTransferAgreementProperties(): Unit = {
     transferAgreementProperties.foreach(propertyName => {
