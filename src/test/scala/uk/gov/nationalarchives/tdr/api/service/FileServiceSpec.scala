@@ -147,6 +147,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     checkRow("FoiExemptionCode", "open")
   }
 
+  //scalastyle:off magic.number
   "getOwnersOfFiles" should "find the owners of the given files" in {
     val fixedUuidSource = new FixedUUIDSource()
     val fileId1 = UUID.fromString("bc609dc4-e153-4620-a7ab-20e7fd5a4005")
@@ -160,6 +161,9 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
 
     val fileRepositoryMock = mock[FileRepository]
     val consignmentRepositoryMock = mock[ConsignmentRepository]
+    val fileService = new FileService(fileRepositoryMock, consignmentRepositoryMock, FixedTimeSource, fixedUuidSource)
+    val consignment1 = ConsignmentRow(consignmentId1, seriesId1, userId1, Timestamp.from(Instant.now), consignmentsequence = Option(400L))
+    val consignment2 = ConsignmentRow(consignmentId2, seriesId2, userId2, Timestamp.from(Instant.now), consignmentsequence = Option(500L))
     val fileMetadataRepositoryMock = mock[FileMetadataRepository]
     val fileService = new FileService(fileRepositoryMock, consignmentRepositoryMock, fileMetadataRepositoryMock, FixedTimeSource, fixedUuidSource)
     val consignment1 = ConsignmentRow(consignmentId1, seriesId1, userId1, Timestamp.from(Instant.now))
@@ -177,6 +181,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     owners(0).userId should equal(userId1)
     owners(1).userId should equal(userId2)
   }
+  //scalastyle:on magic.number
 
   "getFiles" should "return all the files" in {
     val fixedUuidSource = new FixedUUIDSource()
