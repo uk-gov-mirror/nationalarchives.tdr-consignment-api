@@ -1,12 +1,13 @@
 package uk.gov.nationalarchives.tdr.api.service
 
 import java.sql.Timestamp
-import java.util.UUID
+import java.util.{Calendar, UUID}
 
 import uk.gov.nationalarchives.Tables.{BodyRow, ConsignmentRow, SeriesRow}
 import uk.gov.nationalarchives.tdr.api.db.repository._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.SeriesFields.Series
+import uk.gov.nationalarchives.tdr.api.model.consignment.CreateConsignmentReference
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -16,9 +17,12 @@ class ConsignmentService(
                           fileMetadataRepository: FileMetadataRepository,
                           fileRepository: FileRepository,
                           ffidMetadataRepository: FFIDMetadataRepository,
+                          consignmentReferenceModel: CreateConsignmentReference,
                           timeSource: TimeSource,
                           uuidSource: UUIDSource
                         )(implicit val executionContext: ExecutionContext) {
+
+  val calendar: Calendar = Calendar.getInstance()
 
   def updateTransferInitiated(consignmentId: UUID, userId: UUID): Future[Int] = {
     consignmentRepository.updateTransferInitiated(consignmentId, userId, Timestamp.from(timeSource.now))
@@ -29,13 +33,22 @@ class ConsignmentService(
   }
 
   def addConsignment(addConsignmentInput: AddConsignmentInput, userId: UUID): Future[Consignment] = {
-    val consignmentRow = ConsignmentRow(uuidSource.uuid, addConsignmentInput.seriesid, userId, Timestamp.from(timeSource.now))
-    consignmentRepository.addConsignment(consignmentRow).map(row => Consignment(row.consignmentid, row.userid, row.seriesid))
+    val transferStartYearForReference: Int = calendar.get(Calendar.YEAR)
+     consignmentRepository.getNextConsignmentSequence.flatMap(sequence => {
+       val consignmentRef = consignmentReferenceModel.createConsignmentReference(transferStartYearForReference, sequence)
+       val consignmentRow = ConsignmentRow(
+         uuidSource.uuid,
+         addConsignmentInput.seriesid,
+         userId,
+         Timestamp.from(timeSource.now),
+         consignmentsequence = Option(sequence))
+       consignmentRepository.addConsignment(consignmentRow).map(row => Consignment(row.consignmentid, row.userid, row.seriesid, Option(consignmentRef)))
+     })
   }
 
   def getConsignment(consignmentId: UUID): Future[Option[Consignment]] = {
     val consignments = consignmentRepository.getConsignment(consignmentId)
-    consignments.map(rows => rows.headOption.map(row => Consignment(row.consignmentid, row.userid, row.seriesid)))
+    consignments.map(rows => rows.headOption.map(row => Consignment(row.consignmentid, row.userid, row.seriesid, row.consignmentreference)))
   }
 
   def getSeriesOfConsignment(consignmentId: UUID): Future[Option[Series]] = {

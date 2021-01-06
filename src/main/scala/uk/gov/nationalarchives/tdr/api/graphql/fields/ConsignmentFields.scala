@@ -12,7 +12,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 
 object ConsignmentFields {
 
-  case class Consignment(consignmentid: UUID, userid: UUID, seriesid: UUID)
+  case class Consignment(consignmentid: UUID, userid: UUID, seriesid: UUID, consignmentReference: Option[String])
 
   case class AddConsignmentInput(seriesid: UUID)
 
