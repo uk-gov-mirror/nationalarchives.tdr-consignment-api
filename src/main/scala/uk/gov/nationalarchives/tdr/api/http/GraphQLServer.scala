@@ -19,6 +19,7 @@ import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentRepository, SeriesRepository, _}
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
 import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, DeferredResolver, ErrorCodes, GraphQlTypes}
+import uk.gov.nationalarchives.tdr.api.model.consignment.CreateConsignmentReference
 import uk.gov.nationalarchives.tdr.api.service._
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
@@ -82,17 +83,35 @@ object GraphQLServer {
 
     val consignmentService = new ConsignmentService(consignmentRepository, fileMetadataRepository, fileRepository,
       ffidMetadataRepository, timeSource, uuidSource)
+    val consignmentReferenceModel = new CreateConsignmentReference
+    val consignmentService = new ConsignmentService(consignmentRepository,
+      fileMetadataRepository,
+      fileRepository,
+      ffidMetadataRepository,
+      consignmentReferenceModel,
+      new CurrentTimeSource,
+      uuidSource)
     val seriesService = new SeriesService(new SeriesRepository(db), uuidSource)
     val transferAgreementService = new TransferAgreementService(new ConsignmentMetadataRepository(db), uuidSource, timeSource)
     val clientFileMetadataService = new ClientFileMetadataService(fileMetadataRepository, uuidSource, timeSource)
     val fileService = new FileService(fileRepository, consignmentRepository, fileMetadataRepository, new CurrentTimeSource, uuidSource)
     val transferringBodyService = new TransferringBodyService(new TransferringBodyRepository(db))
     val antivirusMetadataService = new AntivirusMetadataService(new AntivirusMetadataRepository(db))
-    val fileMetadataService = new FileMetadataService(fileMetadataRepository, timeSource, uuidSource)
+    val fileMetadataService = new FileMetadataService(
+      fileMetadataRepository, timeSource, uuidSource
+    )
     val ffidMetadataService = new FFIDMetadataService(ffidMetadataRepository, new FFIDMetadataMatchesRepository(db), timeSource, uuidSource)
-
-    val context = ConsignmentApiContext(accessToken, clientFileMetadataService, consignmentService, fileService, seriesService,
-      transferAgreementService, transferringBodyService, antivirusMetadataService, fileMetadataService, ffidMetadataService
+    val context = ConsignmentApiContext(
+      accessToken,
+      clientFileMetadataService,
+      consignmentService,
+      fileService,
+      seriesService,
+      transferAgreementService,
+      transferringBodyService,
+      antivirusMetadataService,
+      fileMetadataService,
+      ffidMetadataService
     )
     Executor.execute(
       GraphQlTypes.schema,
@@ -102,8 +121,7 @@ object GraphQLServer {
       deferredResolver = new DeferredResolver,
       middleware = new ValidationAuthoriser :: new ConsignmentStateValidator :: Nil,
       exceptionHandler = exceptionHandler
-    ).map(OK -> _)
-      .recover {
+    ).map(OK -> _).recover {
         case error: QueryAnalysisError => BadRequest -> error.resolveError
         case error: ErrorWithResolver => InternalServerError -> error.resolveError
       }

@@ -1,6 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.service
 
 import java.sql.Timestamp
+import java.util.{Calendar, UUID}
 import java.time.{ZoneId, ZonedDateTime}
 import java.util.UUID
 
@@ -9,6 +10,7 @@ import uk.gov.nationalarchives.tdr.api.db.repository._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.SeriesFields.Series
 import uk.gov.nationalarchives.tdr.api.utils.TimeUtils.TimestampUtils
+import uk.gov.nationalarchives.tdr.api.model.consignment.CreateConsignmentReference
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -33,6 +35,17 @@ class ConsignmentService(
     val consignmentRow = ConsignmentRow(uuidSource.uuid, addConsignmentInput.seriesid, userId, Timestamp.from(timeSource.now))
     consignmentRepository.addConsignment(consignmentRow).map(
       row => convertRowToConsignment(row))
+    val transferStartYearForReference: Int = calendar.get(Calendar.YEAR)
+     consignmentRepository.getNextConsignmentSequence.flatMap(sequence => {
+       val consignmentRef = consignmentReferenceModel.createConsignmentReference(transferStartYearForReference, sequence)
+       val consignmentRow = ConsignmentRow(
+         uuidSource.uuid,
+         addConsignmentInput.seriesid,
+         userId,
+         Timestamp.from(timeSource.now),
+         consignmentsequence = Option(sequence))
+       consignmentRepository.addConsignment(consignmentRow).map(row => Consignment(row.consignmentid, row.userid, row.seriesid, Option(consignmentRef)))
+     })
   }
 
   def getConsignment(consignmentId: UUID): Future[Option[Consignment]] = {
