@@ -69,7 +69,6 @@ object GraphQLServer {
     }
   }
 
-  //noinspection ScalaStyle
   private def executeGraphQLQuery(query: Document, operation: Option[String], vars: JsObject, accessToken: Token)
                                  (implicit ec: ExecutionContext): Future[(StatusCode with Serializable, JsValue)] = {
     val uuidSourceClass: Class[_] = Class.forName(ConfigFactory.load().getString("source.uuid"))

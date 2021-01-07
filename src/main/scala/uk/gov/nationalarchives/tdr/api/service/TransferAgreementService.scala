@@ -65,7 +65,7 @@ class TransferAgreementService(consignmentMetadataRepository: ConsignmentMetadat
   private def isAgreementComplete(propertyNameToValue: Map[String, Option[Boolean]]): Boolean = {
     transferAgreementProperties.map(p => {
       propertyNameToValue(p).getOrElse(false)
-    }).forall(_ == true)
+    }) forall (_ == true)
   }
 }
 
