@@ -21,11 +21,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   implicit val customConfig: Configuration = Configuration.default.withDefaults
 
   override def beforeEach(): Unit = {
-    val conn: Connection = DbConnection.db.source.createConnection()
-    conn.prepareStatement("delete from Consignment").executeUpdate()
-    conn.prepareStatement("delete from Series").executeUpdate()
-    conn.commit()
-    conn.close()
+    resetDatabase()
   }
 
   case class GraphqlQueryData(data: Option[GetConsignment], errors: List[GraphqlError] = Nil)
@@ -212,5 +208,10 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     ps.setString(1, "6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
     ps.setString(2, bodyId.toString)
     ps.executeUpdate()
+  }
+
+  private def resetDatabase(): Unit = {
+    DbConnection.db.source.createConnection().prepareStatement("delete from Consignment").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("delete from Series").executeUpdate()
   }
 }
