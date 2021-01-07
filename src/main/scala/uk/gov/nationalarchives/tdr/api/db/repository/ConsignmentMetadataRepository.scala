@@ -11,10 +11,10 @@ import uk.gov.nationalarchives.tdr.api.db.repository.ConsignmentMetadataReposito
 import scala.concurrent.{ExecutionContext, Future}
 
 class ConsignmentMetadataRepository(db: Database)(implicit val executionContext: ExecutionContext) {
-  def sqlRowToConsignmentMetadata(propertyName: String, row: ConsignmentmetadataRow): ConsignmentMetadataRowWithName =
+  private def sqlRowToConsignmentMetadata(propertyName: String, row: ConsignmentmetadataRow): ConsignmentMetadataRowWithName =
     ConsignmentMetadataRowWithName(propertyName, row.metadataid, row.consignmentid, row.value, row.datetime, row.userid)
 
-  val insertQuery: PostgresProfile.IntoInsertActionComposer[ConsignmentmetadataRow, ConsignmentMetadataRowWithName] =
+  private val insertQuery: PostgresProfile.IntoInsertActionComposer[ConsignmentmetadataRow, ConsignmentMetadataRowWithName] =
     Consignmentmetadata returning Consignmentmetadata.join(Consignmentproperty).on(_.propertyid === _.propertyid).map(_._2) into
       ((consignmentMetadata, consignmentproperty) => sqlRowToConsignmentMetadata(consignmentproperty.name.get, consignmentMetadata))
 

@@ -44,12 +44,12 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
 
     val service = new TransferAgreementService(repositoryMock, fixedUuidSource, fixedTimeSource)
     val result: TransferAgreement = service.addTransferAgreement(AddTransferAgreementInput(consignmentId,
-      Some(true),
-      Some(true),
-      Some(true),
-      Some(true),
-      Some(true),
-      Some(true)), userId).futureValue
+      true,
+      true,
+      true,
+      true,
+      true,
+      true), userId).futureValue
 
     result.consignmentId shouldBe consignmentId
     result.initialOpenRecords.get shouldBe true

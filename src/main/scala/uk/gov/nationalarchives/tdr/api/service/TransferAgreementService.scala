@@ -15,10 +15,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class TransferAgreementService(consignmentMetadataRepository: ConsignmentMetadataRepository, uuidSource: UUIDSource, timeSource: TimeSource)
                               (implicit val executionContext: ExecutionContext) {
 
-  implicit class StringUtils(value: Option[String]) {
-    def toBoolean: Boolean = value.get.toBoolean
-  }
-
   def addTransferAgreement(input: AddTransferAgreementInput, userId: UUID): Future[TransferAgreement] = {
     consignmentMetadataRepository.addConsignmentMetadata(convertInputToPropertyRows(input, userId)).map(
       rows => convertDbRowsToTransferAgreement(input.consignmentId, rows)
@@ -30,19 +26,17 @@ class TransferAgreementService(consignmentMetadataRepository: ConsignmentMetadat
     val consignmentId = input.consignmentId
     Seq(
       ConsignmentMetadataRowWithName(
-        PublicRecordsConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.allPublicRecords.get.toString), time, userId),
+        PublicRecordsConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.allPublicRecords.toString), time, userId),
       ConsignmentMetadataRowWithName(
-        AllEnglishConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.allEnglish.get.toString), time, userId),
+        AllEnglishConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.allEnglish.toString), time, userId),
       ConsignmentMetadataRowWithName(
-        AppraisalSelectionSignOffConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.appraisalSelectionSignedOff.get.toString), time, userId),
+        AppraisalSelectionSignOffConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.appraisalSelectionSignedOff.toString), time, userId),
       ConsignmentMetadataRowWithName(
-        CrownCopyrightConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.allCrownCopyright.get.toString), time, userId),
+        CrownCopyrightConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.allCrownCopyright.toString), time, userId),
       ConsignmentMetadataRowWithName(
-        //initialOpenRecordsConfirmed field to be added to frontend
-        //temporarily default to true until value passed from frontend input
-        InitialOpenRecordsConfirmed, uuidSource.uuid, Some(consignmentId), Some("true"), time, userId),
+        InitialOpenRecordsConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.initialOpenRecords.toString), time, userId),
       ConsignmentMetadataRowWithName(
-        SensitivityReviewSignOffConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.sensitivityReviewSignedOff.get.toString), time, userId)
+        SensitivityReviewSignOffConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.sensitivityReviewSignedOff.toString), time, userId)
     )
   }
 
@@ -68,12 +62,10 @@ class TransferAgreementService(consignmentMetadataRepository: ConsignmentMetadat
     }
   }
 
-  private def agreed(field: Option[Boolean]): Boolean = field.isDefined && field.get
-
   private def isAgreementComplete(propertyNameToValue: Map[String, Option[Boolean]]): Boolean = {
     transferAgreementProperties.map(p => {
-      propertyNameToValue(p)
-    }).forall(agreed)
+      propertyNameToValue(p).getOrElse(false)
+    }).forall(_ == true)
   }
 }
 

@@ -23,12 +23,14 @@ object TransferAgreementFields {
                                isAgreementComplete: Boolean)
 
   case class AddTransferAgreementInput(consignmentId: UUID,
-                                       allPublicRecords: Option[Boolean] = None,
-                                       allCrownCopyright: Option[Boolean] = None,
-                                       allEnglish: Option[Boolean] = None,
-                                       appraisalSelectionSignedOff: Option[Boolean] = None,
-                                       initialOpenRecords: Option[Boolean] = None,
-                                       sensitivityReviewSignedOff: Option[Boolean] = None) extends UserOwnsConsignment
+                                       allPublicRecords: Boolean,
+                                       allCrownCopyright: Boolean,
+                                       allEnglish: Boolean,
+                                       appraisalSelectionSignedOff: Boolean,
+                                       //initialOpenRecordsConfirmed field to be added to frontend
+                                       //temporarily default to true until value passed from frontend input
+                                       initialOpenRecords: Boolean = true,
+                                       sensitivityReviewSignedOff: Boolean) extends UserOwnsConsignment
 
   implicit val TransferAgreementType: ObjectType[Unit, TransferAgreement] = deriveObjectType[Unit, TransferAgreement]()
   implicit val AddTransferAgreementInputType: InputObjectType[AddTransferAgreementInput] = deriveInputObjectType[AddTransferAgreementInput]()
