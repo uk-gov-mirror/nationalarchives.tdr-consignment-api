@@ -3,6 +3,7 @@ FROM openjdk:16-jdk-alpine
 WORKDIR /api
 RUN addgroup --system apigroup && adduser --system apiuser -G apigroup && \
     apk update && \
+    apk upgrade p11-kit && \
     apk add ca-certificates && \
     chown -R apiuser /api && \
     wget https://s3.amazonaws.com/rds-downloads/rds-ca-2019-root.pem
