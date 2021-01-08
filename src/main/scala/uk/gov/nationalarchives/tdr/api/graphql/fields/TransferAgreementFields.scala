@@ -17,7 +17,6 @@ object TransferAgreementFields {
                                allPublicRecords: Option[Boolean] = None,
                                allCrownCopyright: Option[Boolean] = None,
                                allEnglish: Option[Boolean] = None,
-                               allDigital: Option[Boolean] = None,
                                appraisalSelectionSignedOff: Option[Boolean] = None,
                                sensitivityReviewSignedOff: Option[Boolean] = None,
                                transferAgreementId: Option[UUID] = None,
@@ -27,7 +26,6 @@ object TransferAgreementFields {
                                        allPublicRecords: Option[Boolean] = None,
                                        allCrownCopyright: Option[Boolean] = None,
                                        allEnglish: Option[Boolean] = None,
-                                       allDigital: Option[Boolean] = None,
                                        appraisalSelectionSignedOff: Option[Boolean] = None,
                                        sensitivityReviewSignedOff: Option[Boolean] = None) extends UserOwnsConsignment
 
