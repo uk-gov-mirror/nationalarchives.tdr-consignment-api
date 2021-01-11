@@ -127,15 +127,15 @@ object TestUtils {
     ps.executeUpdate()
   }
 
-  def addFileMetadata(metadataId: String, fileId: String, propertyId: String): Unit = {
-    val sql = s"insert into FileMetadata (MetadataId, FileId, PropertyId, Value, Datetime, UserId) VALUES (?, ?, ?, ?, ?, ?)"
+  def addFileMetadata(metadataId: String, fileId: String, propertyName: String): Unit = {
+    val sql = s"insert into FileMetadata (MetadataId, FileId, Value, Datetime, UserId, PropertyName) VALUES (?, ?, ?, ?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, metadataId)
     ps.setString(2, fileId)
-    ps.setString(3, propertyId)
-    ps.setString(4, "Result of FileMetadata processing")
-    ps.setTimestamp(5, Timestamp.from(FixedTimeSource.now))
-    ps.setString(6, userId.toString)
+    ps.setString(3, "Result of FileMetadata processing")
+    ps.setTimestamp(4, Timestamp.from(FixedTimeSource.now))
+    ps.setString(5, userId.toString)
+    ps.setString(6, propertyName)
 
     ps.executeUpdate()
   }
@@ -159,26 +159,20 @@ object TestUtils {
   }
 
   def createClientFileMetadata(fileId: UUID): Unit = {
-    val sql = "INSERT INTO FileMetadata(MetadataId, FileId, PropertyId, Value, Datetime, UserId) VALUES (?,?,?,?,?,?)"
+    val sql = "INSERT INTO FileMetadata(MetadataId, FileId, Value, Datetime, UserId, PropertyName) VALUES (?,?,?,?,?,?)"
     clientSideProperties.foreach(propertyName => {
-      val selectSql = "SELECT PropertyId FROM FileProperty where Name = ?"
-      val psSelect: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(selectSql)
-      psSelect.setString(1, propertyName)
-      val rs = psSelect.executeQuery()
-      rs.next()
       val value = propertyName match {
         case ClientSideFileLastModifiedDate => Timestamp.from(Instant.now()).toString
         case ClientSideFileSize => "1"
         case _ => s"$propertyName Value"
       }
-      val propertyId = rs.getString("PropertyId")
       val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
       ps.setString(1, UUID.randomUUID().toString)
       ps.setString(2, fileId.toString)
-      ps.setString(3, propertyId)
-      ps.setString(4, value)
-      ps.setTimestamp(5, Timestamp.from(Instant.now()))
-      ps.setString(6, UUID.randomUUID().toString)
+      ps.setString(3, value)
+      ps.setTimestamp(4, Timestamp.from(Instant.now()))
+      ps.setString(5, UUID.randomUUID().toString)
+      ps.setString(6, propertyName)
       ps.executeUpdate()
     })
 
@@ -186,11 +180,16 @@ object TestUtils {
 
   //scalastyle:on magic.number
 
-  def addFileProperty(propertyId: String, name: String): Unit = {
-    val sql = s"insert into FileProperty (PropertyId, Name) VALUES (?, ?)"
+  def addFileProperty(name: String): Unit = {
+    val res = DbConnection.db.source.createConnection().prepareStatement("select * from FileProperty").executeQuery()
+    if(res.next()) {
+      val a = res.getString(1)
+      println(a)
+    }
+
+    val sql = s"insert into FileProperty (Name) VALUES (?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.setString(1, propertyId)
-    ps.setString(2, name)
+    ps.setString(1, name)
 
     ps.executeUpdate()
   }
@@ -214,7 +213,7 @@ object TestUtils {
 
   def addClientSideProperties(): Unit = {
     clientSideProperties.foreach(propertyName => {
-      addFileProperty(UUID.randomUUID().toString, propertyName)
+      addFileProperty(propertyName)
     })
   }
 }

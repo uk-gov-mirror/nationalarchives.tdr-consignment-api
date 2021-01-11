@@ -4,10 +4,10 @@ import java.sql.Timestamp
 import java.util.UUID
 
 import uk.gov.nationalarchives.tdr.api.db.repository.FileMetadataRepository
-import uk.gov.nationalarchives.tdr.api.db.repository.FileMetadataRepository.FileMetadataRowWithName
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.{AddFileMetadataInput, FileMetadata, SHA256ServerSideChecksum}
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.SHA256ClientSideChecksum
+import uk.gov.nationalarchives.Tables.FilemetadataRow
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -17,12 +17,11 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository,
   def addFileMetadata(addFileMetadataInput: AddFileMetadataInput, userId: UUID): Future[FileMetadata] = {
     val filePropertyName = addFileMetadataInput.filePropertyName
     val row =
-      FileMetadataRowWithName(filePropertyName, uuidSource.uuid,
-      addFileMetadataInput.fileId,
+      FilemetadataRow(uuidSource.uuid, addFileMetadataInput.fileId,
+      Option.empty,
       addFileMetadataInput.value,
       Timestamp.from(timeSource.now),
-      userId)
-
+      userId, Option(addFileMetadataInput.filePropertyName))
 
     filePropertyName match {
       case SHA256ServerSideChecksum =>
@@ -34,7 +33,6 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository,
         }
       case _ => Future.failed(InputDataException(s"$filePropertyName found. We are only expecting checksum updates for now"))
     }
-
   }
 }
 

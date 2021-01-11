@@ -5,10 +5,10 @@ import java.time.Instant
 import java.util.UUID
 
 import uk.gov.nationalarchives.tdr.api.db.repository.FileMetadataRepository
-import uk.gov.nationalarchives.tdr.api.db.repository.FileMetadataRepository.FileMetadataRowWithName
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ClientFileMetadataFields.{AddClientFileMetadataInput, ClientFileMetadata}
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
+import uk.gov.nationalarchives.Tables.FilemetadataRow
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -24,10 +24,10 @@ class ClientFileMetadataService(fileMetadataRepository: FileMetadataRepository,
     val time = Timestamp.from(timeSource.now)
     val inputRows = inputs.flatMap(input => {
       List(
-        FileMetadataRowWithName(ClientSideOriginalFilepath, uuidSource.uuid, input.fileId, input.originalPath.getOrElse(""), time, userId),
-        FileMetadataRowWithName(ClientSideFileLastModifiedDate, uuidSource.uuid, input.fileId, input.lastModified.toTimestampString , time, userId),
-        FileMetadataRowWithName(ClientSideFileSize, uuidSource.uuid, input.fileId, input.fileSize.map(_.toString).getOrElse(""), time, userId),
-        FileMetadataRowWithName(SHA256ClientSideChecksum, uuidSource.uuid, input.fileId, input.checksum.getOrElse(""), time, userId)
+        FilemetadataRow(uuidSource.uuid, input.fileId, Option.empty, input.originalPath.getOrElse(""), time, userId, Option(ClientSideOriginalFilepath)),
+        FilemetadataRow(uuidSource.uuid, input.fileId, Option.empty, input.lastModified.toTimestampString , time, userId, Option(ClientSideFileLastModifiedDate)),
+        FilemetadataRow(uuidSource.uuid, input.fileId, Option.empty, input.fileSize.map(_.toString).getOrElse(""), time, userId, Option(ClientSideFileSize)),
+        FilemetadataRow(uuidSource.uuid, input.fileId, Option.empty, input.checksum.getOrElse(""), time, userId, Option(SHA256ClientSideChecksum))
       )
     })
     fileMetadataRepository.addFileMetadata(inputRows).map(rows => {
@@ -38,7 +38,6 @@ class ClientFileMetadataService(fileMetadataRepository: FileMetadataRepository,
     })
   }
 
-
   def getClientFileMetadata(fileId: UUID): Future[ClientFileMetadata] = {
     fileMetadataRepository.getFileMetadata(fileId, clientSideProperties: _*)
       .map(rows => convertToResponse(fileId, rows))
@@ -48,8 +47,8 @@ class ClientFileMetadataService(fileMetadataRepository: FileMetadataRepository,
       }
   }
 
-  private def convertToResponse(fileId: UUID, rows: Seq[FileMetadataRowWithName]): ClientFileMetadata = {
-    val propertyNameToValue = rows.map(row => row.propertyName -> row.value).toMap
+  private def convertToResponse(fileId: UUID, rows: Seq[FilemetadataRow]): ClientFileMetadata = {
+    val propertyNameToValue = rows.map(row => row.propertyname.get -> row.value).toMap
     ClientFileMetadata(fileId,
       propertyNameToValue.get(ClientSideOriginalFilepath),
       propertyNameToValue.get(SHA256ClientSideChecksum),

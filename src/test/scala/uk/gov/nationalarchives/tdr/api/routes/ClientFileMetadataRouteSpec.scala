@@ -38,7 +38,6 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
 
   override def beforeEach(): Unit = {
     resetDatabase()
-    addClientSideProperties()
   }
 
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData =
@@ -51,6 +50,7 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
     getDataFromFile[GraphqlQueryData](getClientFileMetadataJsonFilePrefix)
 
   "addClientFileMetadata" should "return all requested fields from inserted Client File metadata object" in {
+    addClientSideProperties()
     val consignmentId = UUID.fromString("eb197bfb-43f7-40ca-9104-8f6cbda88506")
     createConsignment(consignmentId, userId)
     createFile(defaultFileId, consignmentId)
@@ -63,6 +63,7 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
   }
 
   "addClientFileMetadata" should "return the expected data from inserted Client File metadata object" in {
+    addClientSideProperties()
     val consignmentId = UUID.fromString("eb197bfb-43f7-40ca-9104-8f6cbda88506")
     createConsignment(consignmentId, userId)
     createFile(defaultFileId, consignmentId)
@@ -153,7 +154,7 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
   }
 
   private def checkClientFileMetadataExists(fileId: UUID): Unit = {
-    val sql = "select * from FileMetadata cfm JOIN FileProperty fp ON fp.PropertyId = cfm.PropertyId where FileId = ? AND fp.Name IN (?,?,?,?);"
+    val sql = "select * from FileMetadata where FileId = ? AND PropertyName IN (?,?,?,?);"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, fileId.toString)
     clientSideProperties.zipWithIndex.foreach {

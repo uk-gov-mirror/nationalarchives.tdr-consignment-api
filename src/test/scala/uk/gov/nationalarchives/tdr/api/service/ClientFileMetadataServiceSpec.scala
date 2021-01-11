@@ -10,10 +10,10 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.repository.FileMetadataRepository
-import uk.gov.nationalarchives.tdr.api.db.repository.FileMetadataRepository.FileMetadataRowWithName
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ClientFileMetadataFields.{AddClientFileMetadataInput, ClientFileMetadata}
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
+import uk.gov.nationalarchives.Tables.FilemetadataRow
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -28,8 +28,8 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
     val dummyTimestamp = Timestamp.from(dummyInstant)
     val dummyFileSize: Long = 1000
     val repositoryMock = mock[FileMetadataRepository]
-    def row(name: String, value: String): FileMetadataRowWithName =
-      FileMetadataRowWithName(name, clientMetadataUuid, fileUuid,  value, Timestamp.from(FixedTimeSource.now), UUID.randomUUID())
+    def row(name: String, value: String): FilemetadataRow =
+      FilemetadataRow(clientMetadataUuid, fileUuid, Option.empty, value, Timestamp.from(FixedTimeSource.now), UUID.randomUUID(), Option(name))
 
     val mockResponse = Future(Seq(
       row(ClientSideFileSize, dummyFileSize.toString),
@@ -39,7 +39,7 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
     ))
 
     when(repositoryMock.getFileMetadata(fileUuid, clientSideProperties:_*)).thenReturn(mockResponse)
-    when(repositoryMock.addFileMetadata(any[Seq[FileMetadataRowWithName]])).thenReturn(mockResponse)
+    when(repositoryMock.addFileMetadata(any[Seq[FilemetadataRow]])).thenReturn(mockResponse)
 
     val service = new ClientFileMetadataService(repositoryMock, fixedUuidSource, FixedTimeSource)
     val result = service.addClientFileMetadata(Seq(AddClientFileMetadataInput(
@@ -69,8 +69,8 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
     val dummyTimestamp = Timestamp.from(dummyInstant)
     val dummyFileSize: Long = 1000
     val repositoryMock = mock[FileMetadataRepository]
-    def row(name: String, value: String): FileMetadataRowWithName =
-      FileMetadataRowWithName(name, clientMetadataUuid, fileUuid, value, Timestamp.from(FixedTimeSource.now), UUID.randomUUID())
+    def row(name: String, value: String): FilemetadataRow =
+      FilemetadataRow(clientMetadataUuid, fileUuid, Option.empty, value, Timestamp.from(FixedTimeSource.now), UUID.randomUUID(), Option(name))
 
     val mockResponse = Future(Seq(
       row(ClientSideFileSize, dummyFileSize.toString),
