@@ -1,6 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.service
 
 import java.sql.Timestamp
+import java.time.LocalDate
 import java.util.{Calendar, UUID}
 import java.time.{ZoneId, ZonedDateTime}
 import java.util.UUID
@@ -10,7 +11,7 @@ import uk.gov.nationalarchives.tdr.api.db.repository._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.SeriesFields.Series
 import uk.gov.nationalarchives.tdr.api.utils.TimeUtils.TimestampUtils
-import uk.gov.nationalarchives.tdr.api.model.consignment.CreateConsignmentReference
+import uk.gov.nationalarchives.tdr.api.model.consignment.ConsignmentReference
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -32,17 +33,19 @@ class ConsignmentService(
   }
 
   def addConsignment(addConsignmentInput: AddConsignmentInput, userId: UUID): Future[Consignment] = {
+    val timeNow = timeSource.now
+    val transferStartYearForReference: Int = LocalDate.from(timeSource.now).getYear
     val consignmentRow = ConsignmentRow(uuidSource.uuid, addConsignmentInput.seriesid, userId, Timestamp.from(timeSource.now))
     consignmentRepository.addConsignment(consignmentRow).map(
       row => convertRowToConsignment(row))
     val transferStartYearForReference: Int = calendar.get(Calendar.YEAR)
      consignmentRepository.getNextConsignmentSequence.flatMap(sequence => {
-       val consignmentRef = consignmentReferenceModel.createConsignmentReference(transferStartYearForReference, sequence)
+       val consignmentRef = ConsignmentReference.createConsignmentReference(transferStartYearForReference, sequence)
        val consignmentRow = ConsignmentRow(
          uuidSource.uuid,
          addConsignmentInput.seriesid,
          userId,
-         Timestamp.from(timeSource.now),
+         Timestamp.from(timeNow),
          consignmentsequence = Option(sequence))
        consignmentRepository.addConsignment(consignmentRow).map(row => Consignment(row.consignmentid, row.userid, row.seriesid, Option(consignmentRef)))
      })
