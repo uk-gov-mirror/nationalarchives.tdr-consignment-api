@@ -42,12 +42,12 @@ class TransferAgreementService(consignmentMetadataRepository: ConsignmentMetadat
   private def convertDbRowsToTransferAgreement(consignmentId: UUID, rows: Seq[ConsignmentmetadataRow]): TransferAgreement = {
     val propertyNameToValue = rows.map(row => row.propertyname.get -> row.value.map(_.toBoolean)).toMap
     TransferAgreement(consignmentId,
-      propertyNameToValue(PublicRecordsConfirmed),
-      propertyNameToValue(CrownCopyrightConfirmed),
-      propertyNameToValue(AllEnglishConfirmed),
-      propertyNameToValue(AppraisalSelectionSignOffConfirmed),
-      propertyNameToValue(InitialOpenRecordsConfirmed),
-      propertyNameToValue(SensitivityReviewSignOffConfirmed),
+      propertyNameToValue.getOrElse(PublicRecordsConfirmed, Some(false)),
+      propertyNameToValue.getOrElse(CrownCopyrightConfirmed, Some(false)),
+      propertyNameToValue.getOrElse(AllEnglishConfirmed, Some(false)),
+      propertyNameToValue.getOrElse(AppraisalSelectionSignOffConfirmed, Some(false)),
+      propertyNameToValue.getOrElse(InitialOpenRecordsConfirmed, Some(false)),
+      propertyNameToValue.getOrElse(SensitivityReviewSignOffConfirmed, Some(false)),
       isAgreementComplete(propertyNameToValue)
     )
   }
