@@ -13,7 +13,7 @@ import uk.gov.nationalarchives.Tables.{BodyRow, ConsignmentRow, SeriesRow}
 import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentRepository, FFIDMetadataRepository, FileMetadataRepository, FileRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AddConsignmentInput, FileChecks, UpdateExportLocationInput}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.{ConsignmentFields, SeriesFields}
-import uk.gov.nationalarchives.tdr.api.model.consignment.CreateConsignmentReference
+import uk.gov.nationalarchives.tdr.api.model.consignment.ConsignmentReference
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -47,13 +47,11 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
   val fileMetadataRepositoryMock: FileMetadataRepository = mock[FileMetadataRepository]
   val fileRepositoryMock: FileRepository = mock[FileRepository]
   val ffidMetadataRepositoryMock: FFIDMetadataRepository = mock[FFIDMetadataRepository]
-  val mockConsignmentReferenceEncoding: CreateConsignmentReference = mock[CreateConsignmentReference]
   val mockResponse: Future[ConsignmentRow] = Future.successful(mockConsignment)
   val consignmentService = new ConsignmentService(consignmentRepoMock,
     fileMetadataRepositoryMock,
     fileRepositoryMock,
     ffidMetadataRepositoryMock,
-    mockConsignmentReferenceEncoding,
     FixedTimeSource,
     fixedUuidSource)
 
@@ -150,7 +148,6 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
       fileMetadataRepositoryMock,
       fileRepositoryMock,
       ffidMetadataRepositoryMock,
-      mockConsignmentReferenceEncoding,
       FixedTimeSource,
       fixedUuidSource)
 
@@ -174,7 +171,6 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
       fileMetadataRepositoryMock,
       fileRepositoryMock,
       ffidMetadataRepositoryMock,
-      mockConsignmentReferenceEncoding,
       FixedTimeSource,
       fixedUuidSource)
 

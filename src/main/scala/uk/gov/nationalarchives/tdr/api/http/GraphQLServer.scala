@@ -19,7 +19,7 @@ import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentRepository, SeriesRepository, _}
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
 import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, DeferredResolver, ErrorCodes, GraphQlTypes}
-import uk.gov.nationalarchives.tdr.api.model.consignment.CreateConsignmentReference
+import uk.gov.nationalarchives.tdr.api.model.consignment.ConsignmentReference
 import uk.gov.nationalarchives.tdr.api.service._
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
@@ -88,7 +88,6 @@ object GraphQLServer {
       fileMetadataRepository,
       fileRepository,
       ffidMetadataRepository,
-      consignmentReferenceModel,
       new CurrentTimeSource,
       uuidSource)
     val seriesService = new SeriesService(new SeriesRepository(db), uuidSource)
