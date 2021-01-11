@@ -29,11 +29,10 @@ CREATE TABLE IF NOT EXISTS Consignment (
 );
 
 CREATE TABLE IF NOT EXISTS ConsignmentProperty (
-  PropertyId uuid not null,
   Name varchar(255),
   Description varchar(255),
   Shortname varchar(255),
-  PRIMARY KEY (PropertyId)
+  PRIMARY KEY (Name)
 );
 
 CREATE TABLE IF NOT EXISTS ConsignmentMetadata (

@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.tdr.api.utils
 
-import java.sql.{PreparedStatement, Timestamp}
+import java.sql.{PreparedStatement, ResultSet, Timestamp}
 import java.time.Instant
 import java.util.UUID
 
@@ -202,8 +202,22 @@ object TestUtils {
     ps.executeUpdate()
   }
 
-  def addConsignmentProperty(propertyId: String, name: String): Unit = {
-    insertProperty("ConsignmentProperty", propertyId, name)
+  def addConsignmentProperty(name: String): Unit = {
+    // name is primary key check exists before attempting insert to table
+    if (!propertyExists(name)) {
+      val sql = s"insert into ConsignmentProperty (Name) VALUES (?)"
+      val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+      ps.setString(1, name)
+      ps.executeUpdate()
+    }
+  }
+
+  private def propertyExists(name: String): Boolean = {
+    val sql = s"SELECT * FROM ConsignmentProperty WHERE Name = ?"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, name)
+    val rs: ResultSet = ps.executeQuery()
+    rs.next()
   }
 
   //scalastyle:off magic.number
@@ -220,24 +234,9 @@ object TestUtils {
     ps.executeUpdate()
   }
 
-  private def insertProperty(propertyTable: String, propertyId: String, name: String): Unit = {
-    val sql = s"insert into ${propertyTable} (PropertyId, Name) VALUES (?, ?)"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.setString(1, propertyId)
-    ps.setString(2, name)
-
-    ps.executeUpdate()
-  }
-
   def createConsignmentMetadata(consignmentId: UUID): Unit = {
     val sql = "INSERT INTO ConsignmentMetadata(MetadataId, ConsignmentId, PropertyName, Value, Datetime, UserId) VALUES (?,?,?,?,?,?)"
     transferAgreementProperties.foreach(propertyName => {
-//      val selectSql = "SELECT PropertyName FROM ConsignmentProperty where Name = ?"
-//      val psSelect: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(selectSql)
-//      psSelect.setString(1, propertyName)
-//      val rs = psSelect.executeQuery()
-//      rs.next()
-//      val propertyName = rs.getString("PropertyName")
       val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
       ps.setString(1, UUID.randomUUID().toString)
       ps.setString(2, consignmentId.toString)
@@ -253,7 +252,7 @@ object TestUtils {
 
   def addTransferAgreementProperties(): Unit = {
     transferAgreementProperties.foreach(propertyName => {
-      addConsignmentProperty(UUID.randomUUID().toString, propertyName)
+      addConsignmentProperty(propertyName)
     })
   }
 }

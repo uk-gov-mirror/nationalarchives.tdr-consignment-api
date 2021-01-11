@@ -21,7 +21,7 @@ class ConsignmentMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures wi
     val consignmentMetadataRepository = new ConsignmentMetadataRepository(db)
     val propertyId = UUID.randomUUID()
     val consignmentId = UUID.fromString("d4c053c5-f83a-4547-aefe-878d496bc5d2")
-    addConsignmentProperty(propertyId.toString, "ConsignmentProperty")
+    addConsignmentProperty("ConsignmentProperty")
     createConsignment(consignmentId, userId)
     val input = Seq(ConsignmentmetadataRow(
       UUID.randomUUID(), Some(consignmentId), Some("ConsignmentProperty"), Some("value"), Timestamp.from(Instant.now()), UUID.randomUUID()))
@@ -35,7 +35,7 @@ class ConsignmentMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures wi
     val consignmentMetadataRepository = new ConsignmentMetadataRepository(db)
     val propertyId = UUID.randomUUID()
     val consignmentId = UUID.fromString("d511ecee-89ac-4643-b62d-76a41984a92b")
-    addConsignmentProperty(propertyId.toString, "ConsignmentProperty")
+    addConsignmentProperty("ConsignmentProperty")
     addConsignmentMetadata(UUID.randomUUID().toString, consignmentId.toString, "ConsignmentProperty")
     createConsignment(consignmentId, userId)
     val response = consignmentMetadataRepository.getConsignmentMetadata(consignmentId, "ConsignmentProperty").futureValue.head
