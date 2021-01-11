@@ -207,12 +207,12 @@ object TestUtils {
   }
 
   //scalastyle:off magic.number
-  def addConsignmentMetadata(metadataId: String, consignmentId: String, propertyId: String): Unit = {
-    val sql = s"insert into ConsignmentMetadata (MetadataId, ConsignmentId, PropertyId, Value, Datetime, UserId) VALUES (?, ?, ?, ?, ?, ?)"
+  def addConsignmentMetadata(metadataId: String, consignmentId: String, propertyName: String): Unit = {
+    val sql = s"insert into ConsignmentMetadata (MetadataId, ConsignmentId, PropertyName, Value, Datetime, UserId) VALUES (?, ?, ?, ?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, metadataId)
     ps.setString(2, consignmentId)
-    ps.setString(3, propertyId)
+    ps.setString(3, propertyName)
     ps.setString(4, "Result of ConsignmentMetadata processing")
     ps.setTimestamp(5, Timestamp.from(FixedTimeSource.now))
     ps.setString(6, userId.toString)
@@ -230,18 +230,18 @@ object TestUtils {
   }
 
   def createConsignmentMetadata(consignmentId: UUID): Unit = {
-    val sql = "INSERT INTO ConsignmentMetadata(MetadataId, ConsignmentId, PropertyId, Value, Datetime, UserId) VALUES (?,?,?,?,?,?)"
+    val sql = "INSERT INTO ConsignmentMetadata(MetadataId, ConsignmentId, PropertyName, Value, Datetime, UserId) VALUES (?,?,?,?,?,?)"
     transferAgreementProperties.foreach(propertyName => {
-      val selectSql = "SELECT PropertyId FROM ConsignmentProperty where Name = ?"
-      val psSelect: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(selectSql)
-      psSelect.setString(1, propertyName)
-      val rs = psSelect.executeQuery()
-      rs.next()
-      val propertyId = rs.getString("PropertyId")
+//      val selectSql = "SELECT PropertyName FROM ConsignmentProperty where Name = ?"
+//      val psSelect: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(selectSql)
+//      psSelect.setString(1, propertyName)
+//      val rs = psSelect.executeQuery()
+//      rs.next()
+//      val propertyName = rs.getString("PropertyName")
       val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
       ps.setString(1, UUID.randomUUID().toString)
       ps.setString(2, consignmentId.toString)
-      ps.setString(3, propertyId)
+      ps.setString(3, propertyName)
       ps.setString(4, true.toString)
       ps.setTimestamp(5, Timestamp.from(Instant.now()))
       ps.setString(6, UUID.randomUUID().toString)

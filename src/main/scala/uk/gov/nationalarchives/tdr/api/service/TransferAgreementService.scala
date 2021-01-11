@@ -1,13 +1,12 @@
 package uk.gov.nationalarchives.tdr.api.service
 
-import java.util.UUID
 import java.sql.{SQLException, Timestamp}
+import java.util.UUID
 
-import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
-
+import uk.gov.nationalarchives.Tables._
 import uk.gov.nationalarchives.tdr.api.db.repository.ConsignmentMetadataRepository
+import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
 import uk.gov.nationalarchives.tdr.api.graphql.fields.TransferAgreementFields.{AddTransferAgreementInput, TransferAgreement}
-import uk.gov.nationalarchives.tdr.api.db.repository.ConsignmentMetadataRepository.ConsignmentMetadataRowWithName
 import uk.gov.nationalarchives.tdr.api.service.TransferAgreementService._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -21,27 +20,27 @@ class TransferAgreementService(consignmentMetadataRepository: ConsignmentMetadat
     )
   }
 
-  private def convertInputToPropertyRows(input: AddTransferAgreementInput, userId: UUID): Seq[ConsignmentMetadataRowWithName] = {
+  private def convertInputToPropertyRows(input: AddTransferAgreementInput, userId: UUID): Seq[ConsignmentmetadataRow] = {
     val time = Timestamp.from(timeSource.now)
     val consignmentId = input.consignmentId
     Seq(
-      ConsignmentMetadataRowWithName(
-        PublicRecordsConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.allPublicRecords.toString), time, userId),
-      ConsignmentMetadataRowWithName(
-        AllEnglishConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.allEnglish.toString), time, userId),
-      ConsignmentMetadataRowWithName(
-        AppraisalSelectionSignOffConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.appraisalSelectionSignedOff.toString), time, userId),
-      ConsignmentMetadataRowWithName(
-        CrownCopyrightConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.allCrownCopyright.toString), time, userId),
-      ConsignmentMetadataRowWithName(
-        InitialOpenRecordsConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.initialOpenRecords.toString), time, userId),
-      ConsignmentMetadataRowWithName(
-        SensitivityReviewSignOffConfirmed, uuidSource.uuid, Some(consignmentId), Some(input.sensitivityReviewSignedOff.toString), time, userId)
+      ConsignmentmetadataRow(
+        uuidSource.uuid, Some(consignmentId), Some(PublicRecordsConfirmed), Some(input.allPublicRecords.toString), time, userId),
+      ConsignmentmetadataRow(
+        uuidSource.uuid, Some(consignmentId), Some(AllEnglishConfirmed), Some(input.allEnglish.toString), time, userId),
+      ConsignmentmetadataRow(
+        uuidSource.uuid, Some(consignmentId), Some(AppraisalSelectionSignOffConfirmed), Some(input.appraisalSelectionSignedOff.toString), time, userId),
+      ConsignmentmetadataRow(
+        uuidSource.uuid, Some(consignmentId), Some(CrownCopyrightConfirmed), Some(input.allCrownCopyright.toString), time, userId),
+      ConsignmentmetadataRow(
+        uuidSource.uuid, Some(consignmentId), Some(InitialOpenRecordsConfirmed), Some(input.initialOpenRecords.toString), time, userId),
+      ConsignmentmetadataRow(
+        uuidSource.uuid, Some(consignmentId), Some(SensitivityReviewSignOffConfirmed), Some(input.sensitivityReviewSignedOff.toString), time, userId)
     )
   }
 
-  private def convertDbRowsToTransferAgreement(consignmentId: UUID, rows: Seq[ConsignmentMetadataRowWithName]): TransferAgreement = {
-    val propertyNameToValue = rows.map(row => row.propertyName -> row.value.map(_.toBoolean)).toMap
+  private def convertDbRowsToTransferAgreement(consignmentId: UUID, rows: Seq[ConsignmentmetadataRow]): TransferAgreement = {
+    val propertyNameToValue = rows.map(row => row.propertyname.get -> row.value.map(_.toBoolean)).toMap
     TransferAgreement(consignmentId,
       propertyNameToValue(PublicRecordsConfirmed),
       propertyNameToValue(CrownCopyrightConfirmed),
