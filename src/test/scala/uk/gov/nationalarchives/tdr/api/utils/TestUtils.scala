@@ -96,7 +96,7 @@ object TestUtils {
     createFile(defaultFileId, consignmentId)
     createClientFileMetadata(defaultFileId)
     addTransferAgreementProperties()
-    createConsignmentMetadata(consignmentId)
+    addTransferAgreementMetadata(consignmentId)
   }
 
   def createConsignment(consignmentId: UUID, userId: UUID, seriesId: UUID = UUID.fromString("9e2e2a51-c2d0-4b99-8bef-2ca322528861")): Unit = {
@@ -205,7 +205,7 @@ object TestUtils {
   def addConsignmentProperty(name: String): Unit = {
     // name is primary key check exists before attempting insert to table
     if (!propertyExists(name)) {
-      val sql = s"insert into ConsignmentProperty (Name) VALUES (?)"
+      val sql = s"INSERT INTO ConsignmentProperty (Name) VALUES (?)"
       val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
       ps.setString(1, name)
       ps.executeUpdate()
@@ -234,7 +234,7 @@ object TestUtils {
     ps.executeUpdate()
   }
 
-  def createConsignmentMetadata(consignmentId: UUID): Unit = {
+  def addTransferAgreementMetadata(consignmentId: UUID): Unit = {
     val sql = "INSERT INTO ConsignmentMetadata(MetadataId, ConsignmentId, PropertyName, Value, Datetime, UserId) VALUES (?,?,?,?,?,?)"
     transferAgreementProperties.foreach(propertyName => {
       val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
