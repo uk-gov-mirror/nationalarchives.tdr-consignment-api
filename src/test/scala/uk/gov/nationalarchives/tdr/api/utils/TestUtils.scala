@@ -181,12 +181,6 @@ object TestUtils {
   //scalastyle:on magic.number
 
   def addFileProperty(name: String): Unit = {
-    val res = DbConnection.db.source.createConnection().prepareStatement("select * from FileProperty").executeQuery()
-    if(res.next()) {
-      val a = res.getString(1)
-      println(a)
-    }
-
     val sql = s"insert into FileProperty (Name) VALUES (?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, name)
