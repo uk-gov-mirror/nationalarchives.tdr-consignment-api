@@ -99,13 +99,13 @@ object TestUtils {
   }
 
   def createConsignment(consignmentId: UUID, userId: UUID, seriesId: UUID = UUID.fromString("9e2e2a51-c2d0-4b99-8bef-2ca322528861")): Unit = {
-    val sql = s"insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES ('$consignmentId', '$seriesId', '$userId')"
+    val sql = s"INSERT INTO Consignment (ConsignmentId, SeriesId, UserId) VALUES ('$consignmentId', '$seriesId', '$userId')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.executeUpdate()
   }
 
   def createFile(fileId: UUID, consignmentId: UUID): Unit = {
-    val sql = s"insert into File (FileId, ConsignmentId, UserId, Datetime) VALUES (?, ?, ?, ?)"
+    val sql = s"INSERT INTO File (FileId, ConsignmentId, UserId, Datetime) VALUES (?, ?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, fileId.toString)
     ps.setString(2, consignmentId.toString)
@@ -116,7 +116,7 @@ object TestUtils {
 
   //scalastyle:off magic.number
   def addAntivirusMetadata(fileId: String, result: String = "Result of AVMetadata processing"): Unit = {
-    val sql = s"insert into AVMetadata (FileId, Software, SoftwareVersion, DatabaseVersion, Result, Datetime) VALUES (?, ?, ?, ?, ?, ?)"
+    val sql = s"INSERT INTO AVMetadata (FileId, Software, SoftwareVersion, DatabaseVersion, Result, Datetime) VALUES (?, ?, ?, ?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, fileId)
     ps.setString(2, "Some antivirus software")
@@ -128,7 +128,7 @@ object TestUtils {
   }
 
   def addFileMetadata(metadataId: String, fileId: String, propertyName: String): Unit = {
-    val sql = s"insert into FileMetadata (MetadataId, FileId, Value, Datetime, UserId, PropertyName) VALUES (?, ?, ?, ?, ?, ?)"
+    val sql = s"INSERT INTO FileMetadata (MetadataId, FileId, Value, Datetime, UserId, PropertyName) VALUES (?, ?, ?, ?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, metadataId)
     ps.setString(2, fileId)
@@ -142,7 +142,7 @@ object TestUtils {
 
   def addFFIDMetadata(fileId: String): Unit = {
     val ffidMetadataId = java.util.UUID.randomUUID()
-    val sql = s"insert into FFIDMetadata" +
+    val sql = s"INSERT INTO FFIDMetadata" +
       s"(FileId, Software, SoftwareVersion, BinarySignatureFileVersion, ContainerSignatureFileVersion, Method, Datetime, FFIDMetadataId)" +
       s"VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
@@ -181,7 +181,7 @@ object TestUtils {
   //scalastyle:on magic.number
 
   def addFileProperty(name: String): Unit = {
-    val sql = s"insert into FileProperty (Name) VALUES (?)"
+    val sql = s"INSERT INTO FileProperty (Name) VALUES (?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, name)
 
@@ -196,7 +196,7 @@ object TestUtils {
   }
 
   def addSeries(seriesId: UUID, bodyId: UUID, code: String): Unit = {
-    val sql = s"insert into Series (SeriesId, BodyId, Code) VALUES (?, ?, ?)"
+    val sql = s"INSERT INTO Series (SeriesId, BodyId, Code) VALUES (?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, seriesId.toString)
     ps.setString(2, bodyId.toString)

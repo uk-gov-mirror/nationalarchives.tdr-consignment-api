@@ -112,7 +112,7 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
   }
 
   private def checkFileMetadataExists(fileId: UUID): Unit = {
-    val sql = "select * from FileMetadata where FileId = ? AND PropertyName = ?;"
+    val sql = "SELECT * FROM FileMetadata WHERE FileId = ? AND PropertyName = ?;"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, fileId.toString)
     ps.setString(2, SHA256ServerSideChecksum)
@@ -122,18 +122,18 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
   }
 
   private def createFileProperty = {
-    val sql = "insert into FileProperty (Name, Description, Shortname) " +
+    val sql = "INSERT INTO FileProperty (Name, Description, Shortname) " +
       "VALUES ('SHA256ServerSideChecksum', 'The checksum calculated after upload', 'Checksum')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.executeUpdate()
   }
 
   private def resetDatabase(): Unit = {
-    DbConnection.db.source.createConnection().prepareStatement("delete from FileMetadata").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from FileProperty").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from FFIDMetadata").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from File").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from Consignment").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM FileMetadata").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM FileProperty").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM FFIDMetadata").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM File").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM Consignment").executeUpdate()
   }
 
   private def checkNoFileMetadataAdded(): Unit = {

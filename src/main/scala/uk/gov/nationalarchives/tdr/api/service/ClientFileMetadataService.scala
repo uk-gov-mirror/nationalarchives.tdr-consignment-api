@@ -44,7 +44,7 @@ class ClientFileMetadataService(fileMetadataRepository: FileMetadataRepository,
     fileMetadataRepository.getFileMetadata(fileId, clientSideProperties: _*)
       .map(rows => convertToResponse(fileId, rows))
       .recover {
-        case nse: NoSuchElementException => throw InputDataException(s"Could not find metadata for file $fileId", Some(nse))
+        case nse: NoSuchElementException => throw InputDataException(s"Could not find client metadata for file $fileId", Some(nse))
         case e: SQLException => throw InputDataException(e.getLocalizedMessage, Some(e))
       }
   }

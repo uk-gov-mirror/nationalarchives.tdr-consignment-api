@@ -4,7 +4,7 @@ import java.sql.{PreparedStatement, Timestamp}
 import java.time.Instant
 import java.util.UUID
 
-import org.scalatest.BeforeAndAfterEach
+import org.scalatest.{Assertion, BeforeAndAfterEach}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -14,8 +14,6 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256S
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 import uk.gov.nationalarchives.Tables.FilemetadataRow
-
-
 
 class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers with BeforeAndAfterEach {
 
@@ -30,13 +28,23 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = Span(2, Seconds))
 
-  def getFileChecksumMatches(fileId: UUID): Boolean = {
+  private def getFileChecksumMatches(fileId: UUID): Boolean = {
     val sql = s"SELECT ChecksumMatches FROM File where FileId = ?"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, fileId.toString)
     val rs = ps.executeQuery()
     rs.next()
     rs.getBoolean("ChecksumMatches")
+  }
+
+  private def checkFileMetadataExists(fileId: UUID, fileProperty: String): Assertion = {
+    val sql = s"SELECT COUNT(*) as count FROM FileMetadata WHERE FileId = ? AND PropertyName = ?"
+    val ps = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, fileId.toString)
+    ps.setString(2, fileProperty)
+    val rs = ps.executeQuery()
+    rs.next()
+    rs.getInt("count") should be(1)
   }
 
   "countProcessedChecksumInConsignment" should "return 0 if a consignment has no files" in {
@@ -97,9 +105,11 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
     TestUtils.addFileMetadata(metadataTwoId, fileTwoId, SHA256ServerSideChecksum)
     TestUtils.addFileMetadata(metadataThreeId, fileThreeId, SHA256ServerSideChecksum)
 
-    val fileMetadataFiles = fileMetadataRepository.countProcessedChecksumInConsignment(consignmentOne).futureValue
+    val fileMetadataFilesConsignmentOne = fileMetadataRepository.countProcessedChecksumInConsignment(consignmentOne).futureValue
+    val fileMetadataFilesConsignmentTwo = fileMetadataRepository.countProcessedChecksumInConsignment(consignmentTwo).futureValue
 
-    fileMetadataFiles shouldBe 2
+    fileMetadataFilesConsignmentOne shouldBe 2
+    fileMetadataFilesConsignmentTwo shouldBe 1
   }
 
   "countProcessedChecksumInConsignment" should "return number of fileMetadata rows with repetitive data filtered out" in {
@@ -135,6 +145,7 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
     val result = fileMetadataRepository.addFileMetadata(input).futureValue.head
     result.propertyname.get should equal("FileProperty")
     result.value should equal("value")
+    checkFileMetadataExists(fileId, "FileProperty")
   }
 
   "addChecksumMetadata" should "update the checksum validation field on the file table" in {

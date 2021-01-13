@@ -11,7 +11,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class FileMetadataRepository(db: Database)(implicit val executionContext: ExecutionContext) {
 
-  val insertQuery = Filemetadata returning Filemetadata.map(_.metadataid) into
+  private val insertQuery = Filemetadata returning Filemetadata.map(_.metadataid) into
       ((filemetadata, metadataid) => filemetadata.copy(metadataid = metadataid))
 
   def addFileMetadata(rows: Seq[FilemetadataRow]): Future[Seq[FilemetadataRow]] = {

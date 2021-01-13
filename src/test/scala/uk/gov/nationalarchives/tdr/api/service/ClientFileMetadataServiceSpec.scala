@@ -6,6 +6,7 @@ import java.util.UUID
 
 import org.mockito.ArgumentMatchers.any
 import org.mockito.MockitoSugar
+import org.scalatest.Assertion
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -14,6 +15,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.ClientFileMetadataFields.{
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
 import uk.gov.nationalarchives.Tables.FilemetadataRow
+import uk.gov.nationalarchives.tdr.api.db.DbConnection
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -61,7 +63,7 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
     r.fileSize.get shouldBe dummyFileSize
   }
 
-  "getClientFileMetaddata" should "return client file metadata given an existing file id" in {
+  "getClientFileMetadata" should "return client file metadata given an existing file id" in {
     val fixedUuidSource = new FixedUUIDSource()
     val clientMetadataUuid = fixedUuidSource.uuid
     val fileUuid = UUID.randomUUID()
@@ -92,13 +94,13 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
     result.fileSize.get shouldBe dummyFileSize
   }
 
-  "getClientFileMetaddata" should "return an empty list for a non existent id" in {
+  "getClientFileMetadata" should "return an empty list for a non existent id" in {
     val fixedUuidSource = new FixedUUIDSource()
     val fileUuid = UUID.randomUUID()
     val repositoryMock = mock[FileMetadataRepository]
     when(repositoryMock.getFileMetadata(fileUuid, clientSideProperties:_*)).thenReturn(Future(Seq()))
     val service = new ClientFileMetadataService(repositoryMock, fixedUuidSource, FixedTimeSource)
     val caught: Throwable = service.getClientFileMetadata(fileUuid).failed.futureValue
-    caught.getMessage should equal(s"Could not find metadata for file $fileUuid")
+    caught.getMessage should equal(s"Could not find client metadata for file $fileUuid")
   }
 }

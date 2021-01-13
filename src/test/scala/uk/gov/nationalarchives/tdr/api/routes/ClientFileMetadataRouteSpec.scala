@@ -154,7 +154,7 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
   }
 
   private def checkClientFileMetadataExists(fileId: UUID): Unit = {
-    val sql = "select * from FileMetadata where FileId = ? AND PropertyName IN (?,?,?,?);"
+    val sql = "SELECT * FROM FileMetadata WHERE FileId = ? AND PropertyName IN (?,?,?,?);"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, fileId.toString)
     clientSideProperties.zipWithIndex.foreach {
@@ -166,10 +166,10 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
   }
 
   private def resetDatabase(): Unit = {
-    DbConnection.db.source.createConnection().prepareStatement("delete from FileMetadata").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from FileProperty").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from ClientFileMetadata").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from File").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from Consignment").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM FileMetadata").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM FileProperty").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM ClientFileMetadata").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM File").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM Consignment").executeUpdate()
   }
 }
