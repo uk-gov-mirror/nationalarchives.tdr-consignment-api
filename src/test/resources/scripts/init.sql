@@ -28,15 +28,21 @@ CREATE TABLE IF NOT EXISTS Consignment (
   PRIMARY KEY (ConsignmentId)
 );
 
-CREATE TABLE IF NOT EXISTS TransferAgreement (
-  ConsignmentId uuid NOT NULL DEFAULT '6e3b76c4-1745-4467-8ac5-b4dd736e1b3e',
-  AllPublicRecords BOOLEAN DEFAULT NULL,
-  AllCrownCopyright BOOLEAN DEFAULT NULL,
-  AllEnglish BOOLEAN DEFAULT NULL,
-  AppraisalSelectionSignedOff BOOLEAN DEFAULT NULL,
-  SensitivityReviewSignedOff BOOLEAN DEFAULT NULL,
-  TransferAgreementId uuid NOT NULL DEFAULT '6e3b76c4-1745-4467-8ac5-b4dd736e1b3e',
-PRIMARY KEY (TransferAgreementId)
+CREATE TABLE IF NOT EXISTS ConsignmentProperty (
+  Name varchar(255),
+  Description varchar(255),
+  Shortname varchar(255),
+  PRIMARY KEY (Name)
+);
+
+CREATE TABLE IF NOT EXISTS ConsignmentMetadata (
+    MetadataId uuid not null,
+    ConsignmentId uuid,
+    PropertyName text,
+    Value varchar(255),
+    Datetime timestamp not null DEFAULT CURRENT_TIMESTAMP,
+    UserId uuid NOT NULL,
+    PRIMARY KEY (MetadataId)
 );
 
 CREATE TABLE IF NOT EXISTS ClientFileMetadata (

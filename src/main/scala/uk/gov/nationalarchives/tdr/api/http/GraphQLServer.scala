@@ -16,7 +16,7 @@ import spray.json.{JsObject, JsString, JsValue}
 import uk.gov.nationalarchives.tdr.api.auth.{AuthorisationException, ValidationAuthoriser}
 import uk.gov.nationalarchives.tdr.api.consignmentstatevalidation.{ConsignmentStateException, ConsignmentStateValidator}
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.db.repository.{ClientFileMetadataRepository, ConsignmentRepository, SeriesRepository, TransferAgreementRepository, _}
+import uk.gov.nationalarchives.tdr.api.db.repository.{ClientFileMetadataRepository, ConsignmentRepository, SeriesRepository, _}
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
 import uk.gov.nationalarchives.tdr.api.graphql.{ConsignmentApiContext, DeferredResolver, ErrorCodes, GraphQlTypes}
 import uk.gov.nationalarchives.tdr.api.service._
@@ -78,14 +78,11 @@ object GraphQLServer {
     val fileMetadataRepository = new FileMetadataRepository(db)
     val fileRepository = new FileRepository(db)
     val ffidMetadataRepository = new FFIDMetadataRepository(db)
-    val consignmentService = new ConsignmentService(consignmentRepository,
-      fileMetadataRepository,
-      fileRepository,
-      ffidMetadataRepository,
-      new CurrentTimeSource,
-      uuidSource)
+    val timeSource = new CurrentTimeSource
+    val consignmentService = new ConsignmentService(consignmentRepository, fileMetadataRepository, fileRepository,
+      ffidMetadataRepository, timeSource, uuidSource)
     val seriesService = new SeriesService(new SeriesRepository(db), uuidSource)
-    val transferAgreementService = new TransferAgreementService(new TransferAgreementRepository(db), uuidSource)
+    val transferAgreementService = new TransferAgreementService(new ConsignmentMetadataRepository(db), uuidSource, timeSource)
     val clientFileMetadataService = new ClientFileMetadataService(new ClientFileMetadataRepository(db), uuidSource)
     val fileService = new FileService(fileRepository, consignmentRepository, new CurrentTimeSource, uuidSource)
     val transferringBodyService = new TransferringBodyService(new TransferringBodyRepository(db))
@@ -94,17 +91,8 @@ object GraphQLServer {
       clientFileMetadataService, new CurrentTimeSource, uuidSource)
     val ffidMetadataService = new FFIDMetadataService(ffidMetadataRepository, new FFIDMetadataMatchesRepository(db), new CurrentTimeSource, uuidSource)
 
-    val context = ConsignmentApiContext(
-      accessToken,
-      clientFileMetadataService,
-      consignmentService,
-      fileService,
-      seriesService,
-      transferAgreementService,
-      transferringBodyService,
-      antivirusMetadataService,
-      fileMetadataService,
-      ffidMetadataService
+    val context = ConsignmentApiContext(accessToken, clientFileMetadataService, consignmentService, fileService, seriesService,
+      transferAgreementService, transferringBodyService, antivirusMetadataService, fileMetadataService, ffidMetadataService
     )
     Executor.execute(
       GraphQlTypes.schema,
