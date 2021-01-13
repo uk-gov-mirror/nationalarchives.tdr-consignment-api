@@ -18,7 +18,6 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository,
     val filePropertyName = addFileMetadataInput.filePropertyName
     val row =
       FilemetadataRow(uuidSource.uuid, addFileMetadataInput.fileId,
-      Option.empty,
       addFileMetadataInput.value,
       Timestamp.from(timeSource.now),
       userId, Option(addFileMetadataInput.filePropertyName))

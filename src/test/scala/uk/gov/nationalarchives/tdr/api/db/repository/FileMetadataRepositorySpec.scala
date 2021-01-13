@@ -141,7 +141,7 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
     addFileProperty("FileProperty")
     createConsignment(consignmentId, userId)
     createFile(fileId, consignmentId)
-    val input = Seq(FilemetadataRow(UUID.randomUUID(), fileId, Option.empty, "value", Timestamp.from(Instant.now()), UUID.randomUUID(), Option("FileProperty")))
+    val input = Seq(FilemetadataRow(UUID.randomUUID(), fileId, "value", Timestamp.from(Instant.now()), UUID.randomUUID(), Option("FileProperty")))
     val result = fileMetadataRepository.addFileMetadata(input).futureValue.head
     result.propertyname.get should equal("FileProperty")
     result.value should equal("value")
@@ -157,7 +157,7 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
     addFileProperty("FileProperty")
     addFileMetadata(UUID.randomUUID().toString, fileId.toString, "FileProperty")
     createConsignment(consignmentId, userId)
-    val input = FilemetadataRow(UUID.randomUUID(), fileId, Option.empty, "value", Timestamp.from(Instant.now()), UUID.randomUUID(), Option("FileProperty"))
+    val input = FilemetadataRow(UUID.randomUUID(), fileId, "value", Timestamp.from(Instant.now()), UUID.randomUUID(), Option("FileProperty"))
     fileMetadataRepository.addChecksumMetadata(input, Option(true)).futureValue
     getFileChecksumMatches(fileId) should equal(true)
   }

@@ -24,7 +24,7 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     val fixedUserId = UUID.fromString("61b49923-daf7-4140-98f1-58ba6cbed61f")
     val metadataRepositoryMock = mock[FileMetadataRepository]
     val mockMetadataResponse = Future.successful(
-      FilemetadataRow(UUID.randomUUID(), fixedFileUuid, Option.empty, "value",
+      FilemetadataRow(UUID.randomUUID(), fixedFileUuid, "value",
         Timestamp.from(FixedTimeSource.now), fixedUserId, Option(SHA256ServerSideChecksum))
     )
     val fixedUUIDSource = new FixedUUIDSource()
@@ -58,11 +58,11 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     val fixedUserId = UUID.fromString("61b49923-daf7-4140-98f1-58ba6cbed61f")
     val metadataRepositoryMock = mock[FileMetadataRepository]
     val timestamp = Timestamp.from(FixedTimeSource.now)
-    val mockClientChecksumRow = FilemetadataRow(UUID.randomUUID(), fixedFileUuid, Option.empty, "checksum",
+    val mockClientChecksumRow = FilemetadataRow(UUID.randomUUID(), fixedFileUuid, "checksum",
       timestamp, fixedUserId, Option(SHA256ClientSideChecksum))
     val mockClientChecksumResponse = Future(Seq(mockClientChecksumRow))
     val mockMetadataResponse = Future.successful(
-      FilemetadataRow(UUID.randomUUID(), fixedFileUuid, Option.empty, "value",
+      FilemetadataRow(UUID.randomUUID(), fixedFileUuid, "value",
         Timestamp.from(FixedTimeSource.now), fixedUserId, Option(SHA256ServerSideChecksum))
     )
     val fixedUUIDSource = new FixedUUIDSource()
@@ -83,11 +83,11 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     val fixedUserId = UUID.fromString("61b49923-daf7-4140-98f1-58ba6cbed61f")
     val metadataRepositoryMock = mock[FileMetadataRepository]
     val mockMetadataResponse = Future.successful(
-      FilemetadataRow(UUID.randomUUID(), fixedFileUuid, Option.empty, "value",
+      FilemetadataRow(UUID.randomUUID(), fixedFileUuid, "value",
         Timestamp.from(FixedTimeSource.now), fixedUserId, Option(SHA256ServerSideChecksum))
     )
     val timestamp = Timestamp.from(FixedTimeSource.now)
-    val mockClientChecksumRow = FilemetadataRow(UUID.randomUUID(), fixedFileUuid, Option.empty, "checksum",
+    val mockClientChecksumRow = FilemetadataRow(UUID.randomUUID(), fixedFileUuid, "checksum",
       timestamp, fixedUserId, Some(SHA256ClientSideChecksum))
     val mockClientChecksumResponse = Future(Seq(mockClientChecksumRow))
 
@@ -110,13 +110,13 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     val value = "value"
     val metadataRepositoryMock = mock[FileMetadataRepository]
     val mockMetadataResponse = Future.successful(
-      FilemetadataRow(UUID.randomUUID(), fixedFileUuid, Option.empty, "value",
+      FilemetadataRow(UUID.randomUUID(), fixedFileUuid, "value",
         Timestamp.from(FixedTimeSource.now), fixedUserId, Some(SHA256ServerSideChecksum))
     )
     val propertyName = SHA256ServerSideChecksum
     val fixedUUIDSource = new FixedUUIDSource()
     val timestamp = Timestamp.from(FixedTimeSource.now)
-    val mockClientChecksumRow = FilemetadataRow(UUID.randomUUID(), fixedFileUuid, Option.empty, "checksum",
+    val mockClientChecksumRow = FilemetadataRow(UUID.randomUUID(), fixedFileUuid, "checksum",
       timestamp, fixedUserId, Some(SHA256ClientSideChecksum))
     val mockClientChecksumResponse = Future(Seq(mockClientChecksumRow))
 

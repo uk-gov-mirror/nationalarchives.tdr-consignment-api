@@ -23,7 +23,7 @@ class ClientFileMetadataService(fileMetadataRepository: FileMetadataRepository,
 
   def addClientFileMetadata(inputs: Seq[AddClientFileMetadataInput], userId: UUID): Future[List[ClientFileMetadata]] = {
     val time = Timestamp.from(timeSource.now)
-    val row: (UUID, String, Option[String]) => Tables.FilemetadataRow = FilemetadataRow(uuidSource.uuid, _, Option.empty, _, time, userId, _)
+    val row: (UUID, String, Option[String]) => Tables.FilemetadataRow = FilemetadataRow(uuidSource.uuid, _,  _, time, userId, _)
     val inputRows = inputs.flatMap(input => {
       List(
         row(input.fileId, input.originalPath.getOrElse(""), Option(ClientSideOriginalFilepath)),
