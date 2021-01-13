@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.tdr.api.routes
 
-import java.sql.{PreparedStatement, ResultSet, Timestamp}
+import java.sql.{PreparedStatement, ResultSet}
 import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
@@ -10,10 +10,9 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.FileMetadata
-import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, TestRequest}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.{FileMetadata, SHA256ServerSideChecksum}
+import uk.gov.nationalarchives.tdr.api.utils.TestRequest
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils.{GraphqlError, getDataFromFile, validBackendChecksToken, _}
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach {
   private val addFileMetadataJsonFilePrefix: String = "json/addfilemetadata_"
@@ -113,33 +112,34 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
   }
 
   private def checkFileMetadataExists(fileId: UUID): Unit = {
-    val sql = "select * from FileMetadata where FileId = ?;"
+    val sql = "SELECT * FROM FileMetadata WHERE FileId = ? AND PropertyName = ?;"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, fileId.toString)
+    ps.setString(2, SHA256ServerSideChecksum)
     val rs: ResultSet = ps.executeQuery()
     rs.next()
     rs.getString("FileId") should equal(fileId.toString)
   }
 
   private def createFileProperty = {
-    val sql = "insert into FileProperty (PropertyId , Name, Description, Shortname) " +
-      "VALUES (?, 'SHA256ServerSideChecksum', 'The checksum calculated after upload', 'Checksum')"
+    val sql = "INSERT INTO FileProperty (Name, Description, Shortname) " +
+      "VALUES ('SHA256ServerSideChecksum', 'The checksum calculated after upload', 'Checksum')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.setString(1, UUID.randomUUID().toString)
     ps.executeUpdate()
   }
 
   private def resetDatabase(): Unit = {
-    DbConnection.db.source.createConnection().prepareStatement("delete from FileMetadata").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from FileProperty").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from FFIDMetadata").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from File").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from Consignment").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM FileMetadata").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM FileProperty").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM FFIDMetadata").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM File").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM Consignment").executeUpdate()
   }
 
   private def checkNoFileMetadataAdded(): Unit = {
-    val sql = "select * from FileMetadata;"
+    val sql = "select * from FileMetadata WHERE PropertyName = ?;"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, SHA256ServerSideChecksum)
     val rs: ResultSet = ps.executeQuery()
     rs.last()
     rs.getRow should equal(0)

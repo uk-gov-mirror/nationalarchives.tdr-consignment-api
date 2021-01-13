@@ -76,17 +76,17 @@ CREATE TABLE IF NOT EXISTS AVMetadata (
 );
 
 CREATE TABLE IF NOT EXISTS FileProperty (
-    PropertyId uuid,
     Name varchar(255),
     Description varchar(255),
     Shortname varchar(255),
-    PRIMARY KEY (PropertyId)
+    PRIMARY KEY (Name)
 );
 
 CREATE TABLE IF NOT EXISTS FileMetadata (
     MetadataId uuid,
     FileId uuid not null,
-    PropertyId uuid not null,
+    PropertyId uuid,
+    PropertyName varchar(255),
     Value varchar(255) not null,
     Datetime timestamp not null DEFAULT CURRENT_TIMESTAMP,
     UserId uuid NOT NULL,
@@ -98,8 +98,8 @@ CREATE TABLE IF NOT EXISTS FileMetadata (
     REFERENCES File(FileId);
 
 ALTER TABLE FileMetadata
-    ADD FOREIGN KEY (PropertyId)
-    REFERENCES FileProperty(PropertyId);
+    ADD FOREIGN KEY (PropertyName)
+    REFERENCES FileProperty(Name);
     
 CREATE TABLE IF NOT EXISTS FFIDMetadata (
     FFIDMetadataId uuid not null,

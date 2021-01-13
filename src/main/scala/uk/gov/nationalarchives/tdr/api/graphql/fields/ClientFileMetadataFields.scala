@@ -16,9 +16,7 @@ object ClientFileMetadataFields {
                                 checksum: Option[String] = None,
                                 checksumType: Option[String] = None,
                                 lastModified: Long,
-                                fileSize: Option[Long] = None,
-                                datetime: Long,
-                                clientFileMetadataId: UUID)
+                                fileSize: Option[Long] = None)
 
   case class AddClientFileMetadataInput(fileId: UUID,
                                         originalPath: Option[String] = None,
@@ -26,7 +24,7 @@ object ClientFileMetadataFields {
                                         checksumType: Option[String] = None,
                                         lastModified: Long,
                                         fileSize: Option[Long] = None,
-                                        datetime: Long)
+                                        datetime: Option[Long])
 
   implicit val ClientFileMetadataType: ObjectType[Unit, ClientFileMetadata] = deriveObjectType[Unit, ClientFileMetadata]()
   implicit val AddClientFileMetadataInputType: InputObjectType[AddClientFileMetadataInput] = deriveInputObjectType[AddClientFileMetadataInput]()
@@ -45,7 +43,7 @@ object ClientFileMetadataFields {
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("addClientFileMetadata", ListType(ClientFileMetadataType),
       arguments=ClientFileMetadataInputArg :: Nil,
-      resolve = ctx => ctx.ctx.clientFileMetadataService.addClientFileMetadata(ctx.arg(ClientFileMetadataInputArg)),
+      resolve = ctx => ctx.ctx.clientFileMetadataService.addClientFileMetadata(ctx.arg(ClientFileMetadataInputArg), ctx.ctx.accessToken.userId),
       tags=List(ValidateUserOwnsFiles)
     ))
 }

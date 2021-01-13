@@ -107,10 +107,9 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
     addAntivirusMetadata(fileOneId)
 
-    val propertyId = "f62d1f66-db67-4a25-ac6f-b1ded92767b2"
-    addFileProperty(propertyId, SHA256ServerSideChecksum)
-    addFileMetadata("06209e0d-95d0-4f13-8933-e5b9d00eb435", fileOneId, propertyId)
-    addFileMetadata("c4759aae-dc68-45ec-aee1-5a562c7b42cc", fileTwoId, propertyId)
+    addFileProperty(SHA256ServerSideChecksum)
+    addFileMetadata("06209e0d-95d0-4f13-8933-e5b9d00eb435", fileOneId, SHA256ServerSideChecksum)
+    addFileMetadata("c4759aae-dc68-45ec-aee1-5a562c7b42cc", fileTwoId, SHA256ServerSideChecksum)
 
     addFFIDMetadata(fileOneId)
     addFFIDMetadata(fileTwoId)
@@ -120,7 +119,6 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
     val bodyId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
     val seriesName = "Mock series"
-    val bodyName = "Body"
     addSeries(UUID.fromString(seriesId), bodyId, seriesName)
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_all")
