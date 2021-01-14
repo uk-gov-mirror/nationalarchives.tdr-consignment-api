@@ -49,11 +49,11 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
       true), userId).futureValue
 
     result.consignmentId shouldBe consignmentId
-    result.initialOpenRecords.get shouldBe true
-    result.allCrownCopyright.get shouldBe true
-    result.allEnglish.get shouldBe true
-    result.allPublicRecords.get shouldBe true
-    result.appraisalSelectionSignedOff.get shouldBe true
-    result.sensitivityReviewSignedOff.get shouldBe true
+    result.initialOpenRecords shouldBe true
+    result.allCrownCopyright shouldBe true
+    result.allEnglish shouldBe true
+    result.allPublicRecords shouldBe true
+    result.appraisalSelectionSignedOff shouldBe true
+    result.sensitivityReviewSignedOff shouldBe true
   }
 }
