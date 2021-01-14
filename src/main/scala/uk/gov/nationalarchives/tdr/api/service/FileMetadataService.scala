@@ -20,7 +20,7 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository,
       FilemetadataRow(uuidSource.uuid, addFileMetadataInput.fileId,
       addFileMetadataInput.value,
       Timestamp.from(timeSource.now),
-      userId, Option(addFileMetadataInput.filePropertyName))
+      userId, addFileMetadataInput.filePropertyName)
 
     filePropertyName match {
       case SHA256ServerSideChecksum =>
