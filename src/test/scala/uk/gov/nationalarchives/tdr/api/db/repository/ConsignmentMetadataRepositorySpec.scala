@@ -25,10 +25,10 @@ class ConsignmentMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures wi
     val consignmentId = UUID.fromString("d4c053c5-f83a-4547-aefe-878d496bc5d2")
     createConsignment(consignmentId, userId)
     val input = Seq(ConsignmentmetadataRow(
-      UUID.randomUUID(), Some(consignmentId), Some(consignmentMetadataProperty), Some("value"), Timestamp.from(Instant.now()), UUID.randomUUID()))
+      UUID.randomUUID(), consignmentId, consignmentMetadataProperty, "value", Timestamp.from(Instant.now()), UUID.randomUUID()))
     val result = consignmentMetadataRepository.addConsignmentMetadata(input).futureValue.head
-    result.propertyname should equal(Some(consignmentMetadataProperty))
-    result.value should equal(Some("value"))
+    result.propertyname should equal(consignmentMetadataProperty)
+    result.value should equal("value")
     checkMetadataAddedExists(consignmentId)
   }
 
@@ -39,9 +39,9 @@ class ConsignmentMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures wi
     addConsignmentMetadata(UUID.randomUUID().toString, consignmentId.toString, consignmentMetadataProperty)
     createConsignment(consignmentId, userId)
     val response = consignmentMetadataRepository.getConsignmentMetadata(consignmentId, consignmentMetadataProperty).futureValue.head
-    response.value should equal(Some("Result of ConsignmentMetadata processing"))
-    response.propertyname should equal(Some(consignmentMetadataProperty))
-    response.consignmentid should equal(Some(consignmentId))
+    response.value should equal("Result of ConsignmentMetadata processing")
+    response.propertyname should equal(consignmentMetadataProperty)
+    response.consignmentid should equal(consignmentId)
   }
 
   private def checkMetadataAddedExists(consignmentId: UUID): Unit = {

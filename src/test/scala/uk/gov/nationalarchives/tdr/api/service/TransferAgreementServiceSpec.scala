@@ -27,7 +27,7 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
     val consignmentId = UUID.randomUUID()
     val userId = UUID.randomUUID()
     def row(name: String, value: String): ConsignmentmetadataRow =
-      ConsignmentmetadataRow(metadataId, Some(consignmentId), Some(name), Some(value), Timestamp.from(FixedTimeSource.now), userId)
+      ConsignmentmetadataRow(metadataId, consignmentId, name, value, Timestamp.from(FixedTimeSource.now), userId)
     val mockResponse = Future.successful(Seq(
       row("AllEnglishConfirmed", "true"),
       row("CrownCopyrightConfirmed", "true"),

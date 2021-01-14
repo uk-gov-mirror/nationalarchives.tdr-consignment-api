@@ -36,9 +36,9 @@ CREATE TABLE IF NOT EXISTS ConsignmentProperty (
 );
 
 CREATE TABLE IF NOT EXISTS ConsignmentMetadata (
-    MetadataId uuid not null,
-    ConsignmentId uuid,
-    PropertyName text,
+    MetadataId uuid NOT NULL,
+    ConsignmentId uuid NOT NULL,
+    PropertyName text NOT NULL,
     Value varchar(255),
     Datetime timestamp not null DEFAULT CURRENT_TIMESTAMP,
     UserId uuid NOT NULL,

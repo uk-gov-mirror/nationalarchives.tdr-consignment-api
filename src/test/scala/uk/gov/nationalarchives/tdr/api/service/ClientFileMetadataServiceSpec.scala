@@ -31,7 +31,7 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
     val dummyFileSize: Long = 1000
     val repositoryMock = mock[FileMetadataRepository]
     def row(name: String, value: String): FilemetadataRow =
-      FilemetadataRow(clientMetadataUuid, fileUuid, Option.empty, value, Timestamp.from(FixedTimeSource.now), UUID.randomUUID(), Option(name))
+      FilemetadataRow(clientMetadataUuid, fileUuid, value, Timestamp.from(FixedTimeSource.now), UUID.randomUUID(), name)
 
     val mockResponse = Future(Seq(
       row(ClientSideFileSize, dummyFileSize.toString),
@@ -72,7 +72,7 @@ class ClientFileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with M
     val dummyFileSize: Long = 1000
     val repositoryMock = mock[FileMetadataRepository]
     def row(name: String, value: String): FilemetadataRow =
-      FilemetadataRow(clientMetadataUuid, fileUuid, Option.empty, value, Timestamp.from(FixedTimeSource.now), UUID.randomUUID(), Option(name))
+      FilemetadataRow(clientMetadataUuid, fileUuid, value, Timestamp.from(FixedTimeSource.now), UUID.randomUUID(), name)
 
     val mockResponse = Future(Seq(
       row(ClientSideFileSize, dummyFileSize.toString),
