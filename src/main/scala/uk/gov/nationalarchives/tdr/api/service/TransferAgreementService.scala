@@ -25,29 +25,29 @@ class TransferAgreementService(consignmentMetadataRepository: ConsignmentMetadat
     val consignmentId = input.consignmentId
     Seq(
       ConsignmentmetadataRow(
-        uuidSource.uuid, Some(consignmentId), Some(PublicRecordsConfirmed), Some(input.allPublicRecords.toString), time, userId),
+        uuidSource.uuid, consignmentId, PublicRecordsConfirmed, input.allPublicRecords.toString, time, userId),
       ConsignmentmetadataRow(
-        uuidSource.uuid, Some(consignmentId), Some(AllEnglishConfirmed), Some(input.allEnglish.toString), time, userId),
+        uuidSource.uuid, consignmentId, AllEnglishConfirmed, input.allEnglish.toString, time, userId),
       ConsignmentmetadataRow(
-        uuidSource.uuid, Some(consignmentId), Some(AppraisalSelectionSignOffConfirmed), Some(input.appraisalSelectionSignedOff.toString), time, userId),
+        uuidSource.uuid, consignmentId, AppraisalSelectionSignOffConfirmed, input.appraisalSelectionSignedOff.toString, time, userId),
       ConsignmentmetadataRow(
-        uuidSource.uuid, Some(consignmentId), Some(CrownCopyrightConfirmed), Some(input.allCrownCopyright.toString), time, userId),
+        uuidSource.uuid, consignmentId, CrownCopyrightConfirmed, input.allCrownCopyright.toString, time, userId),
       ConsignmentmetadataRow(
-        uuidSource.uuid, Some(consignmentId), Some(InitialOpenRecordsConfirmed), Some(input.initialOpenRecords.toString), time, userId),
+        uuidSource.uuid, consignmentId, InitialOpenRecordsConfirmed, input.initialOpenRecords.toString, time, userId),
       ConsignmentmetadataRow(
-        uuidSource.uuid, Some(consignmentId), Some(SensitivityReviewSignOffConfirmed), Some(input.sensitivityReviewSignedOff.toString), time, userId)
+        uuidSource.uuid, consignmentId, SensitivityReviewSignOffConfirmed, input.sensitivityReviewSignedOff.toString, time, userId)
     )
   }
 
   private def convertDbRowsToTransferAgreement(consignmentId: UUID, rows: Seq[ConsignmentmetadataRow]): TransferAgreement = {
-    val propertyNameToValue = rows.map(row => row.propertyname.get -> row.value.map(_.toBoolean)).toMap
+    val propertyNameToValue = rows.map(row => row.propertyname -> row.value.toBoolean).toMap
     TransferAgreement(consignmentId,
-      propertyNameToValue.getOrElse(PublicRecordsConfirmed, Some(false)),
-      propertyNameToValue.getOrElse(CrownCopyrightConfirmed, Some(false)),
-      propertyNameToValue.getOrElse(AllEnglishConfirmed, Some(false)),
-      propertyNameToValue.getOrElse(AppraisalSelectionSignOffConfirmed, Some(false)),
-      propertyNameToValue.getOrElse(InitialOpenRecordsConfirmed, Some(false)),
-      propertyNameToValue.getOrElse(SensitivityReviewSignOffConfirmed, Some(false)),
+      propertyNameToValue.get(PublicRecordsConfirmed),
+      propertyNameToValue.get(CrownCopyrightConfirmed),
+      propertyNameToValue.get(AllEnglishConfirmed),
+      propertyNameToValue.get(AppraisalSelectionSignOffConfirmed),
+      propertyNameToValue.get(InitialOpenRecordsConfirmed),
+      propertyNameToValue.get(SensitivityReviewSignOffConfirmed),
       isAgreementComplete(propertyNameToValue)
     )
   }
@@ -61,9 +61,9 @@ class TransferAgreementService(consignmentMetadataRepository: ConsignmentMetadat
     }
   }
 
-  private def isAgreementComplete(propertyNameToValue: Map[String, Option[Boolean]]): Boolean = {
+  private def isAgreementComplete(propertyNameToValue: Map[String, Boolean]): Boolean = {
     transferAgreementProperties.map(p => {
-      propertyNameToValue(p).getOrElse(false)
+      propertyNameToValue(p)
     }) forall (_ == true)
   }
 }
