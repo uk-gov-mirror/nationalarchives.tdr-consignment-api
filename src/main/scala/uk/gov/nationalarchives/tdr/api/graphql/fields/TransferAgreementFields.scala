@@ -14,12 +14,12 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 object TransferAgreementFields {
 
   case class TransferAgreement(consignmentId: UUID,
-                               allPublicRecords: Option[Boolean] = None,
-                               allCrownCopyright: Option[Boolean] = None,
-                               allEnglish: Option[Boolean] = None,
-                               appraisalSelectionSignedOff: Option[Boolean] = None,
-                               initialOpenRecords: Option[Boolean] = None,
-                               sensitivityReviewSignedOff: Option[Boolean] = None,
+                               allPublicRecords: Boolean,
+                               allCrownCopyright: Boolean,
+                               allEnglish: Boolean,
+                               appraisalSelectionSignedOff: Boolean,
+                               initialOpenRecords: Boolean,
+                               sensitivityReviewSignedOff: Boolean,
                                isAgreementComplete: Boolean)
 
   case class AddTransferAgreementInput(consignmentId: UUID,
@@ -27,9 +27,7 @@ object TransferAgreementFields {
                                        allCrownCopyright: Boolean,
                                        allEnglish: Boolean,
                                        appraisalSelectionSignedOff: Boolean,
-                                       //initialOpenRecordsConfirmed field to be added to frontend
-                                       //temporarily default to true until value passed from frontend input
-                                       initialOpenRecords: Boolean = true,
+                                       initialOpenRecords: Boolean,
                                        sensitivityReviewSignedOff: Boolean) extends UserOwnsConsignment
 
   implicit val TransferAgreementType: ObjectType[Unit, TransferAgreement] = deriveObjectType[Unit, TransferAgreement]()
