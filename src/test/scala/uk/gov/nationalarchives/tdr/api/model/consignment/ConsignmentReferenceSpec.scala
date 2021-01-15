@@ -9,13 +9,16 @@ import scala.concurrent.ExecutionContext
 class ConsignmentReferenceSpec extends AnyFlatSpec with ScalaFutures with Matchers {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
 
-  "createConsignmentReference" should "create a full consignment reference when given a numerical ID" in {
-    val createdYear = 2020
-    val consignmentSequence = 5000
+  val testCases = List(ReferenceTestCase(2020, 5000, "TDR-2020-LBB"))
+  testCases.foreach(testCase => {
+    "createConsignmentReference" should s"generated consignment reference ${testCase.expectedReference} from " +
+      s"year ${testCase.year} and sequence number ${testCase.sequenceNum}" in {
 
-    val result: String = ConsignmentReference.createConsignmentReference(createdYear, consignmentSequence)
+      val result: String = ConsignmentReference.createConsignmentReference(testCase.year, testCase.sequenceNum)
 
-    result should include ("LBB")
-    result should equal ("TDR-2020-LBB")
-  }
+      result should equal (testCase.expectedReference)
+    }
+  })
 }
+
+case class ReferenceTestCase(year: Int, sequenceNum: Long, expectedReference: String)
