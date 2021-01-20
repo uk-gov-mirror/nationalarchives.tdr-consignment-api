@@ -1,4 +1,4 @@
-FROM openjdk:16-jdk-alpine
+FROM openjdk:15-jdk-alpine
 #For alpine versions need to create a group before adding a user to the image
 WORKDIR /api
 RUN addgroup --system apigroup && adduser --system apiuser -G apigroup && \
