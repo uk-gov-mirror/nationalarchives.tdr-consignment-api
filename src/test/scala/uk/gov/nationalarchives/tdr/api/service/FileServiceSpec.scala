@@ -6,6 +6,7 @@ import java.util.UUID
 
 import org.mockito.ArgumentMatchers.any
 import org.mockito.{ArgumentCaptor, MockitoSugar}
+import org.scalatest.Assertion
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -130,12 +131,18 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
 
     val metadataRows: Seq[Tables.FilemetadataRow] = captor.getValue
     metadataRows.size should equal(staticMetadataProperties.size)
-    staticMetadataProperties.foreach(property => {
-      val filteredRow = metadataRows.find(_.propertyname == property.name)
+
+    def checkRow(propertyName: String, propertyValue: String): Assertion = {
+      val filteredRow = metadataRows.find(_.propertyname == propertyName)
       filteredRow.isDefined should equal(true)
-      filteredRow.get.value should equal(property.value)
+      filteredRow.get.value should equal(propertyValue)
       filteredRow.get.fileid should equal(fileId)
-    })
+    }
+    checkRow("RightsCopyright", "Crown Copyright")
+    checkRow("LegalStatus", "Public Record")
+    checkRow("HeldBy", "TNA")
+    checkRow("Language", "English")
+    checkRow("FoiExemptionCode", "open")
   }
 
   "getOwnersOfFiles" should "find the owners of the given files" in {
