@@ -6,32 +6,19 @@ import java.util.UUID
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.auto._
-import org.scalatest.{Assertion, BeforeAndAfterEach}
+import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.staticMetadataProperties
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
-import uk.gov.nationalarchives.tdr.api.utils.{FixedUUIDSource, TestRequest}
+import uk.gov.nationalarchives.tdr.api.utils.{FixedUUIDSource, TestDatabase, TestRequest}
 
-class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach  {
+class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with TestDatabase  {
   private val addFileJsonFilePrefix: String = "json/addfile_"
   private val getFilesJsonFilePrefix: String = "json/getfiles_"
 
   implicit val customConfig: Configuration = Configuration.default.withDefaults
-
-  override def beforeEach(): Unit = {
-    val connection = DbConnection.db.source.createConnection()
-    connection.prepareStatement("delete from FileMetadata").executeUpdate()
-    connection.prepareStatement("delete from FFIDMetadata").executeUpdate()
-    connection.prepareStatement("delete from File").executeUpdate()
-    connection.prepareStatement("delete from Consignment").executeUpdate()
-    val deleteSql = "delete from FileProperty where Name in ('RightsCopyright','LegalStatus','HeldBy','Language','FoiExemptionCode')"
-    val insertSql = "insert into FileProperty (Name) values ('RightsCopyright'), ('LegalStatus'), ('HeldBy'), ('Language'), ('FoiExemptionCode')"
-    connection.prepareStatement(deleteSql).executeUpdate()
-    connection.prepareStatement(insertSql).executeUpdate()
-    connection.close()
-  }
 
   case class GraphqlMutationData(data: Option[AddFiles], errors: List[GraphqlError] = Nil)
   case class GraphqlQueryData(data: Option[GetFiles], errors: List[GraphqlError] = Nil)

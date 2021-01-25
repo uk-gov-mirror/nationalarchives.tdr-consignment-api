@@ -6,14 +6,13 @@ import java.util.UUID
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.auto._
-import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.utils.TestRequest
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
+import uk.gov.nationalarchives.tdr.api.utils.{TestDatabase, TestRequest}
 
-class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach  {
+class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest with TestDatabase  {
 
   private val addAVMetadataJsonFilePrefix: String = "json/addavmetadata_"
 
@@ -31,7 +30,7 @@ class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequ
   case class AddAntivirusMetadata(addAntivirusMetadata: AntivirusMetadata) extends TestRequest
 
   override def beforeEach(): Unit = {
-    resetDatabase()
+    super.beforeEach()
     seedDatabaseWithDefaultEntries()
   }
 
@@ -87,14 +86,5 @@ class AntivirusMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequ
     val rs: ResultSet = ps.executeQuery()
     rs.last()
     rs.getRow should equal(0)
-  }
-
-  private def resetDatabase(): Unit = {
-    DbConnection.db.source.createConnection().prepareStatement("delete from AVMetadata").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from FFIDMetadata").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from FileMetadata").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from FileProperty").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from File").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from Consignment").executeUpdate()
   }
 }
