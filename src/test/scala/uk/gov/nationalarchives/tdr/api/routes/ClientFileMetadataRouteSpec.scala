@@ -168,7 +168,6 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
   private def resetDatabase(): Unit = {
     DbConnection.db.source.createConnection().prepareStatement("DELETE FROM FileMetadata").executeUpdate()
     DbConnection.db.source.createConnection().prepareStatement("DELETE FROM FileProperty").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM ClientFileMetadata").executeUpdate()
     DbConnection.db.source.createConnection().prepareStatement("DELETE FROM File").executeUpdate()
     DbConnection.db.source.createConnection().prepareStatement("DELETE FROM Consignment").executeUpdate()
   }
