@@ -23,7 +23,7 @@ class SeriesRouteSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach 
   case class GraphqlQueryData(data: Option[GetSeries], errors: List[GraphqlError] = Nil)
   case class GraphqlMutationData(data: Option[AddSeries], errors: List[GraphqlError] = Nil)
   case class Series(bodyid: Option[UUID], name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
-  case class GetSeries(getSeries: List[Series]) extends TestRequest
+  case class GetSeries(getSeries: List[Series])
   case class AddSeries(addSeries: Series)
 
   val runTestQuery: (String, OAuth2BearerToken) => GraphqlQueryData = runTestRequest[GraphqlQueryData](getSeriesJsonFilePrefix)
