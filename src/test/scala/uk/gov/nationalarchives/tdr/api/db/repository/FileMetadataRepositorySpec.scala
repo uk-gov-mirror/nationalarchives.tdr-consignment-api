@@ -136,7 +136,7 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
   "addFileMetadata" should "add metadata with the correct values" in {
     val db = DbConnection.db
     val fileMetadataRepository = new FileMetadataRepository(db)
-    val consignmentId = UUID.fromString("d4c053c5-f83a-4547-aefe-878d496bc5d2")
+    val consignmentId = UUID.fromString("306c526b-d099-470b-87c8-df7bd0aa225a")
     val fileId = UUID.fromString("ba176f90-f0fd-42ef-bb28-81ba3ffb6f05")
     addFileProperty("FileProperty")
     createConsignment(consignmentId, userId)
@@ -165,7 +165,7 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
   "getFileMetadata" should "return the correct metadata" in {
     val db = DbConnection.db
     val fileMetadataRepository = new FileMetadataRepository(db)
-    val consignmentId = UUID.fromString("d511ecee-89ac-4643-b62d-76a41984a92b")
+    val consignmentId = UUID.fromString("4c935c42-502c-4b89-abce-2272584655e1")
     val fileId = UUID.fromString("4d5a5a00-77b4-4a97-aa3f-a75f7b13f284")
     createFile(fileId, consignmentId)
     addFileProperty("FileProperty")
