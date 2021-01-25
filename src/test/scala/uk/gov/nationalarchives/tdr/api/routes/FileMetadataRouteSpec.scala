@@ -33,7 +33,6 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
   override def beforeEach(): Unit = {
     resetDatabase()
     seedDatabaseWithDefaultEntries()
-    createFileProperty
   }
 
   "addFileMetadata" should "return all requested fields from inserted checksum file metadata object" in {
@@ -119,13 +118,6 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
     val rs: ResultSet = ps.executeQuery()
     rs.next()
     rs.getString("FileId") should equal(fileId.toString)
-  }
-
-  private def createFileProperty = {
-    val sql = "INSERT INTO FileProperty (Name, Description, Shortname) " +
-      "VALUES ('SHA256ServerSideChecksum', 'The checksum calculated after upload', 'Checksum')"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.executeUpdate()
   }
 
   private def resetDatabase(): Unit = {

@@ -98,7 +98,6 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
     TestUtils.createFile(UUID.fromString(fileTwoId), consignmentOne)
     TestUtils.createFile(UUID.fromString(fileThreeId), consignmentTwo)
 
-    TestUtils.addFileProperty(SHA256ServerSideChecksum)
 
 //  Then need to add data to the FileMetadata repository for these files
     TestUtils.addFileMetadata(metadataOneId, fileOneId, SHA256ServerSideChecksum)
@@ -123,7 +122,6 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
     TestUtils.createConsignment(consignmentId, userId)
     TestUtils.createFile(UUID.fromString(fileOneId), consignmentId)
     TestUtils.createFile(UUID.fromString(fileTwoId), consignmentId)
-    TestUtils.addFileProperty(SHA256ServerSideChecksum)
 
     (1 to 7).foreach { _ => TestUtils.addFileMetadata(UUID.randomUUID().toString, fileOneId, SHA256ServerSideChecksum)}
 
