@@ -41,6 +41,7 @@ object FileMetadataService {
   val ClientSideOriginalFilepath = "ClientSideOriginalFilepath"
   val ClientSideFileLastModifiedDate = "ClientSideFileLastModifiedDate"
   val ClientSideFileSize = "ClientSideFileSize"
+  //There was a business decision made in the data enhancements workshop on 03/11/20 to store this metadata with these static values
   val RightsCopyright: StaticMetadata = StaticMetadata("RightsCopyright", "Crown Copyright")
   val LegalStatus: StaticMetadata = StaticMetadata("LegalStatus", "Public Record")
   val HeldBy: StaticMetadata = StaticMetadata("HeldBy", "TNA")
