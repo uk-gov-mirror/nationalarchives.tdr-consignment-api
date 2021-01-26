@@ -1,18 +1,25 @@
 package uk.gov.nationalarchives.tdr.api.graphql.fields
 
-import java.util.UUID
+import java.sql.Timestamp
+import java.util.{Date, UUID}
 
 import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
-import sangria.schema.{Argument, Field, InputObjectType, IntType, ObjectType, OptionType, StringType, fields}
-import uk.gov.nationalarchives.tdr.api.auth.{ValidateHasExportAccess, ValidateSeries, ValidateUserOwnsConsignment}
+import sangria.schema.{Argument, Field, InputObjectType, IntType, LongType, ObjectType, OptionType, StringType, fields}
+import uk.gov.nationalarchives.tdr.api.auth.{ValidateHasExportAccess, ValidateSeries, ValidateUserHasAccessToConsignment}
 import uk.gov.nationalarchives.tdr.api.graphql._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 
 object ConsignmentFields {
 
-  case class Consignment(consignmentid: UUID, userid: UUID, seriesid: UUID)
+  case class Consignment(consignmentid: UUID,
+                         userid: UUID,
+                         seriesid: UUID,
+                         dateTime: Option[Timestamp],
+                         transferInitiatedDatetime: Option[Timestamp],
+                         exportDatetime: Option[Timestamp]
+                        )
 
   case class AddConsignmentInput(seriesid: UUID)
 
@@ -23,7 +30,7 @@ object ConsignmentFields {
   case class FFIDProgress(filesProcessed: Int)
 
   case class FileChecks(antivirusProgress: AntivirusProgress, checksumProgress: ChecksumProgress, ffidProgress: FFIDProgress)
-  case class TransferringBody(name: Option[String])
+  case class TransferringBody(name: Option[String], code: Option[String])
 
   case class UpdateExportLocationInput(consignmentId: UUID, exportLocation: String)
 
@@ -44,6 +51,9 @@ object ConsignmentFields {
       Field("consignmentid", OptionType(UuidType), resolve = _.value.consignmentid),
       Field("userid", UuidType, resolve = _.value.userid),
       Field("seriesid", UuidType, resolve = _.value.seriesid),
+      Field("dateTime", OptionType(LocalDateTimeType), resolve = _.value.dateTime.get.toLocalDateTime),
+      Field("transferInitiatedDatetime", OptionType(LocalDateTimeType), resolve = _.value.transferInitiatedDatetime.get.toLocalDateTime),
+      Field("exportDatetime", OptionType(LocalDateTimeType), resolve = _.value.exportDatetime.get.toLocalDateTime),
       Field(
         "totalFiles",
         IntType,
@@ -83,7 +93,12 @@ object ConsignmentFields {
     Field("getConsignment", OptionType(ConsignmentType),
       arguments = ConsignmentIdArg :: Nil,
       resolve = ctx => ctx.ctx.consignmentService.getConsignment(ctx.arg(ConsignmentIdArg)),
-      tags = List(ValidateUserOwnsConsignment(ConsignmentIdArg))
+      tags = List(ValidateUserHasAccessToConsignment(ConsignmentIdArg))
+    ),
+    Field("getConsignmentExport", OptionType(ConsignmentType),
+      arguments = ConsignmentIdArg :: Nil,
+      resolve = ctx => ctx.ctx.consignmentService.getConsignment(ctx.arg(ConsignmentIdArg)),
+      tags=List(ValidateHasExportAccess)
     )
   )
 
@@ -100,7 +115,7 @@ object ConsignmentFields {
       arguments = ConsignmentIdArg :: Nil,
       resolve = ctx => ctx.ctx.consignmentService.updateTransferInitiated(ctx.arg(ConsignmentIdArg),
         ctx.ctx.accessToken.userId),
-      tags = List(ValidateUserOwnsConsignment(ConsignmentIdArg))
+      tags = List(ValidateUserHasAccessToConsignment(ConsignmentIdArg))
     ),
     Field("updateExportLocation", OptionType(IntType),
       arguments = ExportLocationArg :: Nil,

@@ -6,7 +6,7 @@ import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
 import sangria.schema.{Argument, Field, InputObjectType, LongType, ObjectType, OptionType, fields}
-import uk.gov.nationalarchives.tdr.api.auth.ValidateUserOwnsConsignment
+import uk.gov.nationalarchives.tdr.api.auth.ValidateUserHasAccessToConsignment
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.validation.UserOwnsConsignment
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
@@ -40,13 +40,13 @@ object TransferAgreementFields {
     Field("addTransferAgreement", TransferAgreementType,
       arguments=TransferAgreementInputArg :: Nil,
       resolve = ctx => ctx.ctx.transferAgreementService.addTransferAgreement(ctx.arg(TransferAgreementInputArg), ctx.ctx.accessToken.userId),
-      tags=List(ValidateUserOwnsConsignment(TransferAgreementInputArg))
+      tags=List(ValidateUserHasAccessToConsignment(TransferAgreementInputArg))
     ))
 
   val queryFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("getTransferAgreement", OptionType(TransferAgreementType),
       arguments=ConsignmentIdArg :: Nil,
       resolve = ctx => ctx.ctx.transferAgreementService.getTransferAgreement(ctx.arg(ConsignmentIdArg)),
-      tags=List(ValidateUserOwnsConsignment(ConsignmentIdArg))
+      tags=List(ValidateUserHasAccessToConsignment(ConsignmentIdArg))
     ))
 }

@@ -10,7 +10,6 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.SeriesFields.Series
 
 import scala.concurrent.{ExecutionContext, Future}
 
-
 class ConsignmentService(
                           consignmentRepository: ConsignmentRepository,
                           fileMetadataRepository: FileMetadataRepository,
@@ -30,12 +29,14 @@ class ConsignmentService(
 
   def addConsignment(addConsignmentInput: AddConsignmentInput, userId: UUID): Future[Consignment] = {
     val consignmentRow = ConsignmentRow(uuidSource.uuid, addConsignmentInput.seriesid, userId, Timestamp.from(timeSource.now))
-    consignmentRepository.addConsignment(consignmentRow).map(row => Consignment(row.consignmentid, row.userid, row.seriesid))
+    consignmentRepository.addConsignment(consignmentRow).map(
+      row => Consignment(row.consignmentid, row.userid, row.seriesid, Some(row.datetime), row.transferinitiateddatetime, row.exportdatetime))
   }
 
   def getConsignment(consignmentId: UUID): Future[Option[Consignment]] = {
     val consignments = consignmentRepository.getConsignment(consignmentId)
-    consignments.map(rows => rows.headOption.map(row => Consignment(row.consignmentid, row.userid, row.seriesid)))
+    consignments.map(rows => rows.headOption.map(
+      row => Consignment(row.consignmentid, row.userid, row.seriesid, Some(row.datetime), row.transferinitiateddatetime, row.exportdatetime)))
   }
 
   def getSeriesOfConsignment(consignmentId: UUID): Future[Option[Series]] = {
@@ -47,7 +48,7 @@ class ConsignmentService(
   def getTransferringBodyOfConsignment(consignmentId: UUID): Future[Option[TransferringBody]] = {
     val consignment: Future[Seq[BodyRow]] = consignmentRepository.getTransferringBodyOfConsignment(consignmentId)
     consignment.map(rows => rows.headOption.map(
-      transferringBody => TransferringBody(transferringBody.name)))
+      transferringBody => TransferringBody(transferringBody.name, transferringBody.code)))
   }
 
   def consignmentHasFiles(consignmentId: UUID): Future[Boolean] = {
