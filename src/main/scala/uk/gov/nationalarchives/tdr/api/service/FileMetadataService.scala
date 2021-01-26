@@ -36,10 +36,24 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository,
 }
 
 object FileMetadataService {
+  case class StaticMetadata(name: String, value: String)
   val SHA256ClientSideChecksum = "SHA256ClientSideChecksum"
   val ClientSideOriginalFilepath = "ClientSideOriginalFilepath"
   val ClientSideFileLastModifiedDate = "ClientSideFileLastModifiedDate"
   val ClientSideFileSize = "ClientSideFileSize"
 
+  /**
+   * Save default values for these properties because TDR currently only supports records which are Open, in English, etc.
+   * Users agree to these conditions at a consignment level, so it's OK to save these as defaults for every file.
+   * They need to be saved so they can be included in the export package.
+   * The defaults may be removed in future once we let users upload a wider variety of records.
+   */
+  val RightsCopyright: StaticMetadata = StaticMetadata("RightsCopyright", "Crown Copyright")
+  val LegalStatus: StaticMetadata = StaticMetadata("LegalStatus", "Public Record")
+  val HeldBy: StaticMetadata = StaticMetadata("HeldBy", "TNA")
+  val Language: StaticMetadata = StaticMetadata("Language", "English")
+  val FoiExemptionCode: StaticMetadata = StaticMetadata("FoiExemptionCode", "open")
+
   val clientSideProperties = List(SHA256ClientSideChecksum, ClientSideOriginalFilepath, ClientSideFileLastModifiedDate, ClientSideFileSize)
+  val staticMetadataProperties = List(RightsCopyright, LegalStatus, HeldBy, Language, FoiExemptionCode)
 }
