@@ -1,7 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.service
 
 import java.sql.Timestamp
-import java.time.LocalDate
+import java.time.{Instant, LocalDate, OffsetDateTime, ZoneOffset}
 import java.util.{Calendar, UUID}
 
 import uk.gov.nationalarchives.Tables.{BodyRow, ConsignmentRow, SeriesRow}
@@ -33,15 +33,15 @@ class ConsignmentService(
   }
 
   def addConsignment(addConsignmentInput: AddConsignmentInput, userId: UUID): Future[Consignment] = {
-    val timeNow = timeSource.now
-    val transferStartYearForReference: Int = LocalDate.from(timeSource.now).getYear
+    val now = timeSource.now
+    val yearNow = LocalDate.from(now.atOffset(ZoneOffset.UTC)).getYear
      consignmentRepository.getNextConsignmentSequence.flatMap(sequence => {
-       val consignmentRef = ConsignmentReference.createConsignmentReference(transferStartYearForReference, sequence)
+       val consignmentRef = ConsignmentReference.createConsignmentReference(yearNow, sequence)
        val consignmentRow = ConsignmentRow(
          uuidSource.uuid,
          addConsignmentInput.seriesid,
          userId,
-         Timestamp.from(timeNow),
+         Timestamp.from(now),
          consignmentsequence = Option(sequence))
        consignmentRepository.addConsignment(consignmentRow).map(row => Consignment(row.consignmentid, row.userid, row.seriesid, Option(consignmentRef)))
      })
