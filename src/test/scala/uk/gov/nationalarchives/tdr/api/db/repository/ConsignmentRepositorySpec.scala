@@ -87,7 +87,6 @@ class ConsignmentRepositorySpec extends AnyFlatSpec with TestDatabase with Scala
     consignmentBody.name.get should be(bodyName)
   }
 
-//  Test keeps failing - seq number not resetting after each test run
   "getNextConsignmentSequence" should "get the next sequence ID number for a consignment row" in {
     val db = DbConnection.db
     val consignmentRepository = new ConsignmentRepository(db)
