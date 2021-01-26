@@ -41,7 +41,13 @@ object FileMetadataService {
   val ClientSideOriginalFilepath = "ClientSideOriginalFilepath"
   val ClientSideFileLastModifiedDate = "ClientSideFileLastModifiedDate"
   val ClientSideFileSize = "ClientSideFileSize"
-  //There was a business decision made in the data enhancements workshop on 03/11/20 to store this metadata with these static values
+
+  /**
+   * Save default values for these properties because TDR currently only supports records which are Open, in English, etc.
+   * Users agree to these conditions at a consignment level, so it's OK to save these as defaults for every file.
+   * They need to be saved so they can be included in the export package.
+   * The defaults may be removed in future once we let users upload a wider variety of records.
+   */
   val RightsCopyright: StaticMetadata = StaticMetadata("RightsCopyright", "Crown Copyright")
   val LegalStatus: StaticMetadata = StaticMetadata("LegalStatus", "Public Record")
   val HeldBy: StaticMetadata = StaticMetadata("HeldBy", "TNA")
