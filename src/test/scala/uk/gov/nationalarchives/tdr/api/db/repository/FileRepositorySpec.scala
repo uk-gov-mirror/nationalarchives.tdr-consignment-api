@@ -6,11 +6,11 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils
+import uk.gov.nationalarchives.tdr.api.utils.{TestDatabase, TestUtils}
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 
-class FileRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers {
+class FileRepositorySpec extends AnyFlatSpec with TestDatabase with ScalaFutures with Matchers {
 
   "countFilesInConsignment" should "return 0 if a consignment has no files" in {
     val db = DbConnection.db

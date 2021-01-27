@@ -4,26 +4,18 @@ import java.sql.{PreparedStatement, Timestamp}
 import java.time.Instant
 import java.util.UUID
 
-import org.scalatest.{Assertion, BeforeAndAfterEach}
+import org.scalatest.Assertion
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Seconds, Span}
+import uk.gov.nationalarchives.Tables.FilemetadataRow
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256ServerSideChecksum
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
-import uk.gov.nationalarchives.Tables.FilemetadataRow
+import uk.gov.nationalarchives.tdr.api.utils.{TestDatabase, TestUtils}
 
-class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers with BeforeAndAfterEach {
-
-  override def beforeEach(): Unit = {
-    val connection = DbConnection.db.source.createConnection()
-    val psFileMetadata = connection.prepareStatement("delete from FileMetadata")
-    val psFileProperty = connection.prepareStatement("delete from FileProperty")
-    psFileMetadata.execute()
-    psFileProperty.execute()
-  }
+class FileMetadataRepositorySpec extends AnyFlatSpec with TestDatabase with ScalaFutures with Matchers {
 
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = Span(2, Seconds))
@@ -98,8 +90,6 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
     TestUtils.createFile(UUID.fromString(fileTwoId), consignmentOne)
     TestUtils.createFile(UUID.fromString(fileThreeId), consignmentTwo)
 
-    TestUtils.addFileProperty(SHA256ServerSideChecksum)
-
 //  Then need to add data to the FileMetadata repository for these files
     TestUtils.addFileMetadata(metadataOneId, fileOneId, SHA256ServerSideChecksum)
     TestUtils.addFileMetadata(metadataTwoId, fileTwoId, SHA256ServerSideChecksum)
@@ -123,7 +113,6 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
     TestUtils.createConsignment(consignmentId, userId)
     TestUtils.createFile(UUID.fromString(fileOneId), consignmentId)
     TestUtils.createFile(UUID.fromString(fileTwoId), consignmentId)
-    TestUtils.addFileProperty(SHA256ServerSideChecksum)
 
     (1 to 7).foreach { _ => TestUtils.addFileMetadata(UUID.randomUUID().toString, fileOneId, SHA256ServerSideChecksum)}
 
@@ -136,7 +125,7 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
   "addFileMetadata" should "add metadata with the correct values" in {
     val db = DbConnection.db
     val fileMetadataRepository = new FileMetadataRepository(db)
-    val consignmentId = UUID.fromString("d4c053c5-f83a-4547-aefe-878d496bc5d2")
+    val consignmentId = UUID.fromString("306c526b-d099-470b-87c8-df7bd0aa225a")
     val fileId = UUID.fromString("ba176f90-f0fd-42ef-bb28-81ba3ffb6f05")
     addFileProperty("FileProperty")
     createConsignment(consignmentId, userId)
@@ -165,7 +154,7 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matc
   "getFileMetadata" should "return the correct metadata" in {
     val db = DbConnection.db
     val fileMetadataRepository = new FileMetadataRepository(db)
-    val consignmentId = UUID.fromString("d511ecee-89ac-4643-b62d-76a41984a92b")
+    val consignmentId = UUID.fromString("4c935c42-502c-4b89-abce-2272584655e1")
     val fileId = UUID.fromString("4d5a5a00-77b4-4a97-aa3f-a75f7b13f284")
     createFile(fileId, consignmentId)
     addFileProperty("FileProperty")

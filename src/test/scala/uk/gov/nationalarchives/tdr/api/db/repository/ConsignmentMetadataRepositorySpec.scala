@@ -11,10 +11,11 @@ import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 import uk.gov.nationalarchives.Tables._
 import uk.gov.nationalarchives.tdr.api.service.TransferAgreementService.transferAgreementProperties
+import uk.gov.nationalarchives.tdr.api.utils.TestDatabase
 
 import scala.concurrent.ExecutionContext
 
-class ConsignmentMetadataRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers {
+class ConsignmentMetadataRepositorySpec extends AnyFlatSpec with TestDatabase with ScalaFutures with Matchers {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
 
   private val consignmentMetadataProperty = "AllEnglishConfirmed"

@@ -6,15 +6,14 @@ import java.util.UUID
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.auto._
-import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.{FileMetadata, SHA256ServerSideChecksum}
-import uk.gov.nationalarchives.tdr.api.utils.TestRequest
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils.{GraphqlError, getDataFromFile, validBackendChecksToken, _}
+import uk.gov.nationalarchives.tdr.api.utils.{TestDatabase, TestRequest}
 
-class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach {
+class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest with TestDatabase {
   private val addFileMetadataJsonFilePrefix: String = "json/addfilemetadata_"
 
   implicit val customConfig: Configuration = Configuration.default.withDefaults
@@ -31,9 +30,9 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
     getDataFromFile[GraphqlMutationData](addFileMetadataJsonFilePrefix)
 
   override def beforeEach(): Unit = {
-    resetDatabase()
+    super.beforeEach()
+
     seedDatabaseWithDefaultEntries()
-    createFileProperty
   }
 
   "addFileMetadata" should "return all requested fields from inserted checksum file metadata object" in {
@@ -119,13 +118,6 @@ class FileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
     val rs: ResultSet = ps.executeQuery()
     rs.next()
     rs.getString("FileId") should equal(fileId.toString)
-  }
-
-  private def createFileProperty = {
-    val sql = "INSERT INTO FileProperty (Name, Description, Shortname) " +
-      "VALUES ('SHA256ServerSideChecksum', 'The checksum calculated after upload', 'Checksum')"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.executeUpdate()
   }
 
   private def resetDatabase(): Unit = {
