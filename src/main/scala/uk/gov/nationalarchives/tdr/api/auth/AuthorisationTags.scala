@@ -92,7 +92,7 @@ case class ValidateUserHasAccessToConsignment[T](argument: Argument[T]) extends 
         if (consignment.get.userid == userId || exportAccess) {
           continue
         } else {
-          throw AuthorisationException(s"User '$userId' does not own consignment '$consignmentId'")
+          throw AuthorisationException(s"User '$userId' does not have access to consignment '$consignmentId'")
         }
       })
   }

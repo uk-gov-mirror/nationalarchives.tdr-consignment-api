@@ -31,6 +31,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
                          seriesid: Option[UUID] = None,
                          dateTime: Option[LocalDateTime] = None,
                          transferInitiatedDatetime: Option[LocalDateTime] = None,
+                         exportDatetime: Option[LocalDateTime] = None,
                          totalFiles: Option[Int],
                          fileChecks: Option[FileChecks],
                          parentFolder: Option[String],
