@@ -9,6 +9,7 @@ import scala.concurrent.ExecutionContext
 class ConsignmentReferenceSpec extends AnyFlatSpec with ScalaFutures with Matchers {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
 
+  //scalastyle:off magic.number
   val testCases = List(
     ReferenceTestCase(2020, 5000L, "TDR-2020-LBB"),
     ReferenceTestCase(2020, 9223372036854775807L, "TDR-2020-JGXSCT7Q66HVKK"),
