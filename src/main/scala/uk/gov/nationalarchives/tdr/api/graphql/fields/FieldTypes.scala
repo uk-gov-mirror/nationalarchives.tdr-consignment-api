@@ -19,12 +19,12 @@ object FieldTypes {
   }
 
   private def parseDate(s: String): Either[ValueCoercionViolation, LocalDateTime] = Try(LocalDateTime.parse(s)) match {
-    case Success(date) => Right(date)
+    case Success(localDateTime) => Right(localDateTime)
     case Failure(_) => Left(LocalDateTimeCoercionViolation)
   }
 
   implicit val LocalDateTimeType: ScalarType[LocalDateTime] = ScalarType[LocalDateTime]("LocalDateTime",
-    coerceOutput = (d, _) => d.toString,
+    coerceOutput = (ldt, _) => ldt.toString,
     coerceUserInput = {
       case s: String => parseDate(s)
       case _ => Left(LocalDateTimeCoercionViolation)
