@@ -6,15 +6,14 @@ import java.util.UUID
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.auto._
-import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
-import uk.gov.nationalarchives.tdr.api.utils.TestRequest
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
+import uk.gov.nationalarchives.tdr.api.utils.{TestDatabase, TestRequest}
 
-class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach  {
+class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest with TestDatabase  {
 
   private val addClientFileMetadataJsonFilePrefix: String = "json/addclientfilemetadata_"
   private val getClientFileMetadataJsonFilePrefix: String = "json/getclientfilemetadata_"
@@ -36,10 +35,6 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
   case class AddClientFileMetadata(addClientFileMetadata: List[ClientFileMetadata]) extends TestRequest
   case class GetClientFileMetadata(getClientFileMetadata: ClientFileMetadata) extends TestRequest
 
-  override def beforeEach(): Unit = {
-    resetDatabase()
-  }
-
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData =
     runTestRequest[GraphqlMutationData](addClientFileMetadataJsonFilePrefix)
   val expectedMutationResponse: String => GraphqlMutationData =
@@ -50,7 +45,6 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
     getDataFromFile[GraphqlQueryData](getClientFileMetadataJsonFilePrefix)
 
   "addClientFileMetadata" should "return all requested fields from inserted Client File metadata object" in {
-    addClientSideProperties()
     val consignmentId = UUID.fromString("eb197bfb-43f7-40ca-9104-8f6cbda88506")
     createConsignment(consignmentId, userId)
     createFile(defaultFileId, consignmentId)
@@ -63,7 +57,6 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
   }
 
   "addClientFileMetadata" should "return the expected data from inserted Client File metadata object" in {
-    addClientSideProperties()
     val consignmentId = UUID.fromString("eb197bfb-43f7-40ca-9104-8f6cbda88506")
     createConsignment(consignmentId, userId)
     createFile(defaultFileId, consignmentId)
@@ -163,13 +156,5 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
     val rs: ResultSet = ps.executeQuery()
     rs.next()
     rs.getString("FileId") should equal(fileId.toString)
-  }
-
-  private def resetDatabase(): Unit = {
-    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM FileMetadata").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM FileProperty").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM ClientFileMetadata").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM File").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM Consignment").executeUpdate()
   }
 }

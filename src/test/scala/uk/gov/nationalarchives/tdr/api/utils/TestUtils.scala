@@ -95,9 +95,7 @@ object TestUtils {
     val seriesId = UUID.fromString("1436ad43-73a2-4489-a774-85fa95daff32")
     createConsignment(consignmentId, userId, seriesId)
     createFile(defaultFileId, consignmentId)
-    addClientSideProperties()
     createClientFileMetadata(defaultFileId)
-    addTransferAgreementProperties()
     addTransferAgreementMetadata(consignmentId)
   }
 
@@ -198,21 +196,35 @@ object TestUtils {
     ps.executeUpdate()
   }
 
-  def addSeries(seriesId: UUID, bodyId: UUID, code: String): Unit = {
-    val sql = s"INSERT INTO Series (SeriesId, BodyId, Code) VALUES (?, ?, ?)"
+  def addTransferringBody(id: UUID, name: String, code: String): Unit = {
+    val sql = s"INSERT INTO Body (BodyId, Name, Code) VALUES (?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.setString(1, seriesId.toString)
-    ps.setString(2, bodyId.toString)
+    ps.setString(1, id.toString)
+    ps.setString(2, name)
     ps.setString(3, code)
 
     ps.executeUpdate()
   }
 
-  def addClientSideProperties(): Unit = {
-    clientSideProperties.foreach(propertyName => {
-      addFileProperty(propertyName)
-    })
+  // scalastyle:off magic.number
+  def addSeries(
+                 seriesId: UUID,
+                 bodyId: UUID,
+                 code: String,
+                 name: String = "some-series-name",
+                 description: String = "some-series-description"
+               ): Unit = {
+    val sql = s"INSERT INTO Series (SeriesId, BodyId, Code, Name, Description) VALUES (?, ?, ?, ?, ?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, seriesId.toString)
+    ps.setString(2, bodyId.toString)
+    ps.setString(3, code)
+    ps.setString(4, name)
+    ps.setString(5, description)
+
+    ps.executeUpdate()
   }
+  // scalastyle:on magic.number
 
   def addConsignmentProperty(name: String): Unit = {
     // name is primary key check exists before attempting insert to table
@@ -259,12 +271,5 @@ object TestUtils {
       ps.executeUpdate()
     })
   }
-
   //scalastyle:on magic.number
-
-  def addTransferAgreementProperties(): Unit = {
-    transferAgreementProperties.foreach(propertyName => {
-      addConsignmentProperty(propertyName)
-    })
-  }
 }

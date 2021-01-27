@@ -6,15 +6,14 @@ import java.util.UUID
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.auto._
-import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.service.TransferAgreementService.transferAgreementProperties
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
-import uk.gov.nationalarchives.tdr.api.utils.{FixedUUIDSource, TestRequest}
+import uk.gov.nationalarchives.tdr.api.utils.{TestDatabase, FixedUUIDSource, TestRequest}
 
-class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach  {
+class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestRequest with TestDatabase  {
 
   private val addTransferAgreementJsonFilePrefix: String = "json/addtransferagreement_"
   private val getTransferAgreementJsonFilePrefix: String = "json/gettransferagreement_"
@@ -33,11 +32,6 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
                                 sensitivityReviewSignedOff: Option[Boolean] = None
                               )
   case class AddTransferAgreement(addTransferAgreement: TransferAgreement) extends TestRequest
-
-  override def beforeEach(): Unit = {
-    resetDatabase()
-    addTransferAgreementProperties()
-  }
 
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData =
     runTestRequest[GraphqlMutationData](addTransferAgreementJsonFilePrefix)
@@ -175,11 +169,5 @@ class TransfersAgreementRouteSpec extends AnyFlatSpec with Matchers with TestReq
     val rs: ResultSet = ps.executeQuery()
     rs.next()
     rs.getString("ConsignmentId") should equal(consignmentId.toString)
-  }
-
-  private def resetDatabase(): Unit = {
-    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM ConsignmentMetadata").execute()
-    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM ConsignmentProperty").execute()
-    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM Consignment").executeUpdate()
   }
 }

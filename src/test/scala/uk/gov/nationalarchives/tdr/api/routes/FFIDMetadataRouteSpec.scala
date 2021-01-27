@@ -6,15 +6,14 @@ import java.util.UUID
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.auto._
-import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FFIDMetadataFields.FFIDMetadata
-import uk.gov.nationalarchives.tdr.api.utils.TestRequest
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
+import uk.gov.nationalarchives.tdr.api.utils.{TestDatabase, TestRequest}
 
-class FFIDMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach {
+class FFIDMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest with TestDatabase {
 
   private val addFfidMetadataJsonFilePrefix: String = "json/addffidmetadata_"
 
@@ -30,7 +29,8 @@ class FFIDMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
     getDataFromFile[GraphqlMutationData](addFfidMetadataJsonFilePrefix)
 
   override def beforeEach(): Unit = {
-    resetDatabase()
+    super.beforeEach()
+
     seedDatabaseWithDefaultEntries()
   }
 

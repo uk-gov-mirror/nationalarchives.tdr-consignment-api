@@ -45,18 +45,6 @@ CREATE TABLE IF NOT EXISTS ConsignmentMetadata (
     PRIMARY KEY (MetadataId)
 );
 
-CREATE TABLE IF NOT EXISTS ClientFileMetadata (
-   FileId uuid NOT NULL DEFAULT '6e3b76c4-1745-4467-8ac5-b4dd736e1b3e',
-   OriginalPath varchar(255) DEFAULT NULL,
-   Checksum varchar(255) DEFAULT NULL,
-   ChecksumType varchar(255) DEFAULT NULL,
-   LastModified timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-   Filesize bigint DEFAULT NULL,
-   Datetime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-   ClientFileMetadataId uuid NOT NULL DEFAULT '6e3b76c4-1745-4467-8ac5-b4dd736e1b3e',
-   PRIMARY KEY (ClientFileMetadataId)
-);
-
 CREATE TABLE IF NOT EXISTS File (
    FileId uuid NOT NULL DEFAULT '6e3b76c4-1745-4467-8ac5-b4dd736e1b3e',
    ConsignmentId uuid NOT NULL,
@@ -127,7 +115,3 @@ CREATE TABLE IF NOT EXISTS FFIDMetadataMatches (
  ALTER TABLE FFIDMetadata
     ADD FOREIGN KEY (FileId)
     REFERENCES File(FileId);
-
-
-DELETE from Body;
-INSERT INTO Body (BodyId, Name, Code, Description) VALUES ('6e3b76c4-1745-4467-8ac5-b4dd736e1b3e', 'Body', 'Code', 'Description'), ('645bee46-d738-439b-8007-2083bc983154', 'Body2', 'Code2', 'Description');
