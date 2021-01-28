@@ -95,6 +95,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     response.errors.head.extensions.get.code should equal("NOT_AUTHORISED")
   }
 
+  //scalastyle:off magic.number
   "getConsignment" should "return all requested fields" in {
     val sql = "INSERT INTO Consignment (ConsignmentId, SeriesId, UserId, Datetime, TransferInitiatedDatetime, ExportDatetime) VALUES (?, ?, ?, ?, ?, ?)"
     val ps: PreparedStatement = databaseConnection.prepareStatement(sql)
@@ -138,6 +139,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
     response should equal(expectedResponse)
   }
+  //scalastyle:off magic.number
 
   "getConsignment" should "return the expected data" in {
     val fixedUuidSource = new FixedUUIDSource()
