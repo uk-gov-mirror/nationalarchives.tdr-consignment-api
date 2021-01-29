@@ -103,12 +103,13 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     val bodyCode = "consignment-body-code"
     val consignmentId = "b130e097-2edc-4e67-a7e9-5364a09ae9cb"
     val seriesId = "fde450c9-09aa-4ba8-b0df-13f9bac1e587"
+    val fixedTimeStamp = Timestamp.from(FixedTimeSource.now)
     ps.setString(1, consignmentId)
     ps.setString(2, seriesId)
     ps.setString(3, userId.toString)
-    ps.setTimestamp(4, Timestamp.from(FixedTimeSource.now))
-    ps.setTimestamp(5, Timestamp.from(FixedTimeSource.now))
-    ps.setTimestamp(6, Timestamp.from(FixedTimeSource.now))
+    ps.setTimestamp(4, fixedTimeStamp)
+    ps.setTimestamp(5, fixedTimeStamp)
+    ps.setTimestamp(6, fixedTimeStamp)
     ps.executeUpdate()
     val fileOneId = "e7ba59c9-5b8b-4029-9f27-2d03957463ad"
     val fileTwoId = "42910a85-85c3-40c3-888f-32f697bfadb6"
