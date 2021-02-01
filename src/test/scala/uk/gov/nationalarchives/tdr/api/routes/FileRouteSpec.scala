@@ -6,27 +6,19 @@ import java.util.UUID
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.auto._
-import org.scalatest.BeforeAndAfterEach
+import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.staticMetadataProperties
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
-import uk.gov.nationalarchives.tdr.api.utils.{FixedUUIDSource, TestRequest}
+import uk.gov.nationalarchives.tdr.api.utils.{FixedUUIDSource, TestDatabase, TestRequest}
 
-class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach  {
+class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with TestDatabase  {
   private val addFileJsonFilePrefix: String = "json/addfile_"
   private val getFilesJsonFilePrefix: String = "json/getfiles_"
 
   implicit val customConfig: Configuration = Configuration.default.withDefaults
-
-  override def beforeEach(): Unit = {
-    val connection = DbConnection.db.source.createConnection()
-    connection.prepareStatement("delete from FileMetadata").executeUpdate()
-    connection.prepareStatement("delete from FFIDMetadata").executeUpdate()
-    connection.prepareStatement("delete from File").executeUpdate()
-    connection.prepareStatement("delete from Consignment").executeUpdate()
-    connection.close()
-  }
 
   case class GraphqlMutationData(data: Option[AddFiles], errors: List[GraphqlError] = Nil)
   case class GraphqlQueryData(data: Option[GetFiles], errors: List[GraphqlError] = Nil)
@@ -52,6 +44,16 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
     response.data.isDefined should equal(true)
     response.data.get.addFiles should equal(expectedResponse.data.get.addFiles)
     response.data.get.addFiles.fileIds.foreach(checkFileExists)
+  }
+
+  "The api" should "add the static metadata if the correct information is provided" in {
+    val sql = s"insert into Consignment (SeriesId, UserId) VALUES (1,'$userId')"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.executeUpdate()
+
+    val response: GraphqlMutationData = runTestMutation("mutation_one_file", validUserToken())
+
+    response.data.get.addFiles.fileIds.foreach(checkStaticMetadataExists)
   }
 
   "The api" should "add three files if the correct information is provided" in {
@@ -150,5 +152,17 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Befo
     val rs: ResultSet = ps.executeQuery()
     rs.last()
     rs.getRow should equal(expectedNumberOfFiles)
+  }
+
+  def checkStaticMetadataExists(fileId: UUID): List[Assertion] = {
+    staticMetadataProperties.map(property => {
+      val sql = "SELECT * FROM FileMetadata WHERE FileId = ? AND PropertyName = ?"
+      val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+      ps.setString(1, fileId.toString)
+      ps.setString(2, property.name)
+      val result = ps.executeQuery()
+      result.next()
+      result.getString("Value") should equal(property.value)
+    })
   }
 }

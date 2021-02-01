@@ -6,15 +6,14 @@ import java.util.UUID
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.auto._
-import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FFIDMetadataFields.FFIDMetadata
-import uk.gov.nationalarchives.tdr.api.utils.TestRequest
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
+import uk.gov.nationalarchives.tdr.api.utils.{TestDatabase, TestRequest}
 
-class FFIDMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach {
+class FFIDMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest with TestDatabase {
 
   private val addFfidMetadataJsonFilePrefix: String = "json/addffidmetadata_"
 
@@ -30,7 +29,8 @@ class FFIDMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
     getDataFromFile[GraphqlMutationData](addFfidMetadataJsonFilePrefix)
 
   override def beforeEach(): Unit = {
-    resetDatabase()
+    super.beforeEach()
+
     seedDatabaseWithDefaultEntries()
   }
 
@@ -99,14 +99,16 @@ class FFIDMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
   }
 
   private def resetDatabase(): Unit = {
-    DbConnection.db.source.createConnection().prepareStatement("delete from FFIDMetadataMatches").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from FFIDMetadata").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from File").executeUpdate()
-    DbConnection.db.source.createConnection().prepareStatement("delete from Consignment").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM FFIDMetadataMatches").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM FFIDMetadata").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM FileMetadata").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM FileProperty").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM File").executeUpdate()
+    DbConnection.db.source.createConnection().prepareStatement("DELETE FROM Consignment").executeUpdate()
   }
 
   private def checkNoFFIDMetadataAdded(): Unit = {
-    val sql = "select * from FileMetadata;"
+    val sql = "SELECT * FROM FFIDMetadata;"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     val rs: ResultSet = ps.executeQuery()
     rs.last()

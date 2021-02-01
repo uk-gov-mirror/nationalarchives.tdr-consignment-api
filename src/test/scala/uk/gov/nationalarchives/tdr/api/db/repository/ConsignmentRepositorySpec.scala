@@ -6,12 +6,12 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.utils.TestUtils
+import uk.gov.nationalarchives.tdr.api.utils.{TestDatabase, TestUtils}
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 
 import scala.concurrent.ExecutionContext
 
-class ConsignmentRepositorySpec extends AnyFlatSpec with ScalaFutures with Matchers {
+class ConsignmentRepositorySpec extends AnyFlatSpec with TestDatabase with ScalaFutures with Matchers {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
 
   "addParentFolder" should "add parent folder name to an existing consignment row" in {
@@ -74,12 +74,13 @@ class ConsignmentRepositorySpec extends AnyFlatSpec with ScalaFutures with Match
     val consignmentRepository = new ConsignmentRepository(db)
     val consignmentId = UUID.fromString("a3088f8a-59a3-4ab3-9e50-1677648e8186")
     val seriesId = UUID.fromString("845a4589-d412-49d7-80c6-63969112728a")
-    val bodyId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
+    val bodyId = UUID.fromString("edb31587-4357-4e63-b40c-75368c9d9cc9")
+    val bodyName = "Some transferring body name"
     val seriesCode = "Mock series"
-    val bodyName = "Body"
 
+    TestUtils.addTransferringBody(bodyId, bodyName, "some-body-code")
     TestUtils.addSeries(seriesId, bodyId, seriesCode)
-    TestUtils.createConsignment(consignmentId, userId)
+    TestUtils.createConsignment(consignmentId, userId, seriesId)
 
     val consignmentBody = consignmentRepository.getTransferringBodyOfConsignment(consignmentId).futureValue.head
 

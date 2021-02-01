@@ -14,22 +14,21 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
 object TransferAgreementFields {
 
   case class TransferAgreement(consignmentId: UUID,
-                               allPublicRecords: Option[Boolean] = None,
-                               allCrownCopyright: Option[Boolean] = None,
-                               allEnglish: Option[Boolean] = None,
-                               allDigital: Option[Boolean] = None,
-                               appraisalSelectionSignedOff: Option[Boolean] = None,
-                               sensitivityReviewSignedOff: Option[Boolean] = None,
-                               transferAgreementId: Option[UUID] = None,
+                               allPublicRecords: Boolean,
+                               allCrownCopyright: Boolean,
+                               allEnglish: Boolean,
+                               appraisalSelectionSignedOff: Boolean,
+                               initialOpenRecords: Boolean,
+                               sensitivityReviewSignedOff: Boolean,
                                isAgreementComplete: Boolean)
 
   case class AddTransferAgreementInput(consignmentId: UUID,
-                                       allPublicRecords: Option[Boolean] = None,
-                                       allCrownCopyright: Option[Boolean] = None,
-                                       allEnglish: Option[Boolean] = None,
-                                       allDigital: Option[Boolean] = None,
-                                       appraisalSelectionSignedOff: Option[Boolean] = None,
-                                       sensitivityReviewSignedOff: Option[Boolean] = None) extends UserOwnsConsignment
+                                       allPublicRecords: Boolean,
+                                       allCrownCopyright: Boolean,
+                                       allEnglish: Boolean,
+                                       appraisalSelectionSignedOff: Boolean,
+                                       initialOpenRecords: Boolean,
+                                       sensitivityReviewSignedOff: Boolean) extends UserOwnsConsignment
 
   implicit val TransferAgreementType: ObjectType[Unit, TransferAgreement] = deriveObjectType[Unit, TransferAgreement]()
   implicit val AddTransferAgreementInputType: InputObjectType[AddTransferAgreementInput] = deriveInputObjectType[AddTransferAgreementInput]()
@@ -40,7 +39,7 @@ object TransferAgreementFields {
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("addTransferAgreement", TransferAgreementType,
       arguments=TransferAgreementInputArg :: Nil,
-      resolve = ctx => ctx.ctx.transferAgreementService.addTransferAgreement(ctx.arg(TransferAgreementInputArg)),
+      resolve = ctx => ctx.ctx.transferAgreementService.addTransferAgreement(ctx.arg(TransferAgreementInputArg), ctx.ctx.accessToken.userId),
       tags=List(ValidateUserOwnsConsignment(TransferAgreementInputArg))
     ))
 

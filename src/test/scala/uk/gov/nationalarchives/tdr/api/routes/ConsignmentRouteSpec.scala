@@ -1,32 +1,25 @@
 package uk.gov.nationalarchives.tdr.api.routes
 
-import java.sql.{Connection, PreparedStatement}
+import java.sql.PreparedStatement
 import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.auto._
-import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256ServerSideChecksum
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
-import uk.gov.nationalarchives.tdr.api.utils.{FixedUUIDSource, TestRequest}
+import uk.gov.nationalarchives.tdr.api.utils.{FixedUUIDSource, TestDatabase, TestRequest}
 
-class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest with BeforeAndAfterEach {
+class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest with TestDatabase {
   private val addConsignmentJsonFilePrefix: String = "json/addconsignment_"
   private val getConsignmentJsonFilePrefix: String = "json/getconsignment_"
 
   implicit val customConfig: Configuration = Configuration.default.withDefaults
 
-  override def beforeEach(): Unit = {
-    val conn: Connection = DbConnection.db.source.createConnection()
-    conn.prepareStatement("delete from Consignment").executeUpdate()
-    conn.prepareStatement("delete from Series").executeUpdate()
-    conn.commit()
-    conn.close()
-  }
+  private val transferringBodyId = UUID.fromString("830f0315-e683-440e-90d0-5f4aa60388c6")
+  private val transferringBodyCode = "default-transferring-body-code"
 
   case class GraphqlQueryData(data: Option[GetConsignment], errors: List[GraphqlError] = Nil)
   case class GraphqlMutationData(data: Option[AddConsignment], errors: List[GraphqlError] = Nil)
@@ -57,11 +50,17 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   val expectedQueryResponse: String => GraphqlQueryData = getDataFromFile[GraphqlQueryData](getConsignmentJsonFilePrefix)
   val expectedMutationResponse: String => GraphqlMutationData = getDataFromFile[GraphqlMutationData](addConsignmentJsonFilePrefix)
 
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+
+    addTransferringBody(transferringBodyId, "Default transferring body name", transferringBodyCode)
+  }
+
   "addConsignment" should "create a consignment if the correct information is provided" in {
-    createSeries(UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e"))
+    createSeries(transferringBodyId)
 
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
-    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
+    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken(transferringBodyCode))
     response.data.get.addConsignment should equal(expectedResponse.data.get.addConsignment)
 
     checkConsignmentExists(response.data.get.addConsignment.consignmentid.get)
@@ -74,17 +73,17 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   }
 
   "addConsignment" should "link a new consignment to the creating user" in {
-    createSeries(UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e"))
+    createSeries(transferringBodyId)
 
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
-    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
+    val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken(transferringBodyCode))
     response.data.get.addConsignment should equal(expectedResponse.data.get.addConsignment)
 
     response.data.get.addConsignment.userid should contain(userId)
   }
 
   "addConsignment" should "not allow a user to link a consignment to a series from another transferring body" in {
-    createSeries(UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e"))
+    createSeries(transferringBodyId)
 
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken(body = "some-other-transferring-body"))
 
@@ -94,7 +93,9 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
   "getConsignment" should "return all requested fields" in {
     val sql = "insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES (?, ?, ?)"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    val ps: PreparedStatement = databaseConnection.prepareStatement(sql)
+    val bodyId = UUID.fromString("5c761efa-ae1a-4ec8-bb08-dc609fce51f8")
+    val bodyCode = "consignment-body-code"
     val consignmentId = "b130e097-2edc-4e67-a7e9-5364a09ae9cb"
     val seriesId = "fde450c9-09aa-4ba8-b0df-13f9bac1e587"
     ps.setString(1, consignmentId)
@@ -111,10 +112,8 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
     addAntivirusMetadata(fileOneId)
 
-    val propertyId = "f62d1f66-db67-4a25-ac6f-b1ded92767b2"
-    addFileProperty(propertyId, SHA256ServerSideChecksum)
-    addFileMetadata("06209e0d-95d0-4f13-8933-e5b9d00eb435", fileOneId, propertyId)
-    addFileMetadata("c4759aae-dc68-45ec-aee1-5a562c7b42cc", fileTwoId, propertyId)
+    addFileMetadata("06209e0d-95d0-4f13-8933-e5b9d00eb435", fileOneId, SHA256ServerSideChecksum)
+    addFileMetadata("c4759aae-dc68-45ec-aee1-5a562c7b42cc", fileTwoId, SHA256ServerSideChecksum)
 
     addFFIDMetadata(fileOneId)
     addFFIDMetadata(fileTwoId)
@@ -122,13 +121,13 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
     addParentFolderName(UUID.fromString(consignmentId), "ALL CONSIGNMENT DATA PARENT FOLDER")
 
-    val bodyId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
+    addTransferringBody(bodyId, "Some department name", bodyCode)
+
     val seriesName = "Mock series"
-    val bodyName = "Body"
     addSeries(UUID.fromString(seriesId), bodyId, seriesName)
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_all")
-    val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())
+    val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken(bodyCode))
 
     response should equal(expectedResponse)
   }
@@ -136,7 +135,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   "getConsignment" should "return the expected data" in {
     val fixedUuidSource = new FixedUUIDSource()
     val sql = "insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES (?,?,?)"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    val ps: PreparedStatement = databaseConnection.prepareStatement(sql)
     val uuid = fixedUuidSource.uuid.toString
     ps.setString(1, uuid)
     ps.setString(2, uuid)
@@ -151,7 +150,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   "getConsignment" should "not allow a user to get a consignment that they did not create" in {
     val otherUserId = "73abd1dc-294d-4068-b60d-c1cd4782d08d"
     val sql = s"insert into Consignment (SeriesId, UserId) VALUES (1, '$otherUserId')"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    val ps: PreparedStatement = databaseConnection.prepareStatement(sql)
     ps.executeUpdate()
 
     val response: GraphqlQueryData = runTestQuery("query_somedata", validUserToken())
@@ -189,7 +188,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
   private def getConsignment(consignmentId: UUID) = {
     val sql = s"select * from Consignment where ConsignmentId = ?"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    val ps: PreparedStatement = databaseConnection.prepareStatement(sql)
     ps.setString(1, consignmentId.toString)
     val result = ps.executeQuery()
     result.next()
@@ -208,7 +207,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
   private def createSeries(bodyId: UUID): Unit = {
     val sql = "insert into Series (SeriesId, BodyId) VALUES (?,?)"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    val ps: PreparedStatement = databaseConnection.prepareStatement(sql)
     ps.setString(1, "6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
     ps.setString(2, bodyId.toString)
     ps.executeUpdate()

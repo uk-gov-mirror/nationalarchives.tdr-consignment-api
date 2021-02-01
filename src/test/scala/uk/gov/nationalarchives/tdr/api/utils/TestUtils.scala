@@ -1,6 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.utils
 
-import java.sql.{PreparedStatement, Timestamp}
+import java.sql.{PreparedStatement, ResultSet, Timestamp}
+import java.time.Instant
 import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
@@ -11,6 +12,8 @@ import com.tngtech.keycloakmock.api.TokenConfig.aTokenConfig
 import io.circe.Decoder
 import io.circe.parser.decode
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
+import uk.gov.nationalarchives.tdr.api.service.TransferAgreementService._
 
 import scala.concurrent.ExecutionContext
 import scala.io.Source.fromResource
@@ -93,16 +96,17 @@ object TestUtils {
     createConsignment(consignmentId, userId, seriesId)
     createFile(defaultFileId, consignmentId)
     createClientFileMetadata(defaultFileId)
+    addTransferAgreementMetadata(consignmentId)
   }
 
   def createConsignment(consignmentId: UUID, userId: UUID, seriesId: UUID = UUID.fromString("9e2e2a51-c2d0-4b99-8bef-2ca322528861")): Unit = {
-    val sql = s"insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES ('$consignmentId', '$seriesId', '$userId')"
+    val sql = s"INSERT INTO Consignment (ConsignmentId, SeriesId, UserId) VALUES ('$consignmentId', '$seriesId', '$userId')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.executeUpdate()
   }
 
   def createFile(fileId: UUID, consignmentId: UUID): Unit = {
-    val sql = s"insert into File (FileId, ConsignmentId, UserId, Datetime) VALUES (?, ?, ?, ?)"
+    val sql = s"INSERT INTO File (FileId, ConsignmentId, UserId, Datetime) VALUES (?, ?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, fileId.toString)
     ps.setString(2, consignmentId.toString)
@@ -113,7 +117,7 @@ object TestUtils {
 
   //scalastyle:off magic.number
   def addAntivirusMetadata(fileId: String, result: String = "Result of AVMetadata processing"): Unit = {
-    val sql = s"insert into AVMetadata (FileId, Software, SoftwareVersion, DatabaseVersion, Result, Datetime) VALUES (?, ?, ?, ?, ?, ?)"
+    val sql = s"INSERT INTO AVMetadata (FileId, Software, SoftwareVersion, DatabaseVersion, Result, Datetime) VALUES (?, ?, ?, ?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, fileId)
     ps.setString(2, "Some antivirus software")
@@ -124,22 +128,22 @@ object TestUtils {
     ps.executeUpdate()
   }
 
-  def addFileMetadata(metadataId: String, fileId: String, propertyId: String): Unit = {
-    val sql = s"insert into FileMetadata (MetadataId, FileId, PropertyId, Value, Datetime, UserId) VALUES (?, ?, ?, ?, ?, ?)"
+  def addFileMetadata(metadataId: String, fileId: String, propertyName: String): Unit = {
+    val sql = s"INSERT INTO FileMetadata (MetadataId, FileId, Value, Datetime, UserId, PropertyName) VALUES (?, ?, ?, ?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, metadataId)
     ps.setString(2, fileId)
-    ps.setString(3, propertyId)
-    ps.setString(4, "Result of FileMetadata processing")
-    ps.setTimestamp(5, Timestamp.from(FixedTimeSource.now))
-    ps.setString(6, userId.toString)
+    ps.setString(3, "Result of FileMetadata processing")
+    ps.setTimestamp(4, Timestamp.from(FixedTimeSource.now))
+    ps.setString(5, userId.toString)
+    ps.setString(6, propertyName)
 
     ps.executeUpdate()
   }
 
   def addFFIDMetadata(fileId: String): Unit = {
     val ffidMetadataId = java.util.UUID.randomUUID()
-    val sql = s"insert into FFIDMetadata" +
+    val sql = s"INSERT INTO FFIDMetadata" +
       s"(FileId, Software, SoftwareVersion, BinarySignatureFileVersion, ContainerSignatureFileVersion, Method, Datetime, FFIDMetadataId)" +
       s"VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
@@ -156,46 +160,116 @@ object TestUtils {
   }
 
   def createClientFileMetadata(fileId: UUID): Unit = {
-    val sql = s"insert into ClientFileMetadata (FileId,OriginalPath,Checksum,ChecksumType,LastModified,Filesize,Datetime,ClientFileMetadataId) " +
-      s"VALUES (?,?,?,?,?,?,?,?)"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.setString(1, fileId.toString)
-    ps.setString(2, "originalPath")
-    ps.setString(3, "checksum")
-    ps.setString(4, "checksumType")
-    ps.setTimestamp(5, Timestamp.from(FixedTimeSource.now))
-    ps.setString(6, "1")
-    ps.setTimestamp(7, Timestamp.from(FixedTimeSource.now))
-    ps.setString(8, UUID.randomUUID.toString)
-    ps.executeUpdate()
+    val sql = "INSERT INTO FileMetadata(MetadataId, FileId, Value, Datetime, UserId, PropertyName) VALUES (?,?,?,?,?,?)"
+    clientSideProperties.foreach(propertyName => {
+      val value = propertyName match {
+        case ClientSideFileLastModifiedDate => Timestamp.from(Instant.now()).toString
+        case ClientSideFileSize => "1"
+        case _ => s"$propertyName Value"
+      }
+      val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+      ps.setString(1, UUID.randomUUID().toString)
+      ps.setString(2, fileId.toString)
+      ps.setString(3, value)
+      ps.setTimestamp(4, Timestamp.from(Instant.now()))
+      ps.setString(5, UUID.randomUUID().toString)
+      ps.setString(6, propertyName)
+      ps.executeUpdate()
+    })
+
   }
 
   //scalastyle:on magic.number
 
-  def addFileProperty(propertyId: String, name: String): Unit = {
-    val sql = s"insert into FileProperty (PropertyId, Name) VALUES (?, ?)"
+  def addFileProperty(name: String): Unit = {
+    val sql = s"INSERT INTO FileProperty (Name) VALUES (?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.setString(1, propertyId)
-    ps.setString(2, name)
+    ps.setString(1, name)
 
     ps.executeUpdate()
   }
 
   def addParentFolderName(consignmentId: UUID, parentFolderName: String): Unit = {
-    val sql = s"update Consignment set ParentFolder=\'${parentFolderName}\' where ConsignmentId=\'${consignmentId}\'"
+    val sql = s"update Consignment set ParentFolder=\'$parentFolderName\' where ConsignmentId=\'$consignmentId\'"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
 
     ps.executeUpdate()
   }
 
-  def addSeries(seriesId: UUID, bodyId: UUID, code: String): Unit = {
-    val sql = s"insert into Series (SeriesId, BodyId, Code) VALUES (?, ?, ?)"
+  def addTransferringBody(id: UUID, name: String, code: String): Unit = {
+    val sql = s"INSERT INTO Body (BodyId, Name, Code) VALUES (?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.setString(1, seriesId.toString)
-    ps.setString(2, bodyId.toString)
+    ps.setString(1, id.toString)
+    ps.setString(2, name)
     ps.setString(3, code)
 
     ps.executeUpdate()
   }
-}
 
+  // scalastyle:off magic.number
+  def addSeries(
+                 seriesId: UUID,
+                 bodyId: UUID,
+                 code: String,
+                 name: String = "some-series-name",
+                 description: String = "some-series-description"
+               ): Unit = {
+    val sql = s"INSERT INTO Series (SeriesId, BodyId, Code, Name, Description) VALUES (?, ?, ?, ?, ?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, seriesId.toString)
+    ps.setString(2, bodyId.toString)
+    ps.setString(3, code)
+    ps.setString(4, name)
+    ps.setString(5, description)
+
+    ps.executeUpdate()
+  }
+  // scalastyle:on magic.number
+
+  def addConsignmentProperty(name: String): Unit = {
+    // name is primary key check exists before attempting insert to table
+    if (!propertyExists(name)) {
+      val sql = s"INSERT INTO ConsignmentProperty (Name) VALUES (?)"
+      val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+      ps.setString(1, name)
+      ps.executeUpdate()
+    }
+  }
+
+  private def propertyExists(name: String): Boolean = {
+    val sql = s"SELECT * FROM ConsignmentProperty WHERE Name = ?"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, name)
+    val rs: ResultSet = ps.executeQuery()
+    rs.next()
+  }
+
+  //scalastyle:off magic.number
+  def addConsignmentMetadata(metadataId: String, consignmentId: String, propertyName: String): Unit = {
+    val sql = s"insert into ConsignmentMetadata (MetadataId, ConsignmentId, PropertyName, Value, Datetime, UserId) VALUES (?, ?, ?, ?, ?, ?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, metadataId)
+    ps.setString(2, consignmentId)
+    ps.setString(3, propertyName)
+    ps.setString(4, "Result of ConsignmentMetadata processing")
+    ps.setTimestamp(5, Timestamp.from(FixedTimeSource.now))
+    ps.setString(6, userId.toString)
+
+    ps.executeUpdate()
+  }
+
+  def addTransferAgreementMetadata(consignmentId: UUID): Unit = {
+    val sql = "INSERT INTO ConsignmentMetadata(MetadataId, ConsignmentId, PropertyName, Value, Datetime, UserId) VALUES (?,?,?,?,?,?)"
+    transferAgreementProperties.foreach(propertyName => {
+      val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+      ps.setString(1, UUID.randomUUID().toString)
+      ps.setString(2, consignmentId.toString)
+      ps.setString(3, propertyName)
+      ps.setString(4, true.toString)
+      ps.setTimestamp(5, Timestamp.from(Instant.now()))
+      ps.setString(6, UUID.randomUUID().toString)
+      ps.executeUpdate()
+    })
+  }
+  //scalastyle:on magic.number
+}
