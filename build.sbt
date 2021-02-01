@@ -52,7 +52,6 @@ libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
   "org.jboss.logging" % "jboss-logging" % "3.4.1.Final",
   "com.lightbend.akka" %% "akka-stream-alpakka-slick" % "1.1.2",
-  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2",
   "uk.gov.nationalarchives.oci" % "oci-tools-scala_2.13" % "0.2.0",
   "org.scalatest" %% "scalatest" % "3.1.0" % Test,
   "org.mockito" %% "mockito-scala" % "1.6.3" % Test,
