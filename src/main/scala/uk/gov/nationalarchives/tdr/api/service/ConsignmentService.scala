@@ -72,7 +72,7 @@ class ConsignmentService(
       row.consignmentid,
       row.userid,
       row.seriesid,
-      Some(row.datetime.toLocalDateTime),
+      row.datetime.toLocalDateTime,
       row.transferinitiateddatetime.map(_.toLocalDateTime),
       row.exportdatetime.map(_.toLocalDateTime))
   }

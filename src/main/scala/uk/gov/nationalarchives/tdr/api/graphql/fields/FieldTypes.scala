@@ -1,6 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.graphql.fields
 
-import java.time.LocalDateTime
+import java.time.{LocalDateTime, ZoneId}
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 import sangria.ast.StringValue
@@ -13,6 +14,10 @@ object FieldTypes {
   private case object UuidCoercionViolation extends ValueCoercionViolation("Valid UUID expected")
   private case object LocalDateTimeCoercionViolation extends ValueCoercionViolation("Valid Local Date Time expected")
 
+  private val dateFormatPattern = "yyyy-MM-dd HH:mm:ss z"
+  private val utcZoneId = "UTC"
+  val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern(dateFormatPattern).withZone(ZoneId.of(utcZoneId))
+
   private def parseUuid(s: String): Either[ValueCoercionViolation, UUID] = Try(UUID.fromString(s)) match {
     case Success(uuid) => Right(uuid)
     case Failure(_) => Left(UuidCoercionViolation)
@@ -24,7 +29,7 @@ object FieldTypes {
   }
 
   implicit val LocalDateTimeType: ScalarType[LocalDateTime] = ScalarType[LocalDateTime]("LocalDateTime",
-    coerceOutput = (ldt, _) => ldt.toString,
+    coerceOutput = (ldt, _) => ldt.format(formatter),
     coerceUserInput = {
       case s: String => parseDate(s)
       case _ => Left(LocalDateTimeCoercionViolation)
