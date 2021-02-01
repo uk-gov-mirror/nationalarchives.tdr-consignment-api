@@ -82,17 +82,10 @@ case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends Authori
 
     ctx.ctx.consignmentService
       .getConsignment(consignmentId)
-      .map(consignment => {
-        if(consignment.isEmpty) {
-          throw AuthorisationException("Invalid consignment id")
-        }
-
-        if (consignment.get.userid == userId) {
-          continue
-        } else {
-          throw AuthorisationException(s"User '$userId' does not own consignment '$consignmentId'")
-        }
-      })
+      .map {
+        case Some(consignment) if consignment.userid == userId => continue
+        case _ => throw AuthorisationException(s"User '$userId' does not own consignment '$consignmentId'")
+      }
   }
 }
 
