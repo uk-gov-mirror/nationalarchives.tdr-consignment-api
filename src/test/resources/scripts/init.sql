@@ -114,11 +114,3 @@ CREATE TABLE IF NOT EXISTS FFIDMetadataMatches (
     IdentificationBasis varchar(255) not null,
     PUID varchar(255) not null
 );
-
- ALTER TABLE FFIDMetadataMatches
-     ADD FOREIGN KEY (FFIDMetadataId)
-     REFERENCES FFIDMetadata(FFIDMetadataId);
-
- ALTER TABLE FFIDMetadata
-    ADD FOREIGN KEY (FileId)
-    REFERENCES File(FileId);
