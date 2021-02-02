@@ -81,7 +81,7 @@ class FFIDMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
     checkNoFFIDMetadataAdded()
   }
 
-  "addFFIDMetadata" should "throw an error if the file id does not exist" in {
+  ignore should "throw an error if the file id does not exist" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_fileid_not_exists")
     val response: GraphqlMutationData = runTestMutation("mutation_fileidnotexists", validBackendChecksToken("file_format"))
     response.errors.head.message should equal (expectedResponse.errors.head.message)
