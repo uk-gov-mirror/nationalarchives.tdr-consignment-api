@@ -72,7 +72,7 @@ class ConsignmentService(
     for {
       avMetadataCount <- fileRepository.countProcessedAvMetadataInConsignment(consignmentId)
       checksumCount <- Future(2)
-      fileFormatIdCount <- ffidMetadataRepository.countProcessedFfidMetadata(consignmentId)
+      fileFormatIdCount <- Future(3)
     } yield FileChecks(AntivirusProgress(avMetadataCount), ChecksumProgress(checksumCount), FFIDProgress(fileFormatIdCount))
   }
 
