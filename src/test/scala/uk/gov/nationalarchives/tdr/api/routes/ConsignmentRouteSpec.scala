@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.tdr.api.routes
 
-import java.sql.PreparedStatement
+import java.sql.{PreparedStatement, Timestamp}
 import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
@@ -10,7 +10,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256ServerSideChecksum
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
-import uk.gov.nationalarchives.tdr.api.utils.{FixedUUIDSource, TestDatabase, TestRequest}
+import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource, TestDatabase, TestRequest}
 
 class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest with TestDatabase {
   private val addConsignmentJsonFilePrefix: String = "json/addconsignment_"
@@ -28,6 +28,9 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   case class Consignment(consignmentid: Option[UUID] = None,
                          userid: Option[UUID] = None,
                          seriesid: Option[UUID] = None,
+                         createdDatetime: Option[String] = None,
+                         transferInitiatedDatetime: Option[String] = None,
+                         exportDatetime: Option[String] = None,
                          totalFiles: Option[Int],
                          fileChecks: Option[FileChecks],
                          parentFolder: Option[String],
@@ -39,7 +42,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   case class ChecksumProgress(filesProcessed: Option[Int])
   case class FfidProgress(filesProcessed: Option[Int])
   case class Series(seriesid: Option[UUID], bodyid: Option[UUID], name: Option[String] = None, code: Option[String] = None, description: Option[String] = None)
-  case class TransferringBody(name: Option[String])
+  case class TransferringBody(name: Option[String], code: Option[String])
   case class GetConsignment(getConsignment: Option[Consignment])
   case class AddConsignment(addConsignment: Consignment)
   case class UpdateExportLocation(updateExportLocation: Int)
@@ -91,16 +94,21 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     response.errors.head.extensions.get.code should equal("NOT_AUTHORISED")
   }
 
+  //scalastyle:off magic.number
   "getConsignment" should "return all requested fields" in {
-    val sql = "insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES (?, ?, ?)"
+    val sql = "INSERT INTO Consignment (ConsignmentId, SeriesId, UserId, Datetime, TransferInitiatedDatetime, ExportDatetime) VALUES (?, ?, ?, ?, ?, ?)"
     val ps: PreparedStatement = databaseConnection.prepareStatement(sql)
     val bodyId = UUID.fromString("5c761efa-ae1a-4ec8-bb08-dc609fce51f8")
     val bodyCode = "consignment-body-code"
     val consignmentId = "b130e097-2edc-4e67-a7e9-5364a09ae9cb"
     val seriesId = "fde450c9-09aa-4ba8-b0df-13f9bac1e587"
+    val fixedTimeStamp = Timestamp.from(FixedTimeSource.now)
     ps.setString(1, consignmentId)
     ps.setString(2, seriesId)
     ps.setString(3, userId.toString)
+    ps.setTimestamp(4, fixedTimeStamp)
+    ps.setTimestamp(5, fixedTimeStamp)
+    ps.setTimestamp(6, fixedTimeStamp)
     ps.executeUpdate()
     val fileOneId = "e7ba59c9-5b8b-4029-9f27-2d03957463ad"
     val fileTwoId = "42910a85-85c3-40c3-888f-32f697bfadb6"
@@ -131,10 +139,11 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
     response should equal(expectedResponse)
   }
+  //scalastyle:off magic.number
 
   "getConsignment" should "return the expected data" in {
     val fixedUuidSource = new FixedUUIDSource()
-    val sql = "insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES (?,?,?)"
+    val sql = "INSERT INTO Consignment (ConsignmentId, SeriesId, UserId) VALUES (?,?,?)"
     val ps: PreparedStatement = databaseConnection.prepareStatement(sql)
     val uuid = fixedUuidSource.uuid.toString
     ps.setString(1, uuid)
@@ -147,9 +156,25 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     response.data should equal(expectedResponse.data)
   }
 
+  "getConsignment" should "allow a user with export access to return data" in {
+    val exportAccessToken = validBackendChecksToken("export")
+    val fixedUuidSource = new FixedUUIDSource()
+    val sql = "INSERT INTO Consignment (ConsignmentId, SeriesId, UserId) VALUES (?,?,?)"
+    val ps: PreparedStatement = databaseConnection.prepareStatement(sql)
+    val uuid = fixedUuidSource.uuid.toString
+    ps.setString(1, uuid)
+    ps.setString(2, uuid)
+    ps.setString(3, userId.toString)
+    ps.executeUpdate()
+
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_some")
+    val response: GraphqlQueryData = runTestQuery("query_somedata", exportAccessToken)
+    response.data should equal(expectedResponse.data)
+  }
+
   "getConsignment" should "not allow a user to get a consignment that they did not create" in {
     val otherUserId = "73abd1dc-294d-4068-b60d-c1cd4782d08d"
-    val sql = s"insert into Consignment (SeriesId, UserId) VALUES (1, '$otherUserId')"
+    val sql = s"INSERT INTO Consignment (SeriesId, UserId) VALUES (1, '$otherUserId')"
     val ps: PreparedStatement = databaseConnection.prepareStatement(sql)
     ps.executeUpdate()
 
@@ -187,7 +212,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   }
 
   private def getConsignment(consignmentId: UUID) = {
-    val sql = s"select * from Consignment where ConsignmentId = ?"
+    val sql = s"SELECT * FROM Consignment WHERE ConsignmentId = ?"
     val ps: PreparedStatement = databaseConnection.prepareStatement(sql)
     ps.setString(1, consignmentId.toString)
     val result = ps.executeQuery()
@@ -206,7 +231,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   }
 
   private def createSeries(bodyId: UUID): Unit = {
-    val sql = "insert into Series (SeriesId, BodyId) VALUES (?,?)"
+    val sql = "INSERT INTO Series (SeriesId, BodyId) VALUES (?,?)"
     val ps: PreparedStatement = databaseConnection.prepareStatement(sql)
     ps.setString(1, "6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
     ps.setString(2, bodyId.toString)

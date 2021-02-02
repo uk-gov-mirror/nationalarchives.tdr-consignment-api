@@ -68,11 +68,12 @@ object ValidateSeries extends AuthorisationTag {
   }
 }
 
-case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends AuthorisationTag {
+case class ValidateUserHasAccessToConsignment[T](argument: Argument[T]) extends AuthorisationTag {
   override def validateAsync(ctx: Context[ConsignmentApiContext, _])
                        (implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val token = ctx.ctx.accessToken
     val userId = token.userId
+    val exportAccess = token.backendChecksRoles.contains(exportRole)
 
     val arg: T = ctx.arg[T](argument.name)
     val consignmentId: UUID = arg match {
@@ -87,10 +88,10 @@ case class ValidateUserOwnsConsignment[T](argument: Argument[T]) extends Authori
           throw AuthorisationException("Invalid consignment id")
         }
 
-        if (consignment.get.userid == userId) {
+        if (consignment.get.userid == userId || exportAccess) {
           continue
         } else {
-          throw AuthorisationException(s"User '$userId' does not own consignment '$consignmentId'")
+          throw AuthorisationException(s"User '$userId' does not have access to consignment '$consignmentId'")
         }
       })
   }
