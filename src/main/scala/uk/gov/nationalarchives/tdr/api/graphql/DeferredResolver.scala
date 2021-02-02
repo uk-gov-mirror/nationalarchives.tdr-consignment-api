@@ -8,6 +8,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{FileChe
 import uk.gov.nationalarchives.tdr.api.graphql.fields.SeriesFields._
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 class DeferredResolver extends sangria.execution.deferred.DeferredResolver[ConsignmentApiContext] {
   // We may at some point need to do authorisation in this method. There is a ensurePermissions method which needs to be called before returning data.
@@ -16,6 +17,12 @@ class DeferredResolver extends sangria.execution.deferred.DeferredResolver[Consi
       case DeferTotalFiles(consignmentId) => context.fileService.fileCount(consignmentId)
       case DeferFileChecksProgress(consignmentId) =>
         context.consignmentService.getConsignmentFileProgress(consignmentId)
+//          .transform {
+//          case x: Success[_] => x
+//          case Failure(e) => {
+//            throw new RuntimeException("Handled e", e)
+//          }
+//        }
       case DeferParentFolder(consignmentId) => context.consignmentService.getConsignmentParentFolder(consignmentId)
       case DeferConsignmentSeries(consignmentId) => context.consignmentService.getSeriesOfConsignment(consignmentId)
       case DeferConsignmentBody(consignmentId) => context.consignmentService.getTransferringBodyOfConsignment(consignmentId)
