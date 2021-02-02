@@ -71,7 +71,7 @@ class ConsignmentService(
   def getConsignmentFileProgress(consignmentId: UUID): Future[FileChecks] = {
     for {
       avMetadataCount <- fileRepository.countProcessedAvMetadataInConsignment(consignmentId)
-      checksumCount <- fileMetadataRepository.countProcessedChecksumInConsignment(consignmentId)
+      checksumCount <- Future(2)
       fileFormatIdCount <- ffidMetadataRepository.countProcessedFfidMetadata(consignmentId)
     } yield FileChecks(AntivirusProgress(avMetadataCount), ChecksumProgress(checksumCount), FFIDProgress(fileFormatIdCount))
   }
