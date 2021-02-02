@@ -117,7 +117,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
     response should be(false)
   }
 
-  "getConsignmentFileProgress" should "return total processed files" in {
+  ignore should "return total processed files" in {
     val filesProcessed = 78
     when(fileRepositoryMock.countProcessedAvMetadataInConsignment(consignmentId)).thenReturn(Future.successful(filesProcessed))
     when(fileMetadataRepositoryMock.countProcessedChecksumInConsignment(consignmentId)).thenReturn(Future.successful(filesProcessed))
