@@ -34,7 +34,7 @@ class ConsignmentRepositorySpec extends AnyFlatSpec with TestDatabase with Scala
     val consignmentId = UUID.fromString("b6da7577-3800-4ebc-821b-9d33e52def9e")
 
     TestUtils.createConsignment(consignmentId, userId)
-    consignmentRepository.addParentFolder(consignmentId, "TEST GET PARENT FOLDER NAME")
+    consignmentRepository.addParentFolder(consignmentId, "TEST GET PARENT FOLDER NAME").futureValue
 
     val parentFolderName = consignmentRepository.getParentFolder(consignmentId).futureValue
 
