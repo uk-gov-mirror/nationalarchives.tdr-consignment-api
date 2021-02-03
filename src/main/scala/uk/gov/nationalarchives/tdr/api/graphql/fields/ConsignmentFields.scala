@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.tdr.api.graphql.fields
 
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.UUID
 
 import io.circe.generic.auto._
@@ -16,9 +16,9 @@ object ConsignmentFields {
   case class Consignment(consignmentid: UUID,
                          userid: UUID,
                          seriesid: UUID,
-                         createdDateTime: LocalDateTime,
-                         transferInitiatedDatetime: Option[LocalDateTime],
-                         exportDatetime: Option[LocalDateTime]
+                         createdDateTime: ZonedDateTime,
+                         transferInitiatedDatetime: Option[ZonedDateTime],
+                         exportDatetime: Option[ZonedDateTime]
                         )
 
   case class AddConsignmentInput(seriesid: UUID)
@@ -51,9 +51,9 @@ object ConsignmentFields {
       Field("consignmentid", OptionType(UuidType), resolve = _.value.consignmentid),
       Field("userid", UuidType, resolve = _.value.userid),
       Field("seriesid", UuidType, resolve = _.value.seriesid),
-      Field("createdDatetime", OptionType(LocalDateTimeType), resolve = _.value.createdDateTime),
-      Field("transferInitiatedDatetime", OptionType(LocalDateTimeType), resolve = _.value.transferInitiatedDatetime),
-      Field("exportDatetime", OptionType(LocalDateTimeType), resolve = _.value.exportDatetime),
+      Field("createdDatetime", OptionType(ZonedDateTimeType), resolve = _.value.createdDateTime),
+      Field("transferInitiatedDatetime", OptionType(ZonedDateTimeType), resolve = _.value.transferInitiatedDatetime),
+      Field("exportDatetime", OptionType(ZonedDateTimeType), resolve = _.value.exportDatetime),
       Field(
         "totalFiles",
         IntType,
