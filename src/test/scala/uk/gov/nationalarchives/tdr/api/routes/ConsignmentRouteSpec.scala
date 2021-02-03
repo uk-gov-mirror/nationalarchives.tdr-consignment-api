@@ -1,6 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.routes
 
 import java.sql.{PreparedStatement, Timestamp}
+import java.time.ZonedDateTime
 import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
@@ -28,9 +29,9 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   case class Consignment(consignmentid: Option[UUID] = None,
                          userid: Option[UUID] = None,
                          seriesid: Option[UUID] = None,
-                         createdDatetime: Option[String] = None,
-                         transferInitiatedDatetime: Option[String] = None,
-                         exportDatetime: Option[String] = None,
+                         createdDatetime: Option[ZonedDateTime] = None,
+                         transferInitiatedDatetime: Option[ZonedDateTime] = None,
+                         exportDatetime: Option[ZonedDateTime] = None,
                          totalFiles: Option[Int],
                          fileChecks: Option[FileChecks],
                          parentFolder: Option[String],

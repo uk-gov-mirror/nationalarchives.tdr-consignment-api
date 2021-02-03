@@ -1,6 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.service
 
 import java.sql.Timestamp
+import java.time.{ZoneId, ZonedDateTime}
 import java.util.UUID
 
 import uk.gov.nationalarchives.Tables.{BodyRow, ConsignmentRow, SeriesRow}
@@ -18,6 +19,12 @@ class ConsignmentService(
                           timeSource: TimeSource,
                           uuidSource: UUIDSource
                         )(implicit val executionContext: ExecutionContext) {
+
+  implicit class TimestampUtils(value: Timestamp)  {
+    private val zoneId = "UTC"
+
+    def toZonedDateTime: ZonedDateTime = ZonedDateTime.ofInstant(value.toInstant, ZoneId.of(zoneId))
+  }
 
   def updateTransferInitiated(consignmentId: UUID, userId: UUID): Future[Int] = {
     consignmentRepository.updateTransferInitiated(consignmentId, userId, Timestamp.from(timeSource.now))
@@ -72,8 +79,8 @@ class ConsignmentService(
       row.consignmentid,
       row.userid,
       row.seriesid,
-      row.datetime.toLocalDateTime,
-      row.transferinitiateddatetime.map(_.toLocalDateTime),
-      row.exportdatetime.map(_.toLocalDateTime))
+      row.datetime.toZonedDateTime,
+      row.transferinitiateddatetime.map(ts => ts.toZonedDateTime),
+      row.exportdatetime.map(ts => ts.toZonedDateTime))
   }
 }

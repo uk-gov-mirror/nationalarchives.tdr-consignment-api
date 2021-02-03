@@ -1,7 +1,8 @@
 package uk.gov.nationalarchives.tdr.api.graphql.fields
 
-import java.time.{LocalDateTime, ZoneId}
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 import sangria.ast.StringValue
@@ -12,31 +13,33 @@ import scala.util.{Failure, Success, Try}
 
 object FieldTypes {
   private case object UuidCoercionViolation extends ValueCoercionViolation("Valid UUID expected")
-  private case object LocalDateTimeCoercionViolation extends ValueCoercionViolation("Valid Local Date Time expected")
+  private case object ZonedDateTimeCoercionViolation extends ValueCoercionViolation("Valid Zoned Date Time expected")
 
-  private val dateFormatPattern = "yyyy-MM-dd HH:mm:ss z"
-  private val utcZoneId = "UTC"
-  val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern(dateFormatPattern).withZone(ZoneId.of(utcZoneId))
+  implicit class ZonedDateTimeUtils(value: ZonedDateTime) {
+    //Zoned Date Time truncated to 'seconds' precision to ensure consistent date format irrespective of input precision
+    def toSecondsPrecisionString = value.truncatedTo(ChronoUnit.SECONDS).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+  }
+
 
   private def parseUuid(s: String): Either[ValueCoercionViolation, UUID] = Try(UUID.fromString(s)) match {
     case Success(uuid) => Right(uuid)
     case Failure(_) => Left(UuidCoercionViolation)
   }
 
-  private def parseDate(s: String): Either[ValueCoercionViolation, LocalDateTime] = Try(LocalDateTime.parse(s)) match {
-    case Success(localDateTime) => Right(localDateTime)
-    case Failure(_) => Left(LocalDateTimeCoercionViolation)
+  private def parseZonedDatetime(s: String): Either[ValueCoercionViolation, ZonedDateTime] = Try(ZonedDateTime.parse(s)) match {
+    case Success(zonedDateTime) => Right(zonedDateTime)
+    case Failure(_) => Left(ZonedDateTimeCoercionViolation)
   }
 
-  implicit val LocalDateTimeType: ScalarType[LocalDateTime] = ScalarType[LocalDateTime]("LocalDateTime",
-    coerceOutput = (ldt, _) => ldt.format(formatter),
+  implicit val ZonedDateTimeType: ScalarType[ZonedDateTime] = ScalarType[ZonedDateTime]("ZonedDateTime",
+    coerceOutput = (zdt, _) => zdt.toSecondsPrecisionString,
     coerceUserInput = {
-      case s: String => parseDate(s)
-      case _ => Left(LocalDateTimeCoercionViolation)
+      case s: String => parseZonedDatetime(s)
+      case _ => Left(ZonedDateTimeCoercionViolation)
     },
     coerceInput = {
-      case StringValue(s, _, _, _, _) => parseDate(s)
-      case _ => Left(LocalDateTimeCoercionViolation)
+      case StringValue(s, _, _, _, _) => parseZonedDatetime(s)
+      case _ => Left(ZonedDateTimeCoercionViolation)
     }
   )
 
