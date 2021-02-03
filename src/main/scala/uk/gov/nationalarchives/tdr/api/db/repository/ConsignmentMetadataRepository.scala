@@ -15,10 +15,10 @@ class ConsignmentMetadataRepository(db: Database)(implicit val executionContext:
     db.run(insertQuery ++= rows)
   }
 
-  def getConsignmentMetadata(consignmentId: UUID, propertyName: String*): Future[Seq[ConsignmentmetadataRow]] = {
+  def getConsignmentMetadata(consignmentId: UUID, propertyNames: String*): Future[Seq[ConsignmentmetadataRow]] = {
     val query = Consignmentmetadata
       .filter(_.consignmentid === consignmentId)
-      .filter(_.propertyname inSet propertyName.toSet)
+      .filter(_.propertyname inSet propertyNames.toSet)
     db.run(query.result)
   }
 }
