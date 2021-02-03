@@ -17,7 +17,7 @@ object FieldTypes {
 
   implicit class ZonedDateTimeUtils(value: ZonedDateTime) {
     //Zoned Date Time truncated to 'seconds' precision to ensure consistent date format irrespective of input precision
-    def toSecondsPrecisionString = value.truncatedTo(ChronoUnit.SECONDS).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+    def toSecondsPrecisionString: String = value.truncatedTo(ChronoUnit.SECONDS).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
   }
 
 
