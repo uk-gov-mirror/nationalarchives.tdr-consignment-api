@@ -1,11 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.service
 
 import java.sql.Timestamp
-import java.time.{LocalDate, ZoneOffset}
-import java.util.UUID
-import java.time.{Instant, LocalDate, OffsetDateTime, ZoneOffset}
-import java.util.{Calendar, UUID}
-import java.time.{ZoneId, ZonedDateTime}
+import java.time.{LocalDate, ZoneId, ZoneOffset, ZonedDateTime}
 import java.util.UUID
 
 import uk.gov.nationalarchives.Tables.{BodyRow, ConsignmentRow, SeriesRow}
