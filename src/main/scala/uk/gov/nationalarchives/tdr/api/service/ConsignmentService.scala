@@ -37,16 +37,15 @@ class ConsignmentService(
     val yearNow = LocalDate.from(now.atOffset(ZoneOffset.UTC)).getYear
     val consignmentRow = ConsignmentRow(uuidSource.uuid, addConsignmentInput.seriesid, userId, Timestamp.from(timeSource.now))
     consignmentRepository.addConsignment(consignmentRow).map(
-      row => convertRowToConsignment(row))
-     consignmentRepository.getNextConsignmentSequence.flatMap(sequence => {
-       val consignmentRef = ConsignmentReference.createConsignmentReference(yearNow, sequence)
-       val consignmentRow = ConsignmentRow(
-         uuidSource.uuid,
-         addConsignmentInput.seriesid,
-         userId,
-         Timestamp.from(now),
-         consignmentsequence = Option(sequence))
-       consignmentRepository.addConsignment(consignmentRow).map(row => Consignment(row.consignmentid, row.userid, row.seriesid, Option(consignmentRef)))
+      row => convertRowToConsignment(row))consignmentRepository.getNextConsignmentSequence.flatMap(sequence => {
+      val consignmentRef = ConsignmentReference.createConsignmentReference(yearNow, sequence)
+      val consignmentRow = ConsignmentRow(
+        uuidSource.uuid,
+        addConsignmentInput.seriesid,
+        userId,
+        Timestamp.from(now),
+        consignmentsequence = Option(sequence))
+        consignmentRepository.addConsignment(consignmentRow).map(row => Consignment(row.consignmentid, row.userid, row.seriesid, Option(consignmentRef)))
      })
   }
 
