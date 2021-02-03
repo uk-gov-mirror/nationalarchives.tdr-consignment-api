@@ -8,9 +8,9 @@ object ConsignmentReference {
     case Left(error) => throw new Exception(s"Theres been an error creating the consignment reference", error)
     case Right(alphabet) => alphabet
   }
+  val baseNumber = 25
 
   def createConsignmentReference(transferStartYear: Int, consignmentSequenceId: Long): String = {
-    val baseNumber = 25
     val alphabetIndices = BaseCoder.encode(consignmentSequenceId, baseNumber)
     val encoded = Alphabet.toString(alphabet, alphabetIndices)
 
