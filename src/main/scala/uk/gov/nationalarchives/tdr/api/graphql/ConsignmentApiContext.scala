@@ -5,7 +5,6 @@ import uk.gov.nationalarchives.tdr.keycloak.Token
 case class ConsignmentApiContext(accessToken: Token,
                                  antivirusMetadataService: AntivirusMetadataService,
                                  clientFileMetadataService: ClientFileMetadataService,
-                                 consignmentMetadataService: ConsignmentMetadataService,
                                  consignmentService: ConsignmentService,
                                  ffidMetadataService: FFIDMetadataService,
                                  fileMetadataService: FileMetadataService,
@@ -13,4 +12,5 @@ case class ConsignmentApiContext(accessToken: Token,
                                  seriesService: SeriesService,
                                  transferAgreementService: TransferAgreementService,
                                  transferringBodyService: TransferringBodyService,
+                                 transferConfirmationService: TransferConfirmationService
                                  )

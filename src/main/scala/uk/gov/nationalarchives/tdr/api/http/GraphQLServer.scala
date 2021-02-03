@@ -84,6 +84,7 @@ object GraphQLServer {
       ffidMetadataRepository, timeSource, uuidSource)
     val seriesService = new SeriesService(new SeriesRepository(db), uuidSource)
     val transferAgreementService = new TransferAgreementService(new ConsignmentMetadataRepository(db), uuidSource, timeSource)
+    val transferConfirmationService = new TransferConfirmationService(new ConsignmentMetadataRepository(db), uuidSource, timeSource)
     val clientFileMetadataService = new ClientFileMetadataService(fileMetadataRepository, uuidSource, timeSource)
     val fileService = new FileService(fileRepository, consignmentRepository, fileMetadataRepository, new CurrentTimeSource, uuidSource)
     val transferringBodyService = new TransferringBodyService(new TransferringBodyRepository(db))
@@ -91,8 +92,9 @@ object GraphQLServer {
     val fileMetadataService = new FileMetadataService(fileMetadataRepository, timeSource, uuidSource)
     val ffidMetadataService = new FFIDMetadataService(ffidMetadataRepository, new FFIDMetadataMatchesRepository(db), timeSource, uuidSource)
 
-    val context = ConsignmentApiContext(accessToken, clientFileMetadataService, consignmentService, fileService, seriesService,
-      transferAgreementService, transferringBodyService, antivirusMetadataService, fileMetadataService, ffidMetadataService
+    val context = ConsignmentApiContext(accessToken, antivirusMetadataService, clientFileMetadataService, consignmentService,
+      ffidMetadataService, fileMetadataService, fileService, seriesService, transferAgreementService, transferringBodyService,
+      transferConfirmationService
     )
     Executor.execute(
       GraphQlTypes.schema,

@@ -8,14 +8,17 @@ import uk.gov.nationalarchives.Tables.{Consignmentmetadata, _}
 import scala.concurrent.{ExecutionContext, Future}
 
 class ConsignmentMetadataRepository(db: Database)(implicit val executionContext: ExecutionContext) {
-  def addConsignmentMetadata(consignmentMetadataRows: Seq[ConsignmentmetadataRow])(implicit executionContext: ExecutionContext): Future[Unit] = {
-    db.run(Consignmentmetadata ++= consignmentMetadataRows).map(_ => ())
+  private val insertQuery = Consignmentmetadata returning Consignmentmetadata.map(_.metadataid) into
+    ((consignmentMetadata, metadataid) => consignmentMetadata.copy(metadataid = metadataid))
+
+  def addConsignmentMetadata(rows: Seq[ConsignmentmetadataRow]): Future[Seq[ConsignmentmetadataRow]] = {
+    db.run(insertQuery ++= rows)
   }
 
-  def getConsignmentMetadata(consignmentId: UUID, propertyName: String*): Future[Seq[ConsignmentmetadataRow]] = {
+  def getConsignmentMetadata(consignmentId: UUID, propertyNames: String*): Future[Seq[ConsignmentmetadataRow]] = {
     val query = Consignmentmetadata
       .filter(_.consignmentid === consignmentId)
-      .filter(_.propertyname inSet propertyName.toSet)
+      .filter(_.propertyname inSet propertyNames.toSet)
     db.run(query.result)
   }
 }
