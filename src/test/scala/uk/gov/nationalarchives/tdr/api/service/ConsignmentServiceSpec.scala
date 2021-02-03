@@ -36,12 +36,14 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
   //scalastyle:off magic.number
   val consignmentSequence: Option[Long] = Option(400L)
   //scalastyle:on magic.number
+  val consignmentReference = Option("TDR-2020-VB")
   val mockConsignment: ConsignmentRow = ConsignmentRow(
     consignmentId,
     seriesId,
     userId,
     Timestamp.from(FixedTimeSource.now),
-    consignmentsequence = consignmentSequence
+    consignmentsequence = consignmentSequence,
+    consignmentreference = consignmentReference
   )
 
   val consignmentRepoMock: ConsignmentRepository = mock[ConsignmentRepository]
