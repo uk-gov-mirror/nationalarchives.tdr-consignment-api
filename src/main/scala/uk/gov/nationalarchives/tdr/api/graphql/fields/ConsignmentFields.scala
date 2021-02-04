@@ -6,10 +6,11 @@ import java.util.UUID
 import io.circe.generic.auto._
 import sangria.macros.derive._
 import sangria.marshalling.circe._
-import sangria.schema.{Argument, Field, InputObjectType, IntType, ObjectType, OptionType, StringType, fields}
+import sangria.schema.{Argument, Field, InputObjectType, IntType, ListType, ObjectType, OptionType, StringType, fields}
 import uk.gov.nationalarchives.tdr.api.auth.{ValidateHasExportAccess, ValidateSeries, ValidateUserHasAccessToConsignment}
 import uk.gov.nationalarchives.tdr.api.graphql._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.FileMetadataValues
 
 object ConsignmentFields {
 
@@ -44,6 +45,8 @@ object ConsignmentFields {
     deriveObjectType[Unit, FFIDProgress]()
   implicit val TransferringBodyType: ObjectType[Unit, TransferringBody] =
     deriveObjectType[Unit, TransferringBody]()
+  implicit val FileMetadataType: ObjectType[Unit, FileMetadataValues] =
+    deriveObjectType[Unit, FileMetadataValues]()
 
   implicit val ConsignmentType: ObjectType[Unit, Consignment] = ObjectType(
     "Consignment",
@@ -78,6 +81,11 @@ object ConsignmentFields {
         "transferringBody",
         OptionType(TransferringBodyType),
         resolve = context => DeferConsignmentBody(context.value.consignmentid)
+      ),
+      Field(
+        "fileMetadata",
+        ListType(FileMetadataType),
+        resolve = context => DeferFileMetadata(context.value.consignmentid)
       )
     )
   )
