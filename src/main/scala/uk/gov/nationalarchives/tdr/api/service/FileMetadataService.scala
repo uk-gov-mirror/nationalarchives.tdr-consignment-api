@@ -56,13 +56,10 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository,
       case _ => Future.failed(InputDataException(s"$filePropertyName found. We are only expecting checksum updates for now"))
     }
   }
-
 }
 
 object FileMetadataService {
-
   case class StaticMetadata(name: String, value: String)
-
   val SHA256ClientSideChecksum = "SHA256ClientSideChecksum"
   val ClientSideOriginalFilepath = "ClientSideOriginalFilepath"
   val ClientSideFileLastModifiedDate = "ClientSideFileLastModifiedDate"
