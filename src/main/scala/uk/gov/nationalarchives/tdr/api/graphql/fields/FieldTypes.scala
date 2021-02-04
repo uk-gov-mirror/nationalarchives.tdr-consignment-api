@@ -50,11 +50,11 @@ object FieldTypes {
     coerceOutput = (ldt, _) => ldt.toString,
     coerceUserInput = {
       case s: String => parseLocalDatetime(s)
-      case _ => Left(ZonedDateTimeCoercionViolation)
+      case _ => Left(LocalDateTimeCoercionViolation)
     },
     coerceInput = {
       case StringValue(s, _, _, _, _) => parseLocalDatetime(s)
-      case _ => Left(ZonedDateTimeCoercionViolation)
+      case _ => Left(LocalDateTimeCoercionViolation)
     }
   )
 
