@@ -9,6 +9,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Seconds, Span}
+import uk.gov.nationalarchives.Tables
 import uk.gov.nationalarchives.Tables.FilemetadataRow
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256ServerSideChecksum
@@ -164,5 +165,33 @@ class FileMetadataRepositorySpec extends AnyFlatSpec with TestDatabase with Scal
     response.value should equal("Result of FileMetadata processing")
     response.propertyname should equal("FileProperty")
     response.fileid should equal(fileId)
+  }
+
+  "getFileMetadata" should "return the correct metadata for the consignment" in {
+    val db = DbConnection.db
+    val fileMetadataRepository = new FileMetadataRepository(db)
+    val consignmentId = UUID.fromString("4c935c42-502c-4b89-abce-2272584655e1")
+    val fileIdOne = UUID.fromString("4d5a5a00-77b4-4a97-aa3f-a75f7b13f284")
+    val fileIdTwo = UUID.fromString("664f07a5-ab1d-4d66-abea-d97d81cd7bec")
+    createFile(fileIdOne, consignmentId)
+    createFile(fileIdTwo, consignmentId)
+    addFileProperty("FilePropertyOne")
+    addFileProperty("FilePropertyTwo")
+    addFileMetadata(UUID.randomUUID().toString, fileIdOne.toString, "FilePropertyOne")
+    addFileMetadata(UUID.randomUUID().toString, fileIdOne.toString, "FilePropertyTwo")
+    addFileMetadata(UUID.randomUUID().toString, fileIdTwo.toString, "FilePropertyOne")
+    createConsignment(consignmentId, userId)
+
+    val response = fileMetadataRepository.getFileMetadata(consignmentId).futureValue
+
+    response.length should equal(3)
+    val filesMap: Map[UUID, Seq[Tables.FilemetadataRow]] = response.groupBy(_.fileid)
+    val fileOneMetadata = filesMap.get(fileIdOne)
+    val fileTwoMetadata = filesMap.get(fileIdTwo)
+    val fileOneProperties = fileOneMetadata.get.groupBy(_.propertyname)
+    fileOneProperties("FilePropertyOne").head.value should equal("Result of FileMetadata processing")
+    fileOneProperties("FilePropertyTwo").head.value should equal("Result of FileMetadata processing")
+    fileTwoMetadata.get.head.propertyname should equal("FilePropertyOne")
+    fileTwoMetadata.get.head.value should equal("Result of FileMetadata processing")
   }
 }
