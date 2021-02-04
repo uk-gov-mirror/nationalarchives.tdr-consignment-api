@@ -1,7 +1,6 @@
 package uk.gov.nationalarchives.tdr.api.service
 
 import java.sql.Timestamp
-import java.time.Instant
 import java.util.UUID
 
 import org.mockito.ArgumentMatchers.any
@@ -40,7 +39,7 @@ class TransferConfirmationServiceSpec extends AnyFlatSpec with MockitoSugar with
       finalOpenRecordsConfirmed = true,
       legalOwnershipTransferConfirmed = true), userId).futureValue
 
-    result.consignmentid shouldBe consignmentId
+    result.consignmentId shouldBe consignmentId
     result.finalOpenRecordsConfirmed shouldBe true
     result.legalOwnershipTransferConfirmed shouldBe true
   }

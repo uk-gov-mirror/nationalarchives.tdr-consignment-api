@@ -4,25 +4,24 @@ import java.util.UUID
 
 import io.circe.generic.auto._
 import sangria.macros.derive.{deriveInputObjectType, deriveObjectType}
-import sangria.marshalling.FromInput
 import sangria.marshalling.circe._
-import sangria.schema.{Argument, Field, InputObjectType, ListInputType, ObjectType, fields}
-import sangria.util.tag.@@
+import sangria.schema.{Argument, Field, InputObjectType, ObjectType, fields}
 import uk.gov.nationalarchives.tdr.api.auth.ValidateUserOwnsConsignment
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
-import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes.UuidType
+import uk.gov.nationalarchives.tdr.api.graphql.validation.UserOwnsConsignment
 
 object TransferConfirmationFields {
 
-  case class TransferConfirmation(consignmentid: UUID,
+  case class TransferConfirmation(consignmentId: UUID,
                                   finalOpenRecordsConfirmed: Boolean,
                                   legalOwnershipTransferConfirmed: Boolean
                                  )
 
-  case class AddTransferConfirmationInput(consignmentid: UUID,
+  case class AddTransferConfirmationInput(consignmentId: UUID,
                                           finalOpenRecordsConfirmed: Boolean,
                                           legalOwnershipTransferConfirmed: Boolean
-                                         )
+                                         ) extends UserOwnsConsignment
 
   implicit val TransferConfirmationType: ObjectType[Unit, TransferConfirmation] = deriveObjectType[Unit, TransferConfirmation]()
   implicit val AddTransferConfirmationInputType: InputObjectType[AddTransferConfirmationInput] = deriveInputObjectType[AddTransferConfirmationInput]()

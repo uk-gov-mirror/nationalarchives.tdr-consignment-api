@@ -3,11 +3,9 @@ package uk.gov.nationalarchives.tdr.api.service
 import java.sql.Timestamp
 import java.util.UUID
 
-import uk.gov.nationalarchives.Tables
-import uk.gov.nationalarchives.Tables.{BodyRow, ConsignmentRow, ConsignmentmetadataRow, SeriesRow}
+import uk.gov.nationalarchives.Tables.ConsignmentmetadataRow
 import uk.gov.nationalarchives.tdr.api.db.repository._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.TransferConfirmationFields._
-import uk.gov.nationalarchives.tdr.api.graphql.fields.SeriesFields.Series
 import uk.gov.nationalarchives.tdr.api.service.TransferConfirmationService.{FinalOpenRecordsConfirmed, LegalOwnershipTransferConfirmed}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -20,7 +18,7 @@ class TransferConfirmationService(consignmentMetadataRepository: ConsignmentMeta
 
   def addTransferConfirmation(consignmentMetadataInputs: AddTransferConfirmationInput, userId: UUID): Future[TransferConfirmation] = {
     consignmentMetadataRepository.addConsignmentMetadata(convertInputToPropertyRows(consignmentMetadataInputs, userId)).map {
-      rows => convertDbRowsToTransferConfirmation(consignmentMetadataInputs.consignmentid, rows)
+      rows => convertDbRowsToTransferConfirmation(consignmentMetadataInputs.consignmentId, rows)
     }
   }
 
@@ -28,9 +26,9 @@ class TransferConfirmationService(consignmentMetadataRepository: ConsignmentMeta
     val time = Timestamp.from(timeSource.now)
     Seq(
       ConsignmentmetadataRow(
-        uuidSource.uuid, inputs.consignmentid, FinalOpenRecordsConfirmed, inputs.finalOpenRecordsConfirmed.toString, time, userId),
+        uuidSource.uuid, inputs.consignmentId, FinalOpenRecordsConfirmed, inputs.finalOpenRecordsConfirmed.toString, time, userId),
       ConsignmentmetadataRow(
-        uuidSource.uuid, inputs.consignmentid, LegalOwnershipTransferConfirmed, inputs.legalOwnershipTransferConfirmed.toString, time, userId)
+        uuidSource.uuid, inputs.consignmentId, LegalOwnershipTransferConfirmed, inputs.legalOwnershipTransferConfirmed.toString, time, userId)
     )
   }
 
@@ -48,7 +46,7 @@ object TransferConfirmationService {
   val FinalOpenRecordsConfirmed = "FinalOpenRecordsConfirmed"
   val LegalOwnershipTransferConfirmed = "LegalOwnershipTransferConfirmed"
 
-  val TransferConfirmationProperties = List(
+  val transferConfirmationProperties = List(
     FinalOpenRecordsConfirmed,
     LegalOwnershipTransferConfirmed
   )
