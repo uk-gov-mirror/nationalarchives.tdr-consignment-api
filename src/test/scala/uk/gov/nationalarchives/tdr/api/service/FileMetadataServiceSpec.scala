@@ -9,12 +9,14 @@ import org.mockito.{ArgumentCaptor, MockitoSugar}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import uk.gov.nationalarchives.Tables
 import uk.gov.nationalarchives.tdr.api.db.repository.FileMetadataRepository
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields._
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
 import uk.gov.nationalarchives.Tables.FilemetadataRow
 
+import scala.Option.empty
 import scala.concurrent.{ExecutionContext, Future}
 
 class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with ScalaFutures {
@@ -150,19 +152,16 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     val fileId = UUID.randomUUID()
     val timestamp = Timestamp.from(FixedTimeSource.now)
 
-    def metadataRow(propertyName: String, value: String) =
-      FilemetadataRow(UUID.randomUUID(), fileId, value, Timestamp.from(Instant.now()), UUID.randomUUID(), propertyName)
-
     val rows = Seq(
-      metadataRow("ClientSideFileLastModifiedDate", timestamp.toString),
-      metadataRow("SHA256ClientSideChecksum", "checksum"),
-      metadataRow("ClientSideOriginalFilepath", "filePath"),
-      metadataRow("ClientSideFileSize", "1"),
-      metadataRow("RightsCopyright", "rightsCopyright"),
-      metadataRow("LegalStatus", "legalStatus"),
-      metadataRow("HeldBy", "heldBy"),
-      metadataRow("Language", "language"),
-      metadataRow("FoiExemptionCode", "foiExemption")
+      metadataRow(fileId, "ClientSideFileLastModifiedDate", timestamp.toString),
+      metadataRow(fileId, "SHA256ClientSideChecksum", "checksum"),
+      metadataRow(fileId, "ClientSideOriginalFilepath", "filePath"),
+      metadataRow(fileId, "ClientSideFileSize", "1"),
+      metadataRow(fileId, "RightsCopyright", "rightsCopyright"),
+      metadataRow(fileId, "LegalStatus", "legalStatus"),
+      metadataRow(fileId, "HeldBy", "heldBy"),
+      metadataRow(fileId, "Language", "language"),
+      metadataRow(fileId, "FoiExemptionCode", "foiExemption")
     )
     when(fileMetadataRepositoryMock.getFileMetadata(consignmentId)).thenReturn(Future(rows))
 
@@ -187,19 +186,20 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     val consignmentId = UUID.randomUUID()
     val fileId = UUID.randomUUID()
 
-    def metadataRow(propertyName: String, value: String) =
-      FilemetadataRow(UUID.randomUUID(), fileId, value, Timestamp.from(Instant.now()), UUID.randomUUID(), propertyName)
-
-    val rows = Seq(
-      metadataRow("customPropertyNameOne", "customValueTwo"),
-      metadataRow("customPropertyNameTwo", "customValueTwo"),
-    )
+    val rowOne = metadataRow(fileId, "customPropertyNameOne", "customValueOne")
+    val rowTwo = metadataRow(fileId, "customPropertyNameTwo", "customValueTwo")
+    val rows = Seq(rowOne, rowTwo)
     when(fileMetadataRepositoryMock.getFileMetadata(consignmentId)).thenReturn(Future(rows))
 
     val service = new FileMetadataService(fileMetadataRepositoryMock, FixedTimeSource, new FixedUUIDSource())
     val metadataList = service.getFileMetadata(consignmentId).futureValue
     metadataList.length should equal(1)
     val metadata = metadataList.head
-    metadata should equal(FileMetadataService.FileMetadataValues(fileId, Option.empty, Option.empty, Option.empty, Option.empty, Option.empty, Option.empty, Option.empty, Option.empty, Option.empty))
+    val empty = Option.empty
+    val expected = FileMetadataValues(fileId, empty, empty, empty, empty, empty, empty, empty, empty, empty)
+    metadata should equal(expected)
   }
+
+  private def metadataRow(fileId: UUID, propertyName: String, value: String): FilemetadataRow =
+    FilemetadataRow(UUID.randomUUID(), fileId, value, Timestamp.from(Instant.now()), UUID.randomUUID(), propertyName)
 }
