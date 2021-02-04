@@ -1,26 +1,49 @@
 package uk.gov.nationalarchives.tdr.api.service
 
 import java.sql.Timestamp
+import java.time.LocalDateTime
 import java.util.UUID
 
+import uk.gov.nationalarchives.Tables.FilemetadataRow
 import uk.gov.nationalarchives.tdr.api.db.repository.FileMetadataRepository
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.{AddFileMetadataInput, FileMetadata, SHA256ServerSideChecksum}
-import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.SHA256ClientSideChecksum
-import uk.gov.nationalarchives.Tables.FilemetadataRow
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class FileMetadataService(fileMetadataRepository: FileMetadataRepository,
                           timeSource: TimeSource, uuidSource: UUIDSource)(implicit val ec: ExecutionContext) {
 
+  def getFileMetadata(consignmentId: UUID): Future[List[FileMetadataValues]] = {
+    fileMetadataRepository.getFileMetadata(consignmentId).map(rows =>
+      rows.groupBy(_.fileid).map(entry => {
+        val propertyNameMap: Map[String, String] = entry._2.groupBy(_.propertyname)
+          .transform((_, value) => value.head.value)
+        FileMetadataValues(
+          entry._1,
+          propertyNameMap.get(SHA256ClientSideChecksum),
+          propertyNameMap.get(ClientSideOriginalFilepath),
+          propertyNameMap.get(ClientSideFileLastModifiedDate).map(d => Timestamp.valueOf(d).toLocalDateTime),
+          propertyNameMap.get(ClientSideFileSize).map(_.toLong),
+          propertyNameMap.get(RightsCopyright.name),
+          propertyNameMap.get(LegalStatus.name),
+          propertyNameMap.get(HeldBy.name),
+          propertyNameMap.get(Language.name),
+          propertyNameMap.get(FoiExemptionCode.name)
+        )
+      }).toList
+    )
+  }
+
   def addFileMetadata(addFileMetadataInput: AddFileMetadataInput, userId: UUID): Future[FileMetadata] = {
+
     val filePropertyName = addFileMetadataInput.filePropertyName
     val row =
       FilemetadataRow(uuidSource.uuid, addFileMetadataInput.fileId,
-      addFileMetadataInput.value,
-      Timestamp.from(timeSource.now),
-      userId, addFileMetadataInput.filePropertyName)
+        addFileMetadataInput.value,
+        Timestamp.from(timeSource.now),
+        userId, addFileMetadataInput.filePropertyName)
 
     filePropertyName match {
       case SHA256ServerSideChecksum =>
@@ -33,10 +56,13 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository,
       case _ => Future.failed(InputDataException(s"$filePropertyName found. We are only expecting checksum updates for now"))
     }
   }
+
 }
 
 object FileMetadataService {
+
   case class StaticMetadata(name: String, value: String)
+
   val SHA256ClientSideChecksum = "SHA256ClientSideChecksum"
   val ClientSideOriginalFilepath = "ClientSideOriginalFilepath"
   val ClientSideFileLastModifiedDate = "ClientSideFileLastModifiedDate"
@@ -56,4 +82,18 @@ object FileMetadataService {
 
   val clientSideProperties = List(SHA256ClientSideChecksum, ClientSideOriginalFilepath, ClientSideFileLastModifiedDate, ClientSideFileSize)
   val staticMetadataProperties = List(RightsCopyright, LegalStatus, HeldBy, Language, FoiExemptionCode)
+
+  case class FileMetadataValues(fileId: UUID,
+                                sha256ClientSideChecksum: Option[String],
+                                clientSideOriginalFilePath: Option[String],
+                                clientSideLastModifiedDate: Option[LocalDateTime],
+                                clientSideFileSize: Option[Long],
+                                rightsCopyright: Option[String],
+                                legalStatus: Option[String],
+                                heldBy: Option[String],
+                                language: Option[String],
+                                foiExemptionCode: Option[String]
+                               ) {
+  }
+
 }

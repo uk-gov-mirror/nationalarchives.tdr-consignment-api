@@ -1,6 +1,5 @@
 package uk.gov.nationalarchives.tdr.api.db.repository
 
-import java.sql.Timestamp
 import java.util.UUID
 
 import slick.jdbc.PostgresProfile.api._
@@ -30,6 +29,14 @@ class FileMetadataRepository(db: Database)(implicit val executionContext: Execut
     val query = Filemetadata
       .filter(_.fileid === fileId)
       .filter(_.propertyname inSet propertyName.toSet)
+    db.run(query.result)
+  }
+
+  def getFileMetadata(consignmentId: UUID): Future[Seq[FilemetadataRow]] = {
+    val query = Filemetadata.join(File)
+          .on(_.fileid === _.fileid)
+          .filter(_._2.consignmentid === consignmentId)
+          .map(_._1)
     db.run(query.result)
   }
 
