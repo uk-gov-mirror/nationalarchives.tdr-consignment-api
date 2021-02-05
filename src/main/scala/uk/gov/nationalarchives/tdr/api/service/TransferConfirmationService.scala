@@ -13,7 +13,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class TransferConfirmationService(consignmentMetadataRepository: ConsignmentMetadataRepository,
                                   uuidSource: UUIDSource,
-                                  timeSource: TimeSource,
+                                  timeSource: TimeSource
                                  )(implicit val executionContext: ExecutionContext) {
 
   def addTransferConfirmation(consignmentMetadataInputs: AddTransferConfirmationInput, userId: UUID): Future[TransferConfirmation] = {
