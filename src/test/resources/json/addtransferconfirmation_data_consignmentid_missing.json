@@ -1,1 +1,8 @@
-{"data":null,"errors":[{"message":"Field 'AddTransferConfirmationInput.consignmentId' of required type 'UUID!' was not provided. (line 1, column 65):\nmutation {addTransferConfirmation(addTransferConfirmationInput: {finalOpenRecordsConfirmed: true, legalOwnershipTransferConfirmed: true}) {consignmentId, finalOpenRecordsConfirmed}}\n                                                                ^"}]}
+{
+  "data": null,
+  "errors": [
+    {
+      "message": "Field 'AddTransferConfirmationInput.consignmentId' of required type 'UUID!' was not provided. (line 1, column 65):\nmutation {addTransferConfirmation(addTransferConfirmationInput: {finalOpenRecordsConfirmed: true, legalOwnershipTransferConfirmed: true}) {consignmentId, finalOpenRecordsConfirmed}}\n                                                                ^"
+    }
+  ]
+}

@@ -1,1 +1,3 @@
-{"query":"mutation {addFiles(addFilesInput: {numberOfFiles: 3}) {fileIds}}"}
+{
+  "query": "mutation {addFiles(addFilesInput: {numberOfFiles: 3}) {fileIds}}"
+}

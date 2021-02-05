@@ -1,1 +1,7 @@
-{"data":{"getConsignment":{"userid":"4ab14990-ed63-4615-8336-56fbb9960300"}}}
+{
+  "data": {
+    "getConsignment": {
+      "userid": "4ab14990-ed63-4615-8336-56fbb9960300"
+    }
+  }
+}

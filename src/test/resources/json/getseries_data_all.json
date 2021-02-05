@@ -1,1 +1,13 @@
-{"data":{"getSeries":[{"name":"some-series-name","description":"some-series-description","seriesid":"a9f96d9b-ca53-41c3-937d-88c5cb1241da","code":"some-series-code","bodyid":"283b28bf-a0cc-475a-9ce9-1ba60631afa7"}]}}
+{
+  "data": {
+    "getSeries": [
+      {
+        "name": "some-series-name",
+        "description": "some-series-description",
+        "seriesid": "a9f96d9b-ca53-41c3-937d-88c5cb1241da",
+        "code": "some-series-code",
+        "bodyid": "283b28bf-a0cc-475a-9ce9-1ba60631afa7"
+      }
+    ]
+  }
+}
