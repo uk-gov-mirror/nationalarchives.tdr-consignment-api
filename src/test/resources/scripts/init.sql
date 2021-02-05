@@ -78,17 +78,11 @@ CREATE TABLE IF NOT EXISTS FileMetadata (
     Value varchar(255) not null,
     Datetime timestamp not null DEFAULT CURRENT_TIMESTAMP,
     UserId uuid NOT NULL,
-    PRIMARY KEY (MetadataId)
+    PRIMARY KEY (MetadataId),
+    FOREIGN KEY (FileId) REFERENCES File(FileId),
+    FOREIGN KEY (PropertyName) REFERENCES FileProperty(Name)
 );
 
- ALTER TABLE FileMetadata
-    ADD FOREIGN KEY (FileId)
-    REFERENCES File(FileId);
-
-ALTER TABLE FileMetadata
-    ADD FOREIGN KEY (PropertyName)
-    REFERENCES FileProperty(Name);
-    
 CREATE TABLE IF NOT EXISTS FFIDMetadata (
     FFIDMetadataId uuid not null,
     FileId uuid NOT NULL,
@@ -98,20 +92,14 @@ CREATE TABLE IF NOT EXISTS FFIDMetadata (
     ContainerSignatureFileVersion varchar(255) not null,
     Method varchar(255) not null,
     Datetime timestamp not null,
-    PRIMARY KEY(FFIDMetadataId)
+    PRIMARY KEY(FFIDMetadataId),
+    FOREIGN KEY (FileId) REFERENCES File(FileId)
 );
 
 CREATE TABLE IF NOT EXISTS FFIDMetadataMatches (
     FFIDMetadataId uuid not null,
     Extension varchar(255),
     IdentificationBasis varchar(255) not null,
-    PUID varchar(255) not null
+    PUID varchar(255) not null,
+    FOREIGN KEY (FFIDMetadataId) REFERENCES FFIDMetadata(FFIDMetadataId)
 );
-
- ALTER TABLE FFIDMetadataMatches
-     ADD FOREIGN KEY (FFIDMetadataId)
-     REFERENCES FFIDMetadata(FFIDMetadataId);
-
- ALTER TABLE FFIDMetadata
-    ADD FOREIGN KEY (FileId)
-    REFERENCES File(FileId);
