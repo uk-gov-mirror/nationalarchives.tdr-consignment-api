@@ -166,7 +166,9 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     val service = new FileMetadataService(fileMetadataRepositoryMock, FixedTimeSource, new FixedUUIDSource())
     val metadataList = service.getFileMetadata(consignmentId).futureValue
     metadataList.length should equal(1)
-    val metadata = metadataList.head
+    val files = metadataList.head
+    val metadata = files.metadata
+    files.fileId should equal(fileId)
     metadata.clientSideFileSize.get should equal(1)
     metadata.clientSideLastModifiedDate.get should equal(timestamp.toLocalDateTime)
     metadata.clientSideOriginalFilePath.get should equal("filePath")
@@ -194,7 +196,7 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     metadataList.length should equal(1)
     val metadata = metadataList.head
     val empty = Option.empty
-    val expected = FileMetadataValues(fileId, empty, empty, empty, empty, empty, empty, empty, empty, empty)
+    val expected = File(fileId, FileMetadataValues(empty, empty, empty, empty, empty, empty, empty, empty, empty))
     metadata should equal(expected)
   }
 

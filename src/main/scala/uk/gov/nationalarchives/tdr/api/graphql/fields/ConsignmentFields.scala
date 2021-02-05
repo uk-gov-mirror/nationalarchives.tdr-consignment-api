@@ -10,7 +10,7 @@ import sangria.schema.{Argument, Field, InputObjectType, IntType, ListType, Obje
 import uk.gov.nationalarchives.tdr.api.auth.{ValidateHasExportAccess, ValidateSeries, ValidateUserHasAccessToConsignment}
 import uk.gov.nationalarchives.tdr.api.graphql._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes._
-import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.FileMetadataValues
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.{File, FileMetadataValues}
 
 object ConsignmentFields {
 
@@ -45,6 +45,8 @@ object ConsignmentFields {
     deriveObjectType[Unit, FFIDProgress]()
   implicit val TransferringBodyType: ObjectType[Unit, TransferringBody] =
     deriveObjectType[Unit, TransferringBody]()
+  implicit val FileType: ObjectType[Unit, File] =
+    deriveObjectType[Unit, File]()
   implicit val FileMetadataType: ObjectType[Unit, FileMetadataValues] =
     deriveObjectType[Unit, FileMetadataValues]()
 
@@ -83,9 +85,9 @@ object ConsignmentFields {
         resolve = context => DeferConsignmentBody(context.value.consignmentid)
       ),
       Field(
-        "fileMetadata",
-        ListType(FileMetadataType),
-        resolve = context => DeferFileMetadata(context.value.consignmentid)
+        "files",
+        ListType(FileType),
+        resolve = context => DeferFile(context.value.consignmentid)
       )
     )
   )

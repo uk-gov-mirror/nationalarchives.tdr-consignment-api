@@ -15,13 +15,13 @@ import scala.concurrent.{ExecutionContext, Future}
 class FileMetadataService(fileMetadataRepository: FileMetadataRepository,
                           timeSource: TimeSource, uuidSource: UUIDSource)(implicit val ec: ExecutionContext) {
 
-  def getFileMetadata(consignmentId: UUID): Future[List[FileMetadataValues]] = {
+  def getFileMetadata(consignmentId: UUID): Future[List[File]] = {
     fileMetadataRepository.getFileMetadata(consignmentId).map(rows =>
       rows.groupBy(_.fileid).map(entry => {
         val propertyNameMap: Map[String, String] = entry._2.groupBy(_.propertyname)
           .transform((_, value) => value.head.value)
-        FileMetadataValues(
-          entry._1,
+
+        val values = FileMetadataValues(
           propertyNameMap.get(SHA256ClientSideChecksum),
           propertyNameMap.get(ClientSideOriginalFilepath),
           propertyNameMap.get(ClientSideFileLastModifiedDate).map(d => Timestamp.valueOf(d).toLocalDateTime),
@@ -32,6 +32,7 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository,
           propertyNameMap.get(Language.name),
           propertyNameMap.get(FoiExemptionCode.name)
         )
+        File(entry._1, values)
       }).toList
     )
   }
@@ -80,8 +81,9 @@ object FileMetadataService {
   val clientSideProperties = List(SHA256ClientSideChecksum, ClientSideOriginalFilepath, ClientSideFileLastModifiedDate, ClientSideFileSize)
   val staticMetadataProperties = List(RightsCopyright, LegalStatus, HeldBy, Language, FoiExemptionCode)
 
-  case class FileMetadataValues(fileId: UUID,
-                                sha256ClientSideChecksum: Option[String],
+  case class File(fileId: UUID, metadata: FileMetadataValues)
+
+  case class FileMetadataValues(sha256ClientSideChecksum: Option[String],
                                 clientSideOriginalFilePath: Option[String],
                                 clientSideLastModifiedDate: Option[LocalDateTime],
                                 clientSideFileSize: Option[Long],
