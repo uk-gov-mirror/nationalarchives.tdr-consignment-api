@@ -6,7 +6,7 @@ import io.circe.generic.auto._
 import sangria.macros.derive.{deriveInputObjectType, deriveObjectType}
 import sangria.marshalling.circe._
 import sangria.schema.{Argument, Field, InputObjectType, ObjectType, fields}
-import uk.gov.nationalarchives.tdr.api.auth.ValidateUserOwnsConsignment
+import uk.gov.nationalarchives.tdr.api.auth.ValidateUserHasAccessToConsignment
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes.UuidType
 import uk.gov.nationalarchives.tdr.api.graphql.validation.UserOwnsConsignment
@@ -34,6 +34,6 @@ object TransferConfirmationFields {
       arguments = TransferConfirmationInputArg :: Nil,
       resolve = ctx => ctx.ctx.transferConfirmationService.addTransferConfirmation(ctx.arg(TransferConfirmationInputArg),
         ctx.ctx.accessToken.userId),
-      tags = List(ValidateUserOwnsConsignment(TransferConfirmationInputArg))
+      tags = List(ValidateUserHasAccessToConsignment(TransferConfirmationInputArg))
     ))
 }
