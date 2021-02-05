@@ -23,7 +23,7 @@ class TransferConfirmationRouteSpec extends AnyFlatSpec with Matchers with TestR
   case class TransferConfirmation(
                                 consignmentId: Option[UUID] = None,
                                 finalOpenRecordsConfirmed: Option[Boolean] = None,
-                                legalOwnershipTransferConfirmed: Option[Boolean] = None,
+                                legalOwnershipTransferConfirmed: Option[Boolean] = None
                               )
   case class AddTransferConfirmation(addTransferConfirmation: TransferConfirmation) extends TestRequest
   private val consignmentId = UUID.fromString("b42dccf0-549a-4204-bc9e-c6b69560b7a5")
