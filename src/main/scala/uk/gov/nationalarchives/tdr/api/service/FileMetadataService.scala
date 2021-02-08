@@ -92,7 +92,6 @@ object FileMetadataService {
                                 heldBy: Option[String],
                                 language: Option[String],
                                 foiExemptionCode: Option[String]
-                               ) {
-  }
+                               )
 
 }
