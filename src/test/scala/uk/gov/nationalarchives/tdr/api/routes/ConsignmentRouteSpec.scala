@@ -10,8 +10,7 @@ import io.circe.generic.extras.auto._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256ServerSideChecksum
-import uk.gov.nationalarchives.tdr.api.service.FileMetadataService
-import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.{ClientSideFileLastModifiedDate, ClientSideFileSize, clientSideProperties, staticMetadataProperties}
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource, TestDatabase, TestRequest}
 
