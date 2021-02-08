@@ -97,8 +97,6 @@ object TestUtils {
     createConsignment(consignmentId, userId, seriesId)
     createFile(defaultFileId, consignmentId)
     createClientFileMetadata(defaultFileId)
-//    addTransferAgreementMetadata(consignmentId)
-    addTransferConfirmationMetadata(consignmentId)
   }
 
   def createConsignment(consignmentId: UUID, userId: UUID, seriesId: UUID = UUID.fromString("9e2e2a51-c2d0-4b99-8bef-2ca322528861")): Unit = {
@@ -263,19 +261,6 @@ object TestUtils {
   def addTransferAgreementMetadata(consignmentId: UUID): Unit = {
     val sql = "INSERT INTO ConsignmentMetadata(MetadataId, ConsignmentId, PropertyName, Value, Datetime, UserId) VALUES (?,?,?,?,?,?)"
     transferAgreementProperties.foreach(propertyName => {
-      val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-      ps.setString(1, UUID.randomUUID().toString)
-      ps.setString(2, consignmentId.toString)
-      ps.setString(3, propertyName)
-      ps.setString(4, true.toString)
-      ps.setTimestamp(5, Timestamp.from(Instant.now()))
-      ps.setString(6, UUID.randomUUID().toString)
-      ps.executeUpdate()
-    })
-  }
-  def addTransferConfirmationMetadata(consignmentId: UUID): Unit = {
-    val sql = "INSERT INTO ConsignmentMetadata(MetadataId, ConsignmentId, PropertyName, Value, Datetime, UserId) VALUES (?,?,?,?,?,?)"
-    transferConfirmationProperties.foreach(propertyName => {
       val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
       ps.setString(1, UUID.randomUUID().toString)
       ps.setString(2, consignmentId.toString)

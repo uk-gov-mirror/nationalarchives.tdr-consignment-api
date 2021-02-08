@@ -25,7 +25,7 @@ class TransferConfirmationRouteSpec extends AnyFlatSpec with Matchers with TestR
                                 finalOpenRecordsConfirmed: Option[Boolean] = None,
                                 legalOwnershipTransferConfirmed: Option[Boolean] = None
                               )
-  case class AddTransferConfirmation(addTransferConfirmation: TransferConfirmation) extends TestRequest
+  case class AddTransferConfirmation(addTransferConfirmation: TransferConfirmation)
   private val consignmentId = UUID.fromString("b42dccf0-549a-4204-bc9e-c6b69560b7a5")
 
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData =
