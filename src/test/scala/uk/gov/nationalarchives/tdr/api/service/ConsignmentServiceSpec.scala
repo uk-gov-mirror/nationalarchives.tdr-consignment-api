@@ -12,8 +12,9 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.{BodyRow, ConsignmentRow, SeriesRow}
 import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentRepository, FFIDMetadataRepository, FileMetadataRepository, FileRepository}
-import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AddConsignmentInput, Consignment, FileChecks, UpdateExportLocationInput}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{AddConsignmentInput, FileChecks, UpdateExportLocationInput}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.{ConsignmentFields, SeriesFields}
+import uk.gov.nationalarchives.tdr.api.model.consignment.ConsignmentReference
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,7 +33,18 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
   val bodyName: Option[String] = Option("Mock department")
   val bodyCode: Option[String] = Option("Mock department")
   val bodyDescription: Option[String] = Option("Body description")
-  val mockConsignment: ConsignmentRow = ConsignmentRow(consignmentId, seriesId, userId, Timestamp.from(FixedTimeSource.now))
+  //scalastyle:off magic.number
+  val consignmentSequence: Option[Long] = Option(400L)
+  //scalastyle:on magic.number
+  val consignmentReference = Option("TDR-2020-VB")
+  val mockConsignment: ConsignmentRow = ConsignmentRow(
+    consignmentId,
+    seriesId,
+    userId,
+    Timestamp.from(FixedTimeSource.now),
+    consignmentsequence = consignmentSequence,
+    consignmentreference = consignmentReference
+  )
 
   val consignmentRepoMock: ConsignmentRepository = mock[ConsignmentRepository]
   val fileMetadataRepositoryMock: FileMetadataRepository = mock[FileMetadataRepository]
@@ -46,23 +58,27 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
     FixedTimeSource,
     fixedUuidSource)
 
-  "createConsignment" should "create a consignment given correct arguments" in {
+  "addConsignment" should "create a consignment given correct arguments" in {
+    val mockConsignmentSeq = 5L
+    when(consignmentRepoMock.getNextConsignmentSequence).thenReturn(Future.successful(mockConsignmentSeq))
     when(consignmentRepoMock.addConsignment(any[ConsignmentRow])).thenReturn(mockResponse)
-    val result: Consignment = consignmentService.addConsignment(AddConsignmentInput(seriesId), userId).futureValue
+
+    val result = consignmentService.addConsignment(AddConsignmentInput(seriesId), userId).futureValue
+
     result.consignmentid shouldBe consignmentId
     result.seriesid shouldBe seriesId
     result.userid shouldBe userId
   }
 
-  "createConsignment" should "link a consignment to the user's ID" in {
-    val expectedRow = mockConsignment
-    val mockResponse = Future.successful(mockConsignment)
+  "addConsignment" should "link a consignment to the user's ID" in {
+    when(consignmentRepoMock.getNextConsignmentSequence).thenReturn(Future.successful(consignmentSequence.get))
     when(consignmentRepoMock.addConsignment(any[ConsignmentRow])).thenReturn(mockResponse)
     when(fixedUuidSource.uuid).thenReturn(consignmentId)
     consignmentService.addConsignment(AddConsignmentInput(seriesId), userId).futureValue
 
-    verify(consignmentRepoMock).addConsignment(expectedRow)
+    verify(consignmentRepoMock).addConsignment(mockConsignment)
   }
+
 
   "getConsignment" should "return the specific Consignment for the requested consignment id" in {
     val consignmentRow = mockConsignment
