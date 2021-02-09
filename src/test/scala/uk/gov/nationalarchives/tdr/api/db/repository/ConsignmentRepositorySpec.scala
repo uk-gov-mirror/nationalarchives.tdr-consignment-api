@@ -90,7 +90,7 @@ class ConsignmentRepositorySpec extends AnyFlatSpec with TestDatabase with Scala
 
   "getNextConsignmentSequence" should "get the next sequence ID number for a consignment row" in {
     val db = DbConnection.db
-    val consignmentRepository = new ConsignmentRepository(db)
+    val consignmentRepository = new ConsignmentRepository(db, new CurrentTimeSource)
     val consignmentIdOne = UUID.fromString("20fe77a7-51b3-434c-b5f6-a14e814a2e05")
     val consignmentIdTwo = UUID.fromString("fa19cd46-216f-497a-8c1d-6caaf3f421bc")
 
