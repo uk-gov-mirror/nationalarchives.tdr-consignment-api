@@ -13,7 +13,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class ConsignmentRepository(db: Database) {
 
   implicit class ZonedDateTimeUtils(value: ZonedDateTime) {
-    def toTimestamp = {
+    def toTimestamp: Timestamp = {
       Timestamp.valueOf(value.toLocalDateTime)
     }
   }
