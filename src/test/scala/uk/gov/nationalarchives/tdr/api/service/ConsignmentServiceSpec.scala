@@ -1,6 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.service
 
 import java.sql.Timestamp
+import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.UUID
 
 import org.mockito.ArgumentMatchers._
@@ -137,9 +138,10 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
       FixedTimeSource,
       fixedUuidSource)
 
+    val fixedZonedDatetime = ZonedDateTime.ofInstant(FixedTimeSource.now, ZoneOffset.UTC)
     val consignmentId = UUID.fromString("d8383f9f-c277-49dc-b082-f6e266a39618")
-    val input = UpdateExportLocationInput(consignmentId, "exportLocation")
-    when(consignmentRepoMock.updateExportLocation(input, Timestamp.from(FixedTimeSource.now))).thenReturn(Future(1))
+    val input = UpdateExportLocationInput(consignmentId, "exportLocation", Some(fixedZonedDatetime))
+    when(consignmentRepoMock.updateExportLocation(input)).thenReturn(Future(1))
 
     val response = service.updateExportLocation(input).futureValue
 
