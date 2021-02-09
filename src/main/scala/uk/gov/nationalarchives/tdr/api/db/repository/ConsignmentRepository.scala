@@ -1,6 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.db.repository
 
 import java.sql.Timestamp
+import java.time.ZonedDateTime
 import java.util.UUID
 
 import slick.jdbc.PostgresProfile.api._
@@ -11,6 +12,12 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ConsignmentRepository(db: Database) {
 
+  implicit class ZonedDateTimeUtils(value: ZonedDateTime) {
+    def toTimestamp = {
+      Timestamp.valueOf(value.toLocalDateTime)
+    }
+  }
+
   private val insertQuery = Consignment returning Consignment.map(_.consignmentid) into
     ((consignment, consignmentid) => consignment.copy(consignmentid = consignmentid))
 
@@ -18,10 +25,10 @@ class ConsignmentRepository(db: Database) {
     db.run(insertQuery += consignmentRow)
   }
 
-  def updateExportLocation(exportLocationInput: ConsignmentFields.UpdateExportLocationInput, timestamp: Timestamp): Future[Int] = {
+  def updateExportLocation(exportLocationInput: ConsignmentFields.UpdateExportLocationInput): Future[Int] = {
     val update = Consignment.filter(_.consignmentid === exportLocationInput.consignmentId)
       .map(c => (c.exportlocation, c.exportdatetime))
-      .update((Option(exportLocationInput.exportLocation), Option(timestamp)))
+      .update((Option(exportLocationInput.exportLocation), Option(exportLocationInput.exportDatetime.toTimestamp)))
     db.run(update)
   }
 
