@@ -1,24 +1,18 @@
 package uk.gov.nationalarchives.tdr.api.graphql.fields
 
 import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 import sangria.ast.StringValue
 import sangria.schema.ScalarType
 import sangria.validation.ValueCoercionViolation
+import uk.gov.nationalarchives.tdr.api.utils.TimeUtils.ZonedDateTimeUtils
 
 import scala.util.{Failure, Success, Try}
 
 object FieldTypes {
   private case object UuidCoercionViolation extends ValueCoercionViolation("Valid UUID expected")
   private case object ZonedDateTimeCoercionViolation extends ValueCoercionViolation("Valid Zoned Date Time expected")
-
-  implicit class ZonedDateTimeUtils(value: ZonedDateTime) {
-    //Zoned Date Time truncated to 'seconds' precision to ensure consistent date format irrespective of input precision
-    def toSecondsPrecisionString: String = value.truncatedTo(ChronoUnit.SECONDS).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-  }
 
   private def parseUuid(s: String): Either[ValueCoercionViolation, UUID] = Try(UUID.fromString(s)) match {
     case Success(uuid) => Right(uuid)
