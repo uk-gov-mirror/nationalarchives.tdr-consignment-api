@@ -10,12 +10,12 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables.ConsignmentmetadataRow
 import uk.gov.nationalarchives.tdr.api.db.repository.ConsignmentMetadataRepository
-import uk.gov.nationalarchives.tdr.api.graphql.fields.TransferConfirmationFields.{AddTransferConfirmationInput, TransferConfirmation}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FinalTransferConfirmationFields.{AddFinalTransferConfirmationInput, FinalTransferConfirmation}
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class TransferConfirmationServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with ScalaFutures {
+class FinalTransferConfirmationServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with ScalaFutures {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
   val consignmentId: UUID = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
   val userId: UUID = UUID.fromString("8d415358-f68b-403b-a90a-daab3fd60109")
@@ -33,8 +33,8 @@ class TransferConfirmationServiceSpec extends AnyFlatSpec with MockitoSugar with
 
     when(consignmentMetadataRepoMock.addConsignmentMetadata(any[Seq[ConsignmentmetadataRow]])).thenReturn(mockResponse)
 
-    val service = new TransferConfirmationService(consignmentMetadataRepoMock, fixedUuidSource, FixedTimeSource)
-    val result: TransferConfirmation = service.addTransferConfirmation(AddTransferConfirmationInput(
+    val service = new FinalTransferConfirmationService(consignmentMetadataRepoMock, fixedUuidSource, FixedTimeSource)
+    val result: FinalTransferConfirmation = service.addFinalTransferConfirmation(AddFinalTransferConfirmationInput(
       consignmentId,
       finalOpenRecordsConfirmed = true,
       legalOwnershipTransferConfirmed = true), userId).futureValue

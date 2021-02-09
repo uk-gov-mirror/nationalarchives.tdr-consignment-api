@@ -5,24 +5,24 @@ import java.util.UUID
 
 import uk.gov.nationalarchives.Tables.ConsignmentmetadataRow
 import uk.gov.nationalarchives.tdr.api.db.repository._
-import uk.gov.nationalarchives.tdr.api.graphql.fields.TransferConfirmationFields._
-import uk.gov.nationalarchives.tdr.api.service.TransferConfirmationService.{FinalOpenRecordsConfirmed, LegalOwnershipTransferConfirmed}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FinalTransferConfirmationFields._
+import uk.gov.nationalarchives.tdr.api.service.FinalTransferConfirmationService.{FinalOpenRecordsConfirmed, LegalOwnershipTransferConfirmed}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 
-class TransferConfirmationService(consignmentMetadataRepository: ConsignmentMetadataRepository,
-                                  uuidSource: UUIDSource,
-                                  timeSource: TimeSource
-                                 )(implicit val executionContext: ExecutionContext) {
+class FinalTransferConfirmationService(consignmentMetadataRepository: ConsignmentMetadataRepository,
+                                       uuidSource: UUIDSource,
+                                       timeSource: TimeSource
+                                      )(implicit val executionContext: ExecutionContext) {
 
-  def addTransferConfirmation(consignmentMetadataInputs: AddTransferConfirmationInput, userId: UUID): Future[TransferConfirmation] = {
+  def addFinalTransferConfirmation(consignmentMetadataInputs: AddFinalTransferConfirmationInput, userId: UUID): Future[FinalTransferConfirmation] = {
     consignmentMetadataRepository.addConsignmentMetadata(convertInputToPropertyRows(consignmentMetadataInputs, userId)).map {
-      rows => convertDbRowsToTransferConfirmation(consignmentMetadataInputs.consignmentId, rows)
+      rows => convertDbRowsToFinalTransferConfirmation(consignmentMetadataInputs.consignmentId, rows)
     }
   }
 
-  private def convertInputToPropertyRows(inputs: AddTransferConfirmationInput, userId: UUID): Seq[ConsignmentmetadataRow] = {
+  private def convertInputToPropertyRows(inputs: AddFinalTransferConfirmationInput, userId: UUID): Seq[ConsignmentmetadataRow] = {
     val time = Timestamp.from(timeSource.now)
     Seq(
       ConsignmentmetadataRow(
@@ -32,9 +32,9 @@ class TransferConfirmationService(consignmentMetadataRepository: ConsignmentMeta
     )
   }
 
-  private def convertDbRowsToTransferConfirmation(consignmentId: UUID, rows: Seq[ConsignmentmetadataRow]): TransferConfirmation = {
+  private def convertDbRowsToFinalTransferConfirmation(consignmentId: UUID, rows: Seq[ConsignmentmetadataRow]): FinalTransferConfirmation = {
     val propertyNameToValue = rows.map(row => row.propertyname -> row.value.toBoolean).toMap
-    TransferConfirmation(consignmentId,
+    FinalTransferConfirmation(consignmentId,
       propertyNameToValue(FinalOpenRecordsConfirmed),
       propertyNameToValue(LegalOwnershipTransferConfirmed)
     )
@@ -42,11 +42,11 @@ class TransferConfirmationService(consignmentMetadataRepository: ConsignmentMeta
 
 }
 
-object TransferConfirmationService {
+object FinalTransferConfirmationService {
   val FinalOpenRecordsConfirmed = "FinalOpenRecordsConfirmed"
   val LegalOwnershipTransferConfirmed = "LegalOwnershipTransferConfirmed"
 
-  val transferConfirmationProperties = List(
+  val finalTransferConfirmationProperties = List(
     FinalOpenRecordsConfirmed,
     LegalOwnershipTransferConfirmed
   )

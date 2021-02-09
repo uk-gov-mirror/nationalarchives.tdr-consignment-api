@@ -1,0 +1,3 @@
+{
+  "query": "mutation {addFinalTransferConfirmation(addFinalTransferConfirmationInput: {finalOpenRecordsConfirmed: true, legalOwnershipTransferConfirmed: true}) {consignmentId, finalOpenRecordsConfirmed}}"
+}

@@ -12,45 +12,45 @@ import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 import uk.gov.nationalarchives.tdr.api.utils.{TestDatabase, TestRequest}
 
-class TransferConfirmationRouteSpec extends AnyFlatSpec with Matchers with TestRequest with TestDatabase  {
+class FinalTransferConfirmationRouteSpec extends AnyFlatSpec with Matchers with TestRequest with TestDatabase  {
 
-  private val addTransferConfirmationJsonFilePrefix: String = "json/addtransferconfirmation_"
+  private val addFinalTransferConfirmationJsonFilePrefix: String = "json/addfinaltransferconfirmation_"
 
   implicit val customConfig: Configuration = Configuration.default.withDefaults
 
-  case class GraphqlMutationData(data: Option[AddTransferConfirmation], errors: List[GraphqlError] = Nil)
-  case class GraphqlQueryData(data: Option[TransferConfirmation], errors: List[GraphqlError] = Nil)
-  case class TransferConfirmation(
+  case class GraphqlMutationData(data: Option[AddFinalTransferConfirmation], errors: List[GraphqlError] = Nil)
+  case class GraphqlQueryData(data: Option[FinalTransferConfirmation], errors: List[GraphqlError] = Nil)
+  case class FinalTransferConfirmation(
                                 consignmentId: Option[UUID] = None,
                                 finalOpenRecordsConfirmed: Option[Boolean] = None,
                                 legalOwnershipTransferConfirmed: Option[Boolean] = None
                               )
-  case class AddTransferConfirmation(addTransferConfirmation: TransferConfirmation)
+  case class AddFinalTransferConfirmation(addFinalTransferConfirmation: FinalTransferConfirmation)
   private val consignmentId = UUID.fromString("b42dccf0-549a-4204-bc9e-c6b69560b7a5")
 
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData =
-    runTestRequest[GraphqlMutationData](addTransferConfirmationJsonFilePrefix)
+    runTestRequest[GraphqlMutationData](addFinalTransferConfirmationJsonFilePrefix)
   val expectedMutationResponse: String => GraphqlMutationData =
-    getDataFromFile[GraphqlMutationData](addTransferConfirmationJsonFilePrefix)
+    getDataFromFile[GraphqlMutationData](addFinalTransferConfirmationJsonFilePrefix)
 
-  "The api" should "return all requested fields from inserted Transfer Confirmation Consignment metadata properties" in {
+  "The api" should "return all requested fields from inserted final transfer confirmation consignment metadata properties" in {
     createConsignment(consignmentId, userId)
 
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
-    response.data.get.addTransferConfirmation should equal(expectedResponse.data.get.addTransferConfirmation)
+    response.data.get.addFinalTransferConfirmation should equal(expectedResponse.data.get.addFinalTransferConfirmation)
 
-    checkTransferConfirmationExists(consignmentId)
+    checkFinalTransferConfirmationExists(consignmentId)
   }
 
-  "The api" should "return the expected data from inserted transfer confirmation consignment metadata properties" in {
+  "The api" should "return the expected data from inserted final transfer confirmation consignment metadata properties" in {
     createConsignment(consignmentId, userId)
 
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_some")
     val response: GraphqlMutationData = runTestMutation("mutation_somedata", validUserToken())
-    response.data.get.addTransferConfirmation should equal(expectedResponse.data.get.addTransferConfirmation)
+    response.data.get.addFinalTransferConfirmation should equal(expectedResponse.data.get.addFinalTransferConfirmation)
 
-    checkTransferConfirmationExists(response.data.get.addTransferConfirmation.consignmentId.get)
+    checkFinalTransferConfirmationExists(response.data.get.addFinalTransferConfirmation.consignmentId.get)
   }
 
   "The api" should "throw an error if the consignment id field is not provided" in {
@@ -59,7 +59,7 @@ class TransferConfirmationRouteSpec extends AnyFlatSpec with Matchers with TestR
     response.errors.head.message should equal (expectedResponse.errors.head.message)
   }
 
-  "The api" should "return an error if a user does not own the transfer confirmation's consignment id" in {
+  "The api" should "return an error if a user does not own the final transfer confirmation's consignment id" in {
     val userTwoId =  UUID.fromString("ef056fd5-22ab-4e01-9e1e-1e65e5907d99")
     createConsignment(consignmentId, userTwoId)
 
@@ -77,7 +77,7 @@ class TransferConfirmationRouteSpec extends AnyFlatSpec with Matchers with TestR
     response.errors.head.message should equal(expectedResponse.errors.head.message)
   }
 
-  private def checkTransferConfirmationExists(consignmentId: UUID): Unit = {
+  private def checkFinalTransferConfirmationExists(consignmentId: UUID): Unit = {
     val sql = """SELECT * FROM ConsignmentMetadata
                  WHERE ConsignmentId = ? AND PropertyName in ('FinalOpenRecordsConfirmed', 'LegalOwnershipTransferConfirmed');"""
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)

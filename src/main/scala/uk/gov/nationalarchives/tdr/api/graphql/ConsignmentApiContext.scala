@@ -9,8 +9,8 @@ case class ConsignmentApiContext(accessToken: Token,
                                  ffidMetadataService: FFIDMetadataService,
                                  fileMetadataService: FileMetadataService,
                                  fileService: FileService,
+                                 finalTransferConfirmationService: FinalTransferConfirmationService,
                                  seriesService: SeriesService,
                                  transferAgreementService: TransferAgreementService,
-                                 transferringBodyService: TransferringBodyService,
-                                 transferConfirmationService: TransferConfirmationService
+                                 transferringBodyService: TransferringBodyService
                                  )
