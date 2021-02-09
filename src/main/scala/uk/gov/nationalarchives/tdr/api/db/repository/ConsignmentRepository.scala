@@ -4,6 +4,7 @@ import java.sql.Timestamp
 import java.util.UUID
 
 import slick.jdbc.PostgresProfile.api._
+import slick.sql.SqlStreamingAction
 import uk.gov.nationalarchives.Tables.{Body, BodyRow, Consignment, ConsignmentRow, File, Series, SeriesRow}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields
 import uk.gov.nationalarchives.tdr.api.service.TimeSource
@@ -38,6 +39,17 @@ class ConsignmentRepository(db: Database, timeSource: TimeSource) {
       .map(c => (c.transferinitiateddatetime, c.transferinitiatedby))
       .update((Option(timestamp), Some(userId)))
     db.run(update)
+  }
+
+  def getNextConsignmentSequence(implicit executionContext: ExecutionContext): Future[Long] = {
+    val query = sql"select nextval('ConsignmentSequenceID')".as[Long]
+    db.run(query).map(result => {
+      if (result.size == 1) {
+        result.head
+      } else {
+        throw new IllegalStateException(s"Expected single consignment sequence value but got: ${result.size} values instead.")
+      }
+    })
   }
 
   def getConsignment(consignmentId: UUID): Future[Seq[ConsignmentRow]] = {
