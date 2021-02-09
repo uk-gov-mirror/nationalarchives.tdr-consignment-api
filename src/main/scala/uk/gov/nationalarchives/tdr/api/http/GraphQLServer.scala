@@ -73,12 +73,12 @@ object GraphQLServer {
                                  (implicit ec: ExecutionContext): Future[(StatusCode with Serializable, JsValue)] = {
     val uuidSourceClass: Class[_] = Class.forName(ConfigFactory.load().getString("source.uuid"))
     val uuidSource: UUIDSource = uuidSourceClass.getDeclaredConstructor().newInstance().asInstanceOf[UUIDSource]
+    val timeSource = new CurrentTimeSource
     val db = DbConnection.db
-    val consignmentRepository = new ConsignmentRepository(db)
+    val consignmentRepository = new ConsignmentRepository(db, timeSource)
     val fileMetadataRepository = new FileMetadataRepository(db)
     val fileRepository = new FileRepository(db)
     val ffidMetadataRepository = new FFIDMetadataRepository(db)
-    val timeSource = new CurrentTimeSource
 
     val consignmentService = new ConsignmentService(consignmentRepository, fileMetadataRepository, fileRepository,
       ffidMetadataRepository, timeSource, uuidSource)
@@ -89,11 +89,23 @@ object GraphQLServer {
     val fileService = new FileService(fileRepository, consignmentRepository, fileMetadataRepository, new CurrentTimeSource, uuidSource)
     val transferringBodyService = new TransferringBodyService(new TransferringBodyRepository(db))
     val antivirusMetadataService = new AntivirusMetadataService(new AntivirusMetadataRepository(db))
-    val fileMetadataService = new FileMetadataService(fileMetadataRepository, timeSource, uuidSource)
+    val fileMetadataService = new FileMetadataService(
+      fileMetadataRepository, timeSource, uuidSource
+    )
     val ffidMetadataService = new FFIDMetadataService(ffidMetadataRepository, new FFIDMetadataMatchesRepository(db), timeSource, uuidSource)
 
-    val context = ConsignmentApiContext(accessToken, antivirusMetadataService, clientFileMetadataService, consignmentService,
-      ffidMetadataService, fileMetadataService, fileService, finalTransferConfirmationService, seriesService, transferAgreementService, transferringBodyService,
+    val context = ConsignmentApiContext(
+      accessToken,
+      antivirusMetadataService,
+      clientFileMetadataService,
+      consignmentService,
+      ffidMetadataService,
+      fileMetadataService,
+      fileService,
+      finalTransferConfirmationService,
+      seriesService,
+      transferAgreementService,
+      transferringBodyService
     )
     Executor.execute(
       GraphQlTypes.schema,
@@ -103,8 +115,7 @@ object GraphQLServer {
       deferredResolver = new DeferredResolver,
       middleware = new ValidationAuthoriser :: new ConsignmentStateValidator :: Nil,
       exceptionHandler = exceptionHandler
-    ).map(OK -> _)
-      .recover {
+    ).map(OK -> _).recover {
         case error: QueryAnalysisError => BadRequest -> error.resolveError
         case error: ErrorWithResolver => InternalServerError -> error.resolveError
       }

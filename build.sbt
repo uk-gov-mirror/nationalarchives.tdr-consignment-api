@@ -1,5 +1,6 @@
 import rocks.muki.graphql.schema.SchemaLoader
 import sbt.File
+import sbt.Keys.libraryDependencies
 
 
 
@@ -42,7 +43,7 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-optics" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,
   "io.circe" %% "circe-generic-extras" % circeVersion,
-  "uk.gov.nationalarchives" %% "consignment-api-db" % "0.0.43",
+  "uk.gov.nationalarchives" %% "consignment-api-db" % "0.0.44",
   "org.postgresql" % "postgresql" % "42.2.11",
   "com.typesafe.slick" %% "slick" % "3.3.2",
   "com.typesafe.slick" %% "slick-hikaricp" % "3.3.2",
@@ -51,6 +52,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
   "org.jboss.logging" % "jboss-logging" % "3.4.1.Final",
   "com.lightbend.akka" %% "akka-stream-alpakka-slick" % "1.1.2",
+  "uk.gov.nationalarchives.oci" % "oci-tools-scala_2.13" % "0.2.0",
   "org.scalatest" %% "scalatest" % "3.1.0" % Test,
   "org.mockito" %% "mockito-scala" % "1.6.3" % Test,
   "org.mockito" %% "mockito-scala-scalatest" % "1.6.3" % Test,
