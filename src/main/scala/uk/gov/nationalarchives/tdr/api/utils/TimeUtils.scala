@@ -1,7 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.utils
 
 import java.sql.Timestamp
-import java.time.ZonedDateTime
+import java.time.{ZoneId, ZonedDateTime}
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
@@ -11,5 +11,11 @@ object TimeUtils {
     def toSecondsPrecisionString: String = value.truncatedTo(ChronoUnit.SECONDS).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 
     def toTimestamp: Timestamp = Timestamp.valueOf(value.toLocalDateTime)
+  }
+
+  implicit class TimestampUtils(value: Timestamp)  {
+    private val zoneId = "UTC"
+
+    def toZonedDateTime: ZonedDateTime = ZonedDateTime.ofInstant(value.toInstant, ZoneId.of(zoneId))
   }
 }

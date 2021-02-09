@@ -73,12 +73,12 @@ object GraphQLServer {
                                  (implicit ec: ExecutionContext): Future[(StatusCode with Serializable, JsValue)] = {
     val uuidSourceClass: Class[_] = Class.forName(ConfigFactory.load().getString("source.uuid"))
     val uuidSource: UUIDSource = uuidSourceClass.getDeclaredConstructor().newInstance().asInstanceOf[UUIDSource]
+    val timeSource = new CurrentTimeSource
     val db = DbConnection.db
-    val consignmentRepository = new ConsignmentRepository(db)
+    val consignmentRepository = new ConsignmentRepository(db, timeSource)
     val fileMetadataRepository = new FileMetadataRepository(db)
     val fileRepository = new FileRepository(db)
     val ffidMetadataRepository = new FFIDMetadataRepository(db)
-    val timeSource = new CurrentTimeSource
 
     val consignmentService = new ConsignmentService(consignmentRepository, fileMetadataRepository, fileRepository,
       ffidMetadataRepository, timeSource, uuidSource)

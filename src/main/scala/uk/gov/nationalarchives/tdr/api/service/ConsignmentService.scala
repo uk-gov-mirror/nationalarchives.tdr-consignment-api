@@ -8,6 +8,7 @@ import uk.gov.nationalarchives.Tables.{BodyRow, ConsignmentRow, SeriesRow}
 import uk.gov.nationalarchives.tdr.api.db.repository._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.SeriesFields.Series
+import uk.gov.nationalarchives.tdr.api.utils.TimeUtils.TimestampUtils
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -19,12 +20,6 @@ class ConsignmentService(
                           timeSource: TimeSource,
                           uuidSource: UUIDSource
                         )(implicit val executionContext: ExecutionContext) {
-
-  implicit class TimestampUtils(value: Timestamp)  {
-    private val zoneId = "UTC"
-
-    def toZonedDateTime: ZonedDateTime = ZonedDateTime.ofInstant(value.toInstant, ZoneId.of(zoneId))
-  }
 
   def updateTransferInitiated(consignmentId: UUID, userId: UUID): Future[Int] = {
     consignmentRepository.updateTransferInitiated(consignmentId, userId, Timestamp.from(timeSource.now))

@@ -6,11 +6,12 @@ import java.util.UUID
 import slick.jdbc.PostgresProfile.api._
 import uk.gov.nationalarchives.Tables.{Body, BodyRow, Consignment, ConsignmentRow, File, Series, SeriesRow}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields
+import uk.gov.nationalarchives.tdr.api.service.TimeSource
 import uk.gov.nationalarchives.tdr.api.utils.TimeUtils.ZonedDateTimeUtils
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ConsignmentRepository(db: Database) {
+class ConsignmentRepository(db: Database, timeSource: TimeSource) {
 
   private val insertQuery = Consignment returning Consignment.map(_.consignmentid) into
     ((consignment, consignmentid) => consignment.copy(consignmentid = consignmentid))
@@ -20,9 +21,15 @@ class ConsignmentRepository(db: Database) {
   }
 
   def updateExportLocation(exportLocationInput: ConsignmentFields.UpdateExportLocationInput): Future[Int] = {
+    //Temporarily generate timestamp until value passed in by clients
+    val exportDatetime = exportLocationInput.exportDatetime match {
+      case Some(zdt) => zdt.toTimestamp
+      case None => Timestamp.from(timeSource.now)
+    }
+
     val update = Consignment.filter(_.consignmentid === exportLocationInput.consignmentId)
       .map(c => (c.exportlocation, c.exportdatetime))
-      .update((Option(exportLocationInput.exportLocation), Option(exportLocationInput.exportDatetime.toTimestamp)))
+      .update((Option(exportLocationInput.exportLocation), Some(exportDatetime)))
     db.run(update)
   }
 
