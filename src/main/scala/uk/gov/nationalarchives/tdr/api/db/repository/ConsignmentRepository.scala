@@ -42,7 +42,7 @@ class ConsignmentRepository(db: Database, timeSource: TimeSource) {
   }
 
   def getNextConsignmentSequence(implicit executionContext: ExecutionContext): Future[Long] = {
-    val query = sql"select nextval('ConsignmentSequenceID')".as[Long]
+    val query = sql"select nextval('consignment_sequence_id')".as[Long]
     db.run(query).map(result => {
       if (result.size == 1) {
         result.head
