@@ -6,6 +6,7 @@ import java.util.UUID
 import sangria.execution.deferred.{Deferred, UnsupportedDeferError}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{FileChecks, TransferringBody}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.SeriesFields._
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.{File, FileMetadataValues}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -19,6 +20,7 @@ class DeferredResolver extends sangria.execution.deferred.DeferredResolver[Consi
       case DeferParentFolder(consignmentId) => context.consignmentService.getConsignmentParentFolder(consignmentId)
       case DeferConsignmentSeries(consignmentId) => context.consignmentService.getSeriesOfConsignment(consignmentId)
       case DeferConsignmentBody(consignmentId) => context.consignmentService.getTransferringBodyOfConsignment(consignmentId)
+      case DeferFiles(consignmentId) => context.fileMetadataService.getFileMetadata(consignmentId)
       case other => throw UnsupportedDeferError(other)
     }
   }
@@ -29,3 +31,4 @@ case class DeferFileChecksProgress(consignmentId: UUID) extends Deferred[FileChe
 case class DeferParentFolder(consignmentId: UUID) extends Deferred[Option[String]]
 case class DeferConsignmentSeries(consignmentId: UUID) extends Deferred[Option[Series]]
 case class DeferConsignmentBody(consignmentId: UUID) extends Deferred[TransferringBody]
+case class DeferFiles(consignmentId: UUID) extends Deferred[List[File]]

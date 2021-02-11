@@ -1,7 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.routes
 
 import java.sql.{PreparedStatement, Timestamp}
-import java.time.ZonedDateTime
+import java.time.{LocalDateTime, ZonedDateTime}
 import java.util.UUID
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
@@ -10,6 +10,7 @@ import io.circe.generic.extras.auto._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256ServerSideChecksum
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource, TestDatabase, TestRequest}
 
@@ -36,7 +37,8 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
                          fileChecks: Option[FileChecks],
                          parentFolder: Option[String],
                          series: Option[Series],
-                         transferringBody: Option[TransferringBody]
+                         transferringBody: Option[TransferringBody],
+                         files: Option[List[File]]
                         )
   case class FileChecks(antivirusProgress: Option[AntivirusProgress], checksumProgress: Option[ChecksumProgress], ffidProgress: Option[FfidProgress])
   case class AntivirusProgress(filesProcessed: Option[Int])
@@ -48,6 +50,17 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   case class AddConsignment(addConsignment: Consignment)
   case class UpdateExportLocation(updateExportLocation: Int)
   case class UpdateTransferInitiated(updateTransferInitiated: Int)
+  case class File(fileId: UUID, metadata: FileMetadataValues)
+  case class FileMetadataValues(sha256ClientSideChecksum: Option[String],
+                                clientSideOriginalFilePath: Option[String],
+                                clientSideLastModifiedDate: Option[LocalDateTime],
+                                clientSideFileSize: Option[Long],
+                                rightsCopyright: Option[String],
+                                legalStatus: Option[String],
+                                heldBy: Option[String],
+                                language: Option[String],
+                                foiExemptionCode: Option[String]
+                               )
 
   val runTestQuery: (String, OAuth2BearerToken) => GraphqlQueryData = runTestRequest[GraphqlQueryData](getConsignmentJsonFilePrefix)
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData = runTestRequest[GraphqlMutationData](addConsignmentJsonFilePrefix)
@@ -141,6 +154,22 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     response should equal(expectedResponse)
   }
   //scalastyle:off magic.number
+
+  "getConsignment" should "return the file metadata" in {
+    val consignmentId = UUID.fromString("c31b3d3e-1931-421b-a829-e2ef4cd8930c")
+    val fileId = UUID.fromString("3ce8ef99-a999-4bae-8425-325a67f2d3da")
+    createConsignment(consignmentId, userId, UUID.randomUUID())
+    createFile(fileId, consignmentId)
+    staticMetadataProperties.foreach(smp => addFileMetadata(UUID.randomUUID().toString, fileId.toString, smp.name, smp.value))
+    clientSideProperties.foreach(csp => addFileMetadata(UUID.randomUUID().toString, fileId.toString, csp, csp match {
+      case ClientSideFileLastModifiedDate => s"2021-02-08 16:00:00"
+      case ClientSideFileSize => "1"
+      case _ => s"$csp value"
+    }))
+    val response: GraphqlQueryData = runTestQuery("query_filemetadata", validUserToken())
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_file_metadata")
+    response should equal(expectedResponse)
+  }
 
   "getConsignment" should "return the expected data" in {
     val fixedUuidSource = new FixedUUIDSource()

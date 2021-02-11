@@ -1,0 +1,4 @@
+{"query":"{getConsignment(consignmentid: \"c31b3d3e-1931-421b-a829-e2ef4cd8930c\") {files {fileId metadata { clientSideFileSize, clientSideLastModifiedDate, clientSideOriginalFilePath, foiExemptionCode, heldBy, language, legalStatus, rightsCopyright}}}}"}
+
+
+

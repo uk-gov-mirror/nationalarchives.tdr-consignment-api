@@ -31,7 +31,7 @@ trait TestDatabase extends BeforeAndAfterEach {
     databaseConnection.prepareStatement("DELETE FROM Consignment").execute()
     databaseConnection.prepareStatement("DELETE FROM Series").execute()
     databaseConnection.prepareStatement("DELETE FROM Body").execute()
-    databaseConnection.prepareStatement("ALTER SEQUENCE ConsignmentSequenceID RESTART WITH 1").execute()
+    databaseConnection.prepareStatement("ALTER SEQUENCE consignment_sequence_id RESTART WITH 1").execute()
 
     databaseConnection.prepareStatement("INSERT INTO FileProperty (Name, Description, Shortname) " +
       "VALUES ('SHA256ServerSideChecksum', 'The checksum calculated after upload', 'Checksum')")

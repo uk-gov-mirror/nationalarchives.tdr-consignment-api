@@ -129,12 +129,12 @@ object TestUtils {
     ps.executeUpdate()
   }
 
-  def addFileMetadata(metadataId: String, fileId: String, propertyName: String): Unit = {
+  def addFileMetadata(metadataId: String, fileId: String, propertyName: String, value: String = "Result of FileMetadata processing"): Unit = {
     val sql = s"INSERT INTO FileMetadata (MetadataId, FileId, Value, Datetime, UserId, PropertyName) VALUES (?, ?, ?, ?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, metadataId)
     ps.setString(2, fileId)
-    ps.setString(3, "Result of FileMetadata processing")
+    ps.setString(3, value)
     ps.setTimestamp(4, Timestamp.from(FixedTimeSource.now))
     ps.setString(5, userId.toString)
     ps.setString(6, propertyName)

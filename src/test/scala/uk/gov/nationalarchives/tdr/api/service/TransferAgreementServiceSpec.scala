@@ -18,7 +18,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with ScalaFutures {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
   val fixedUuidSource = new FixedUUIDSource()
-  val fixedTimeSource = FixedTimeSource
+  val fixedTimeSource: FixedTimeSource.type = FixedTimeSource
 
   "addTransferAgreement" should "add the correct metadata given correct arguments" in {
 
@@ -41,12 +41,12 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Ma
 
     val service = new TransferAgreementService(repositoryMock, fixedUuidSource, fixedTimeSource)
     val result: TransferAgreement = service.addTransferAgreement(AddTransferAgreementInput(consignmentId,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true), userId).futureValue
+      initialOpenRecords = true,
+      allCrownCopyright = true,
+      allEnglish = true,
+      allPublicRecords = true,
+      appraisalSelectionSignedOff = true,
+      sensitivityReviewSignedOff = true), userId).futureValue
 
     result.consignmentId shouldBe consignmentId
     result.initialOpenRecords shouldBe true

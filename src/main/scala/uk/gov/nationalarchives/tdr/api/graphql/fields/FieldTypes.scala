@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.tdr.api.graphql.fields
 
-import java.time.ZonedDateTime
+import java.time.{LocalDateTime, ZonedDateTime}
 import java.util.UUID
 
 import sangria.ast.StringValue
@@ -13,6 +13,7 @@ import scala.util.{Failure, Success, Try}
 object FieldTypes {
   private case object UuidCoercionViolation extends ValueCoercionViolation("Valid UUID expected")
   private case object ZonedDateTimeCoercionViolation extends ValueCoercionViolation("Valid Zoned Date Time expected")
+  private case object LocalDateTimeCoercionViolation extends ValueCoercionViolation("Valid Local Date Time expected")
 
   private def parseUuid(s: String): Either[ValueCoercionViolation, UUID] = Try(UUID.fromString(s)) match {
     case Success(uuid) => Right(uuid)
@@ -24,6 +25,9 @@ object FieldTypes {
     case Failure(_) => Left(ZonedDateTimeCoercionViolation)
   }
 
+  private def parseLocalDatetime(s: String): Either[ValueCoercionViolation, LocalDateTime] =
+    Try(LocalDateTime.parse(s)).toEither.left.map(_ => LocalDateTimeCoercionViolation)
+
   implicit val ZonedDateTimeType: ScalarType[ZonedDateTime] = ScalarType[ZonedDateTime]("ZonedDateTime",
     coerceOutput = (zdt, _) => zdt.toSecondsPrecisionString,
     coerceUserInput = {
@@ -33,6 +37,18 @@ object FieldTypes {
     coerceInput = {
       case StringValue(s, _, _, _, _) => parseZonedDatetime(s)
       case _ => Left(ZonedDateTimeCoercionViolation)
+    }
+  )
+
+  implicit val LocalDateTimeType: ScalarType[LocalDateTime] = ScalarType[LocalDateTime]("LocalDateTime",
+    coerceOutput = (ldt, _) => ldt.toString,
+    coerceUserInput = {
+      case s: String => parseLocalDatetime(s)
+      case _ => Left(LocalDateTimeCoercionViolation)
+    },
+    coerceInput = {
+      case StringValue(s, _, _, _, _) => parseLocalDatetime(s)
+      case _ => Left(LocalDateTimeCoercionViolation)
     }
   )
 
