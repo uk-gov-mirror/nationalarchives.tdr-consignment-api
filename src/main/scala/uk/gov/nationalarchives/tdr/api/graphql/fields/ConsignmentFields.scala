@@ -87,7 +87,7 @@ object ConsignmentFields {
       Field(
         "files",
         ListType(FileType),
-        resolve = context => DeferFile(context.value.consignmentid)
+        resolve = context => DeferFiles(context.value.consignmentid)
       )
     )
   )
