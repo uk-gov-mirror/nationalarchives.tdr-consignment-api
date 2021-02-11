@@ -6,6 +6,7 @@ import org.scalatest.{BeforeAndAfterEach, Suite}
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.{clientSideProperties, staticMetadataProperties}
 import uk.gov.nationalarchives.tdr.api.service.TransferAgreementService.transferAgreementProperties
+import uk.gov.nationalarchives.tdr.api.service.FinalTransferConfirmationService.finalTransferConfirmationProperties
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils.{addConsignmentProperty, addFileProperty}
 
 /**
@@ -38,6 +39,7 @@ trait TestDatabase extends BeforeAndAfterEach {
 
     addTransferAgreementConsignmentProperties()
     addTransferAgreementFileProperties()
+    addFinalTransferConfirmationProperties()
     addClientSideProperties()
   }
 
@@ -50,6 +52,12 @@ trait TestDatabase extends BeforeAndAfterEach {
   private def addTransferAgreementFileProperties(): Unit = {
     staticMetadataProperties.foreach(propertyName => {
       addFileProperty(propertyName.name)
+    })
+  }
+
+  private def addFinalTransferConfirmationProperties(): Unit = {
+    finalTransferConfirmationProperties.foreach(propertyName => {
+      addConsignmentProperty(propertyName)
     })
   }
 

@@ -1,1 +1,3 @@
-{"query":"query {getTransferAgreement {consignmentId, allEnglish, allCrownCopyright, allPublicRecords, appraisalSelectionSignedOff, sensitivityReviewSignedOff}}"}
+{
+  "query": "query {getTransferAgreement {consignmentId, allEnglish, allCrownCopyright, allPublicRecords, appraisalSelectionSignedOff, sensitivityReviewSignedOff}}"
+}

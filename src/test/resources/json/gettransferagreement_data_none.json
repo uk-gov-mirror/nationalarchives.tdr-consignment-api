@@ -1,1 +1,6 @@
-{"data": {"getTransferAgreement":  null},"errors":[]}
+{
+  "data": {
+    "getTransferAgreement": null
+  },
+  "errors": []
+}

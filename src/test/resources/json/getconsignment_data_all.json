@@ -1,22 +1,22 @@
 {
   "data": {
     "getConsignment": {
-      "consignmentid":"b130e097-2edc-4e67-a7e9-5364a09ae9cb",
+      "consignmentid": "b130e097-2edc-4e67-a7e9-5364a09ae9cb",
       "seriesid": "fde450c9-09aa-4ba8-b0df-13f9bac1e587",
-      "userid":"4ab14990-ed63-4615-8336-56fbb9960300",
+      "userid": "4ab14990-ed63-4615-8336-56fbb9960300",
       "createdDatetime": "2020-01-01T09:00:00Z",
       "transferInitiatedDatetime": "2020-01-01T09:00:00Z",
       "exportDatetime": "2020-01-01T09:00:00Z",
-      "totalFiles":  3,
+      "totalFiles": 3,
       "fileChecks": {
         "antivirusProgress": {
-          "filesProcessed":  1
+          "filesProcessed": 1
         },
         "checksumProgress": {
           "filesProcessed": 2
         },
         "ffidProgress": {
-          "filesProcessed":  3
+          "filesProcessed": 3
         }
       },
       "parentFolder": "ALL CONSIGNMENT DATA PARENT FOLDER",

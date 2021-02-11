@@ -1,1 +1,8 @@
-{"data":null,"errors":[{"message":"Field 'getConsignment' argument 'consignmentid' of type 'UUID!' is required but not provided. (line 1, column 2):\n{getConsignment{seriesid, consignmentid, userid}}\n ^"}]}
+{
+  "data": null,
+  "errors": [
+    {
+      "message": "Field 'getConsignment' argument 'consignmentid' of type 'UUID!' is required but not provided. (line 1, column 2):\n{getConsignment{seriesid, consignmentid, userid}}\n ^"
+    }
+  ]
+}

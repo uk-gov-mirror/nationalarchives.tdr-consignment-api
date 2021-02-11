@@ -14,6 +14,7 @@ import io.circe.parser.decode
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
 import uk.gov.nationalarchives.tdr.api.service.TransferAgreementService._
+import uk.gov.nationalarchives.tdr.api.service.FinalTransferConfirmationService._
 
 import scala.concurrent.ExecutionContext
 import scala.io.Source.fromResource
@@ -96,7 +97,6 @@ object TestUtils {
     createConsignment(consignmentId, userId, seriesId)
     createFile(defaultFileId, consignmentId)
     createClientFileMetadata(defaultFileId)
-    addTransferAgreementMetadata(consignmentId)
   }
 
   def createConsignment(consignmentId: UUID, userId: UUID, seriesId: UUID = UUID.fromString("9e2e2a51-c2d0-4b99-8bef-2ca322528861")): Unit = {
