@@ -1,3 +1,8 @@
+CREATE SEQUENCE IF NOT EXISTS consignment_sequence_id
+    START WITH 1
+    NO CYCLE
+    INCREMENT BY 1;
+
 CREATE TABLE IF NOT EXISTS Series (
   BodyId UUID DEFAULT '6e3b76c4-1745-4467-8ac5-b4dd736e1b3e',
   Name varchar(255) DEFAULT NULL,
@@ -25,6 +30,8 @@ CREATE TABLE IF NOT EXISTS Consignment (
   TransferInitiatedBy uuid,
   ExportDatetime timestamp with time zone,
   ExportLocation text,
+  ConsignmentSequence bigint DEFAULT NEXT VALUE FOR consignment_sequence_id,
+  ConsignmentReference varchar(255),
   PRIMARY KEY (ConsignmentId)
 );
 

@@ -33,7 +33,7 @@ object ConsignmentFields {
   case class FileChecks(antivirusProgress: AntivirusProgress, checksumProgress: ChecksumProgress, ffidProgress: FFIDProgress)
   case class TransferringBody(name: Option[String], code: Option[String])
 
-  case class UpdateExportLocationInput(consignmentId: UUID, exportLocation: String)
+  case class UpdateExportLocationInput(consignmentId: UUID, exportLocation: String, exportDatetime: Option[ZonedDateTime])
 
   implicit val FileChecksType: ObjectType[Unit, FileChecks] =
     deriveObjectType[Unit, FileChecks]()

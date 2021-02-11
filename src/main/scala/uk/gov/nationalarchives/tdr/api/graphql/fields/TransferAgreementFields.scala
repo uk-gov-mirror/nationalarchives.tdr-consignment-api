@@ -33,8 +33,8 @@ object TransferAgreementFields {
   implicit val TransferAgreementType: ObjectType[Unit, TransferAgreement] = deriveObjectType[Unit, TransferAgreement]()
   implicit val AddTransferAgreementInputType: InputObjectType[AddTransferAgreementInput] = deriveInputObjectType[AddTransferAgreementInput]()
 
-  val ConsignmentIdArg = Argument("consignmentid", UuidType)
-  val TransferAgreementInputArg = Argument("addTransferAgreementInput", AddTransferAgreementInputType)
+  val ConsignmentIdArg: Argument[UUID] = Argument("consignmentid", UuidType)
+  val TransferAgreementInputArg: Argument[AddTransferAgreementInput] = Argument("addTransferAgreementInput", AddTransferAgreementInputType)
 
   val mutationFields: List[Field[ConsignmentApiContext, Unit]] = fields[ConsignmentApiContext, Unit](
     Field("addTransferAgreement", TransferAgreementType,
