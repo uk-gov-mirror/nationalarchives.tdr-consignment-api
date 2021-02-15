@@ -95,4 +95,9 @@ class ConsignmentRepository(db: Database, timeSource: TimeSource) {
     val query = Consignment.filter(_.consignmentid === consignmentId).map(_.parentfolder)
     db.run(query.result).map(_.headOption.flatten)
   }
+
+  def getConsignmentReference(consignmentId: UUID)(implicit executionContext: ExecutionContext): Future[Option[String]] = {
+    val query = Consignment.filter(_.consignmentid === consignmentId).map(_.consignmentreference)
+    db.run(query.result).map(_.headOption.flatten)
+  }
 }

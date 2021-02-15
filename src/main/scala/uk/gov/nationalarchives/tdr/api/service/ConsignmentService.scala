@@ -82,6 +82,10 @@ class ConsignmentService(
     consignmentRepository.getParentFolder(consignmentId)
   }
 
+  def getConsignmentReference(consignmentId: UUID): Future[Option[String]] = {
+    consignmentRepository.getConsignmentReference(consignmentId)
+  }
+
   private def convertRowToConsignment(row: ConsignmentRow): Consignment = {
     Consignment(
       row.consignmentid,
