@@ -206,4 +206,12 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
     val body: ConsignmentFields.TransferringBody = consignmentService.getTransferringBodyOfConsignment(consignmentId).futureValue.get
     body.name shouldBe mockBody.head.name
   }
+
+  "getConsignmentReference" should "return the consignment reference for a given consignment" in {
+    val consignmentReference = Option("TDR-2021-MTB")
+    when(consignmentRepoMock.getConsignmentReference(consignmentId)).thenReturn(Future.successful(consignmentReference))
+
+    val consignmentReferenceResult = consignmentService.getConsignmentReference(consignmentId).futureValue
+    consignmentReferenceResult shouldBe consignmentReference
+  }
 }
