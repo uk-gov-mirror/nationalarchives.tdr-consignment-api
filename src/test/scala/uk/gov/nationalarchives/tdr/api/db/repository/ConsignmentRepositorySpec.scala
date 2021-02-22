@@ -103,15 +103,4 @@ class ConsignmentRepositorySpec extends AnyFlatSpec with TestDatabase with Scala
     sequenceId should be(expectedSeq)
   }
 
-  "getConsignmentReference" should "get the consignment reference for a given consignment row" in {
-    val db = DbConnection.db
-    val consignmentRepository = new ConsignmentRepository(db, new CurrentTimeSource)
-    val consignmentId = UUID.fromString("4fba1299-83b4-44f1-a1aa-574ff44e54ed")
-
-    TestUtils.createConsignment(consignmentId, userId)
-
-    val reference = consignmentRepository.getConsignmentReference(consignmentId).futureValue
-
-    reference.get should be("TDR-2021-TESTMTB")
-  }
 }
