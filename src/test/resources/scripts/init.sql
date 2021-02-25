@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS Consignment (
   ExportDatetime timestamp with time zone,
   ExportLocation text,
   ConsignmentSequence bigint DEFAULT NEXT VALUE FOR consignment_sequence_id,
-  ConsignmentReference varchar(255),
+  ConsignmentReference varchar(255) NOT NULL,
   PRIMARY KEY (ConsignmentId)
 );
 

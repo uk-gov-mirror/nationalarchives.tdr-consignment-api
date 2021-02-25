@@ -161,8 +161,22 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
 
     val fileRepositoryMock = mock[FileRepository]
     val consignmentRepositoryMock = mock[ConsignmentRepository]
-    val consignment1 = ConsignmentRow(consignmentId1, seriesId1, userId1, Timestamp.from(Instant.now), consignmentsequence = Option(400L))
-    val consignment2 = ConsignmentRow(consignmentId2, seriesId2, userId2, Timestamp.from(Instant.now), consignmentsequence = Option(500L))
+    val consignment1 = ConsignmentRow(
+      consignmentId1,
+      seriesId1,
+      userId1,
+      Timestamp.from(Instant.now),
+      consignmentsequence = Option(400L),
+      consignmentreference = "TEST-TDR-2021-VB"
+    )
+    val consignment2 = ConsignmentRow(
+      consignmentId2,
+      seriesId2,
+      userId2,
+      Timestamp.from(Instant.now),
+      consignmentsequence = Option(500L),
+      consignmentreference = "TEST-TDR-2021-3B"
+    )
     val fileMetadataRepositoryMock = mock[FileMetadataRepository]
     val fileService = new FileService(fileRepositoryMock, consignmentRepositoryMock, fileMetadataRepositoryMock, FixedTimeSource, fixedUuidSource)
 

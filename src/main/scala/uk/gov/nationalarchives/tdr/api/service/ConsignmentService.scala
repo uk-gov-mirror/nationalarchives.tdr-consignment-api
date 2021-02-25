@@ -41,7 +41,7 @@ class ConsignmentService(
         userId,
         Timestamp.from(now),
         consignmentsequence = Option(sequence),
-        consignmentreference = Option(consignmentRef))
+        consignmentreference = consignmentRef)
       consignmentRepository.addConsignment(consignmentRow).map(
         row => convertRowToConsignment(row)
       )
@@ -82,10 +82,6 @@ class ConsignmentService(
     consignmentRepository.getParentFolder(consignmentId)
   }
 
-  def getConsignmentReference(consignmentId: UUID): Future[Option[String]] = {
-    consignmentRepository.getConsignmentReference(consignmentId)
-  }
-
   private def convertRowToConsignment(row: ConsignmentRow): Consignment = {
     Consignment(
       row.consignmentid,
@@ -93,6 +89,7 @@ class ConsignmentService(
       row.seriesid,
       row.datetime.toZonedDateTime,
       row.transferinitiateddatetime.map(ts => ts.toZonedDateTime),
-      row.exportdatetime.map(ts => ts.toZonedDateTime))
+      row.exportdatetime.map(ts => ts.toZonedDateTime),
+      row.consignmentreference)
   }
 }
