@@ -1,9 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.service
 
 import java.sql.Timestamp
-import java.time.Instant
 import java.util.UUID
-
 import org.mockito.ArgumentMatchers._
 import org.mockito.{ArgumentCaptor, MockitoSugar}
 import org.scalatest.concurrent.ScalaFutures
@@ -142,64 +140,4 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     val err = service.addFileMetadata(AddFileMetadataInput("SomethingElse", fileId, "checksum"), UUID.randomUUID()).failed.futureValue
     err.getMessage should equal("SomethingElse found. We are only expecting checksum updates for now")
   }
-
-  "getFileMetadata" should "return the correct metadata" in {
-    val fileMetadataRepositoryMock = mock[FileMetadataRepository]
-
-    val consignmentId = UUID.randomUUID()
-    val fileId = UUID.randomUUID()
-    val timestamp = Timestamp.from(FixedTimeSource.now)
-
-    val rows = Seq(
-      metadataRow(fileId, "ClientSideFileLastModifiedDate", timestamp.toString),
-      metadataRow(fileId, "SHA256ClientSideChecksum", "checksum"),
-      metadataRow(fileId, "ClientSideOriginalFilepath", "filePath"),
-      metadataRow(fileId, "ClientSideFileSize", "1"),
-      metadataRow(fileId, "RightsCopyright", "rightsCopyright"),
-      metadataRow(fileId, "LegalStatus", "legalStatus"),
-      metadataRow(fileId, "HeldBy", "heldBy"),
-      metadataRow(fileId, "Language", "language"),
-      metadataRow(fileId, "FoiExemptionCode", "foiExemption")
-    )
-    when(fileMetadataRepositoryMock.getFileMetadata(consignmentId)).thenReturn(Future(rows))
-
-    val service = new FileMetadataService(fileMetadataRepositoryMock, FixedTimeSource, new FixedUUIDSource())
-    val metadataList = service.getFileMetadata(consignmentId).futureValue
-    metadataList.length should equal(1)
-    val files = metadataList.head
-    val metadata = files.metadata
-    files.fileId should equal(fileId)
-    metadata.clientSideFileSize.get should equal(1)
-    metadata.clientSideLastModifiedDate.get should equal(timestamp.toLocalDateTime)
-    metadata.clientSideOriginalFilePath.get should equal("filePath")
-    metadata.foiExemptionCode.get should equal("foiExemption")
-    metadata.heldBy.get should equal("heldBy")
-    metadata.language.get should equal("language")
-    metadata.legalStatus.get should equal("legalStatus")
-    metadata.rightsCopyright.get should equal("rightsCopyright")
-    metadata.sha256ClientSideChecksum.get should equal("checksum")
-  }
-
-  "getFileMetadata" should "return empty fields if the metadata has an unexpected property name" in {
-    val fileMetadataRepositoryMock = mock[FileMetadataRepository]
-
-    val consignmentId = UUID.randomUUID()
-    val fileId = UUID.randomUUID()
-
-    val rowOne = metadataRow(fileId, "customPropertyNameOne", "customValueOne")
-    val rowTwo = metadataRow(fileId, "customPropertyNameTwo", "customValueTwo")
-    val rows = Seq(rowOne, rowTwo)
-    when(fileMetadataRepositoryMock.getFileMetadata(consignmentId)).thenReturn(Future(rows))
-
-    val service = new FileMetadataService(fileMetadataRepositoryMock, FixedTimeSource, new FixedUUIDSource())
-    val metadataList = service.getFileMetadata(consignmentId).futureValue
-    metadataList.length should equal(1)
-    val metadata = metadataList.head
-    val empty = Option.empty
-    val expected = File(fileId, FileMetadataValues(empty, empty, empty, empty, empty, empty, empty, empty, empty))
-    metadata should equal(expected)
-  }
-
-  private def metadataRow(fileId: UUID, propertyName: String, value: String): FilemetadataRow =
-    FilemetadataRow(UUID.randomUUID(), fileId, value, Timestamp.from(Instant.now()), UUID.randomUUID(), propertyName)
 }
