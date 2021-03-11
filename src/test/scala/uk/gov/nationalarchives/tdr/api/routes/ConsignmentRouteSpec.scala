@@ -146,6 +146,17 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
     addFileMetadata("06209e0d-95d0-4f13-8933-e5b9d00eb435", fileOneId, SHA256ServerSideChecksum)
     addFileMetadata("c4759aae-dc68-45ec-aee1-5a562c7b42cc", fileTwoId, SHA256ServerSideChecksum)
+    (clientSideProperties ++ staticMetadataProperties.map(_.name)).foreach(propertyName => {
+      val value = propertyName match {
+        case ClientSideFileLastModifiedDate => "2021-03-11 12:30:30.592853"
+        case ClientSideFileSize => "1"
+        case _ => s"$propertyName value"
+      }
+      addFileMetadata(UUID.randomUUID().toString, fileOneId, propertyName, value)
+      addFileMetadata(UUID.randomUUID().toString, fileTwoId, propertyName, value)
+      addFileMetadata(UUID.randomUUID().toString, fileThreeId, propertyName, value)
+    })
+
 
     addFFIDMetadata(fileOneId)
     addFFIDMetadata(fileTwoId)
