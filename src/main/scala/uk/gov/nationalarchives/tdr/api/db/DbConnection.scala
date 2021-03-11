@@ -36,7 +36,7 @@ object DbConnection {
     }
   }
 
-  def getPassword: Try[String] = memoize[Try, String](Some(60.seconds)) {
+  def getPassword: Try[String] = memoize[Try, String](Some(13.minutes)) {
     val configFactory = ConfigFactory.load
     val useIamAuth = configFactory.getBoolean("consignmentapi.useIamAuth")
     if (useIamAuth) {
