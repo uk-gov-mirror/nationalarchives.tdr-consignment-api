@@ -134,12 +134,6 @@ class ClientFileMetadataRouteSpec extends AnyFlatSpec with Matchers with TestReq
     response.errors.head.extensions.get.code should equal(expectedResponse.errors.head.extensions.get.code)
   }
 
-  private def createConsignment(consignmentId: UUID, userId: UUID): Unit = {
-    val sql = s"insert into Consignment (ConsignmentId, SeriesId, UserId) VALUES ('$consignmentId', 1, '$userId')"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.executeUpdate()
-  }
-
   private def createFile(fileId: UUID, consignmentId: UUID): Unit = {
     val sql = s"insert into File (FileId, ConsignmentId) VALUES ('$fileId', '$consignmentId')"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)

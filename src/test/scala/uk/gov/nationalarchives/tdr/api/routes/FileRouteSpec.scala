@@ -34,9 +34,8 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Test
   val fixedUuidSource = new FixedUUIDSource()
 
   "The api" should "add one file if the correct information is provided" in {
-    val sql = s"insert into Consignment (SeriesId, UserId) VALUES (1,'$userId')"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.executeUpdate()
+    val consignmentId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
+    createConsignment(consignmentId, userId)
 
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_one_file")
     val response: GraphqlMutationData = runTestMutation("mutation_one_file", validUserToken())
@@ -47,9 +46,8 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Test
   }
 
   "The api" should "add the static metadata if the correct information is provided" in {
-    val sql = s"insert into Consignment (SeriesId, UserId) VALUES (1,'$userId')"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.executeUpdate()
+    val consignmentId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
+    createConsignment(consignmentId, userId)
 
     val response: GraphqlMutationData = runTestMutation("mutation_one_file", validUserToken())
 
@@ -57,11 +55,8 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Test
   }
 
   "The api" should "add three files if the correct information is provided" in {
-    val sql = "insert into Consignment (SeriesId, UserId) VALUES (?,?)"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.setString(1, fixedUuidSource.uuid.toString)
-    ps.setString(2, userId.toString)
-    ps.executeUpdate()
+    val consignmentId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
+    createConsignment(consignmentId, userId)
 
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_all")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
@@ -85,9 +80,10 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Test
   }
 
   "The api" should "throw an error if the user does not own the consignment" in {
-    val sql = "insert into Consignment (SeriesId, UserId) VALUES (1,'5ab14990-ed63-4615-8336-56fbb9960300')"
-    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.executeUpdate()
+    val userId = UUID.fromString("5ab14990-ed63-4615-8336-56fbb9960300")
+    val consignmentId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
+
+    createConsignment(consignmentId, userId)
 
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_error_not_owner")
     val response: GraphqlMutationData = runTestMutation("mutation_alldata", validUserToken())
@@ -96,9 +92,8 @@ class FileRouteSpec extends AnyFlatSpec with Matchers with TestRequest with Test
   }
 
   "The api" should "throw an error if the consignment already has had files uploaded" in {
-    val sqlConsignment = s"insert into Consignment (SeriesId, UserId) VALUES (1,'$userId')"
-    val psConsignment: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sqlConsignment)
-    psConsignment.executeUpdate()
+    val consignmentId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
+    createConsignment(consignmentId, userId)
     //Seed DB with initial file for consignment
     runTestMutation("mutation_one_file", validUserToken())
 

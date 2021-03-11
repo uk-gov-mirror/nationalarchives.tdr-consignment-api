@@ -26,7 +26,8 @@
       "transferringBody": {
         "name": "Some department name",
         "code": "consignment-body-code"
-      }
+      },
+      "consignmentReference": "TDR-2021-GB"
     }
   }
 }
