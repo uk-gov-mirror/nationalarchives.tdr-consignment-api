@@ -3,7 +3,6 @@ package uk.gov.nationalarchives.tdr.api.routes
 import java.sql.{PreparedStatement, Timestamp}
 import java.time.{LocalDateTime, ZonedDateTime}
 import java.util.UUID
-
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.auto._
@@ -50,7 +49,8 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   case class AddConsignment(addConsignment: Consignment)
   case class UpdateExportLocation(updateExportLocation: Int)
   case class UpdateTransferInitiated(updateTransferInitiated: Int)
-  case class File(fileId: UUID, metadata: FileMetadataValues)
+  case class File(fileId: UUID, fileMetadata: FileMetadataValues, ffidMetadata: FFIDMetadataValues)
+  case class FFIDMetadataMatches(extension: Option[String] = None, identificationBasis: String, puid: Option[String])
   case class FileMetadataValues(sha256ClientSideChecksum: Option[String],
                                 clientSideOriginalFilePath: Option[String],
                                 clientSideLastModifiedDate: Option[LocalDateTime],
@@ -61,6 +61,13 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
                                 language: Option[String],
                                 foiExemptionCode: Option[String]
                                )
+  case class FFIDMetadataValues(software: String,
+                          softwareVersion: String,
+                          binarySignatureFileVersion: String,
+                          containerSignatureFileVersion: String,
+                          method: String,
+                          matches: List[FFIDMetadataMatches],
+                          datetime: Long)
 
   val runTestQuery: (String, OAuth2BearerToken) => GraphqlQueryData = runTestRequest[GraphqlQueryData](getConsignmentJsonFilePrefix)
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData = runTestRequest[GraphqlMutationData](addConsignmentJsonFilePrefix)
@@ -164,11 +171,16 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     createConsignment(consignmentId, userId, UUID.randomUUID())
     createFile(fileId, consignmentId)
     staticMetadataProperties.foreach(smp => addFileMetadata(UUID.randomUUID().toString, fileId.toString, smp.name, smp.value))
-    clientSideProperties.foreach(csp => addFileMetadata(UUID.randomUUID().toString, fileId.toString, csp, csp match {
-      case ClientSideFileLastModifiedDate => s"2021-02-08 16:00:00"
-      case ClientSideFileSize => "1"
-      case _ => s"$csp value"
-    }))
+    clientSideProperties.foreach{csp =>
+      addFileMetadata(UUID.randomUUID().toString, fileId.toString, csp,
+        csp match {
+          case ClientSideFileLastModifiedDate => s"2021-02-08 16:00:00"
+          case ClientSideFileSize => "1"
+          case _ => s"$csp value"
+        }
+      )
+    }
+    addFFIDMetadata(fileId.toString)
     val response: GraphqlQueryData = runTestQuery("query_filemetadata", validUserToken())
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_file_metadata")
     response should equal(expectedResponse)

@@ -21,8 +21,8 @@ class FFIDMetadataService(ffidMetadataRepository: FFIDMetadataRepository, matche
       ffidMetadata.containerSignatureFileVersion,
       ffidMetadata.method)
 
-    def addMatches(uuid: UUID) = {
-      val matchRows = ffidMetadata.matches.map(m =>FfidmetadatamatchesRow(uuid, m.extension, m.identificationBasis, m.puid))
+    def addMatches(ffidmetadataid: UUID) = {
+      val matchRows = ffidMetadata.matches.map(m =>FfidmetadatamatchesRow(ffidmetadataid, m.extension, m.identificationBasis, m.puid))
       matchesRepository.addFFIDMetadataMatches(matchRows)
 
     }

@@ -27,7 +27,30 @@
         "name": "Some department name",
         "code": "consignment-body-code"
       },
-      "consignmentReference": "TDR-2021-GB"
+      "consignmentReference": "TDR-2021-GB",
+      "files": {
+        "fileId": "3ce8ef99-a999-4bae-8425-325a67f2d3da",
+        "fileMetadata": {
+          "clientSideFileSize": "ClientSideFileSize",
+          "clientSideLastModifiedDate": "ClientSideFileLastModifiedDate",
+          "clientSideOriginalFilePath": "ClientSideOriginalFilepath",
+          "foiExemptionCode": "open",
+          "heldBy": "TNA",
+          "language": "English",
+          "legalStatus": "Public Record",
+          "rightsCopyright": "Crown Copyright"
+        },
+        "ffidMetadata": {
+          "fixedFileUuid": "b130e097-2edc-4e67-a7e9-5364a09ae9cb",
+          "software": "software",
+          "softwareVersion": "softwareVersion",
+          "binarySignatureFileVersion": "binaryVersion",
+          "containerSignatureFileVersion": "containerVersion",
+          "method": "method",
+          "matches": ["ext", "identificationBasis", "puid"],
+          "datetime": 2147483663
+        }
+      }
     }
   }
 }

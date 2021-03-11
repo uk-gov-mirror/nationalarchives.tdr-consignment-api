@@ -158,6 +158,21 @@ object TestUtils {
     ps.setObject(8, ffidMetadataId)
 
     ps.executeUpdate()
+
+    addFFIDMetadataMatches(ffidMetadataId.toString)
+  }
+
+  def addFFIDMetadataMatches(ffidMetadataId: String): Unit = {
+    val sql = s"INSERT INTO FFIDMetadataMatches" +
+      s"(FFIDMetadataId, Extension, IdentificationBasis, PUID)" +
+      s"VALUES (?, ?, ?, ?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, ffidMetadataId)
+    ps.setString(2, "txt")
+    ps.setString(3, "TEST DATA identification")
+    ps.setString(4, "TEST DATA puid")
+
+    ps.executeUpdate()
   }
 
   def createClientFileMetadata(fileId: UUID): Unit = {
