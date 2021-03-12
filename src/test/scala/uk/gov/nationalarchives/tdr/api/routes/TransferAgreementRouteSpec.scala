@@ -91,9 +91,8 @@ class TransferAgreementRouteSpec extends AnyFlatSpec with Matchers with TestRequ
   }
 
   "The api" should "return an existing transfer agreement consignment metadata properties for a user owned consignment" in {
-    val consignmentSql = s"INSERT INTO Consignment (SeriesId, UserId) VALUES (1,'$userId')"
-    val psConsignment: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(consignmentSql)
-    psConsignment.executeUpdate()
+    val consignmentId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
+    createConsignment(consignmentId, userId)
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_all")
     val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken())

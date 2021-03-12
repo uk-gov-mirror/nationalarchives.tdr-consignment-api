@@ -19,7 +19,8 @@ object ConsignmentFields {
                          seriesid: UUID,
                          createdDateTime: ZonedDateTime,
                          transferInitiatedDatetime: Option[ZonedDateTime],
-                         exportDatetime: Option[ZonedDateTime]
+                         exportDatetime: Option[ZonedDateTime],
+                         consignmentReference: String
                         )
 
   case class AddConsignmentInput(seriesid: UUID)
@@ -88,7 +89,8 @@ object ConsignmentFields {
         "files",
         ListType(FileType),
         resolve = context => DeferFiles(context.value.consignmentid)
-      )
+      ),
+      Field("consignmentReference", StringType, resolve = _.value.consignmentReference)
     )
   )
 

@@ -41,7 +41,7 @@ class ConsignmentService(
         userId,
         Timestamp.from(now),
         consignmentsequence = Option(sequence),
-        consignmentreference = Option(consignmentRef))
+        consignmentreference = consignmentRef)
       consignmentRepository.addConsignment(consignmentRow).map(
         row => convertRowToConsignment(row)
       )
@@ -89,6 +89,7 @@ class ConsignmentService(
       row.seriesid,
       row.datetime.toZonedDateTime,
       row.transferinitiateddatetime.map(ts => ts.toZonedDateTime),
-      row.exportdatetime.map(ts => ts.toZonedDateTime))
+      row.exportdatetime.map(ts => ts.toZonedDateTime),
+      row.consignmentreference)
   }
 }

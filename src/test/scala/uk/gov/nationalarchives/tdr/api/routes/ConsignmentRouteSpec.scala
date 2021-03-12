@@ -110,7 +110,9 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
   //scalastyle:off magic.number
   "getConsignment" should "return all requested fields" in {
-    val sql = "INSERT INTO Consignment (ConsignmentId, SeriesId, UserId, Datetime, TransferInitiatedDatetime, ExportDatetime) VALUES (?, ?, ?, ?, ?, ?)"
+    val sql = "INSERT INTO Consignment" +
+      "(ConsignmentId, SeriesId, UserId, Datetime, TransferInitiatedDatetime, ExportDatetime, ConsignmentReference)" +
+      "VALUES (?, ?, ?, ?, ?, ?, ?)"
     val ps: PreparedStatement = databaseConnection.prepareStatement(sql)
     val bodyId = UUID.fromString("5c761efa-ae1a-4ec8-bb08-dc609fce51f8")
     val bodyCode = "consignment-body-code"
@@ -123,6 +125,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     ps.setTimestamp(4, fixedTimeStamp)
     ps.setTimestamp(5, fixedTimeStamp)
     ps.setTimestamp(6, fixedTimeStamp)
+    ps.setString(7, "TEST-TDR-2021-MTB")
     ps.executeUpdate()
     val fileOneId = "e7ba59c9-5b8b-4029-9f27-2d03957463ad"
     val fileTwoId = "42910a85-85c3-40c3-888f-32f697bfadb6"
@@ -172,14 +175,8 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   }
 
   "getConsignment" should "return the expected data" in {
-    val fixedUuidSource = new FixedUUIDSource()
-    val sql = "INSERT INTO Consignment (ConsignmentId, SeriesId, UserId) VALUES (?,?,?)"
-    val ps: PreparedStatement = databaseConnection.prepareStatement(sql)
-    val uuid = fixedUuidSource.uuid.toString
-    ps.setString(1, uuid)
-    ps.setString(2, uuid)
-    ps.setString(3, userId.toString)
-    ps.executeUpdate()
+    val consignmentId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
+    createConsignment(consignmentId, userId)
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_some")
     val response: GraphqlQueryData = runTestQuery("query_somedata", validUserToken())
@@ -188,14 +185,8 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
   "getConsignment" should "allow a user with export access to return data" in {
     val exportAccessToken = validBackendChecksToken("export")
-    val fixedUuidSource = new FixedUUIDSource()
-    val sql = "INSERT INTO Consignment (ConsignmentId, SeriesId, UserId) VALUES (?,?,?)"
-    val ps: PreparedStatement = databaseConnection.prepareStatement(sql)
-    val uuid = fixedUuidSource.uuid.toString
-    ps.setString(1, uuid)
-    ps.setString(2, uuid)
-    ps.setString(3, userId.toString)
-    ps.executeUpdate()
+    val consignmentId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
+    createConsignment(consignmentId, userId)
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_some")
     val response: GraphqlQueryData = runTestQuery("query_somedata", exportAccessToken)
@@ -203,10 +194,9 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   }
 
   "getConsignment" should "not allow a user to get a consignment that they did not create" in {
+    val consignmentId = UUID.fromString("f1dbc692-e56c-4d76-be94-d8d3d79bd38a")
     val otherUserId = "73abd1dc-294d-4068-b60d-c1cd4782d08d"
-    val sql = s"INSERT INTO Consignment (SeriesId, UserId) VALUES (1, '$otherUserId')"
-    val ps: PreparedStatement = databaseConnection.prepareStatement(sql)
-    ps.executeUpdate()
+    createConsignment(consignmentId, UUID.fromString(otherUserId))
 
     val response: GraphqlQueryData = runTestQuery("query_somedata", validUserToken())
 

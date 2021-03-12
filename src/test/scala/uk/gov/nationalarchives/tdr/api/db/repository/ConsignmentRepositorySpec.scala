@@ -102,4 +102,5 @@ class ConsignmentRepositorySpec extends AnyFlatSpec with TestDatabase with Scala
 
     sequenceId should be(expectedSeq)
   }
+
 }
