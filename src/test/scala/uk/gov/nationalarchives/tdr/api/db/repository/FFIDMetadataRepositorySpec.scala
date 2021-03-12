@@ -19,9 +19,9 @@ class FFIDMetadataRepositorySpec extends AnyFlatSpec with TestDatabase with Scal
 
     TestUtils.createConsignment(consignmentId, userId)
 
-    val consignmentFiles = ffidMetadataRepository.countProcessedFfidMetadata(consignmentId).futureValue
+    val ffidMetadataFiles = ffidMetadataRepository.countProcessedFfidMetadata(consignmentId).futureValue
 
-    consignmentFiles shouldBe 0
+    ffidMetadataFiles shouldBe 0
   }
 
   "countProcessedFfidMetadata" should "return 0 if consignment has no FFID metadata for files" in {
@@ -37,9 +37,9 @@ class FFIDMetadataRepositorySpec extends AnyFlatSpec with TestDatabase with Scal
     TestUtils.createFile(fileTwoId, consignmentId)
     TestUtils.createFile(fileThreeId, consignmentId)
 
-    val consignmentFiles = ffidMetadataRepository.countProcessedFfidMetadata(consignmentId).futureValue
+    val ffidMetadataFiles = ffidMetadataRepository.countProcessedFfidMetadata(consignmentId).futureValue
 
-    consignmentFiles shouldBe 0
+    ffidMetadataFiles shouldBe 0
   }
 
   "countProcessedFfidMetadata" should "return the number of FFIDMetadata for files in a specified consignment" in {
@@ -62,12 +62,12 @@ class FFIDMetadataRepositorySpec extends AnyFlatSpec with TestDatabase with Scal
     TestUtils.addFFIDMetadata(fileTwoId)
     TestUtils.addFFIDMetadata(fileThreeId)
 
-    val fileMetadataFiles = ffidMetadataRepository.countProcessedFfidMetadata(consignmentOne).futureValue
+    val ffidMetadataFiles = ffidMetadataRepository.countProcessedFfidMetadata(consignmentOne).futureValue
 
-    fileMetadataFiles shouldBe 2
+    ffidMetadataFiles shouldBe 2
   }
 
-  "countProcessedFfidMetadata" should "return number of fileMetadata rows with repetitive data filtered out" in {
+  "countProcessedFfidMetadata" should "return number of ffidMetadata rows with repetitive data filtered out" in {
     val db = DbConnection.db
     val ffidMetadataRepository = new FFIDMetadataRepository(db)
     val consignmentId = UUID.fromString("21061d4d-ed73-485f-b433-c48b0868fffb")
@@ -83,14 +83,13 @@ class FFIDMetadataRepositorySpec extends AnyFlatSpec with TestDatabase with Scal
     TestUtils.createFile(UUID.fromString(fileThreeId), consignmentId)
     TestUtils.createFile(UUID.fromString(fileFourId), consignmentId)
 
-    (1 to 7).foreach { _ => TestUtils.addFFIDMetadata(fileOneId) }
-
+    TestUtils.addFFIDMetadata(fileOneId)
     TestUtils.addFFIDMetadata(fileTwoId)
     TestUtils.addFFIDMetadata(fileThreeId)
 
-    val fileMetadataFiles = ffidMetadataRepository.countProcessedFfidMetadata(consignmentId).futureValue
+    val ffidMetadataFiles = ffidMetadataRepository.countProcessedFfidMetadata(consignmentId).futureValue
 
-    fileMetadataFiles shouldBe 3
+    ffidMetadataFiles shouldBe 3
   }
 
   "getFFIDMetadata" should "return the same number of ffidMetadata rows as the number of files added" in {
