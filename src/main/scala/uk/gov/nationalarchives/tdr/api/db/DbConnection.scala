@@ -41,12 +41,12 @@ object DbConnection {
     val useIamAuth = configFactory.getBoolean("consignmentapi.useIamAuth")
     if (useIamAuth) {
       val rdsClient = RdsUtilities.builder().region(Region.EU_WEST_2).build()
-      val port = 5432
+      val port = configFactory.getInt("consignmentapi.db.ports")
       val request = GenerateAuthenticationTokenRequest.builder()
         .credentialsProvider(DefaultCredentialsProvider.builder().build())
-        .hostname(sys.env("DB_ADDR"))
+        .hostname(configFactory.getString("consignmentapi.db.host"))
         .port(port)
-        .username("api_iam")
+        .username(configFactory.getString("consignmentapi.db.user"))
         .region(Region.EU_WEST_2)
         .build()
       rdsClient.generateAuthenticationToken(request)
