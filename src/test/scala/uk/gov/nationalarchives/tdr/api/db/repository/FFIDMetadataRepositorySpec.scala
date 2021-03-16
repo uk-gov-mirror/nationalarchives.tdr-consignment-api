@@ -83,7 +83,8 @@ class FFIDMetadataRepositorySpec extends AnyFlatSpec with TestDatabase with Scal
     TestUtils.createFile(UUID.fromString(fileThreeId), consignmentId)
     TestUtils.createFile(UUID.fromString(fileFourId), consignmentId)
 
-    TestUtils.addFFIDMetadata(fileOneId)
+    (1 to 7).foreach { _ => TestUtils.addFFIDMetadata(fileOneId) }
+
     TestUtils.addFFIDMetadata(fileTwoId)
     TestUtils.addFFIDMetadata(fileThreeId)
 
