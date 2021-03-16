@@ -36,6 +36,9 @@ object DbConnection {
     }
   }
 
+  //We've chosen the cache to be 5 minutes. This means that we're not making too many requests to AWS while at the same time
+  //it gives us a buffer if anything goes wrong getting the password.
+  //IAM database passwords are valid for 15 minutes https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html
   def getPassword: Try[String] = memoize[Try, String](Some(5.minutes)) {
     val configFactory = ConfigFactory.load
     val useIamAuth = configFactory.getBoolean("consignmentapi.useIamAuth")
