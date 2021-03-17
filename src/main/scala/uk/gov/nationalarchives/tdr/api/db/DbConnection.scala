@@ -8,11 +8,15 @@ import scalacache.memoization._
 import scalacache.modes.try_._
 import slick.jdbc.JdbcBackend
 import slick.jdbc.hikaricp.HikariCPJdbcDataSource
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider
+import software.amazon.awssdk.auth.credentials.{AwsSessionCredentials, DefaultCredentialsProvider, StaticCredentialsProvider}
+import software.amazon.awssdk.http.apache.ApacheHttpClient
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.rds.RdsUtilities
 import software.amazon.awssdk.services.rds.model.GenerateAuthenticationTokenRequest
+import software.amazon.awssdk.services.sts.StsClient
+import software.amazon.awssdk.services.sts.model.AssumeRoleRequest
 
+import java.util.UUID
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
@@ -40,13 +44,24 @@ object DbConnection {
   //it gives us a buffer if anything goes wrong getting the password.
   //IAM database passwords are valid for 15 minutes https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html
   def getPassword: Try[String] = memoize[Try, String](Some(5.minutes)) {
+    val stsClient = StsClient.builder
+      .httpClient(ApacheHttpClient.builder.build)
+      .region(Region.EU_WEST_2)
+      .build()
+    val account = stsClient.getCallerIdentity().account()
+    val environment = sys.env("ENVIRONMENT").capitalize
+    val roleArn = s"arn:aws:iam::$account:role/TDRConsignmentAPIAllowIAMAuthRole$environment"
+    val assumeRoleRequest = AssumeRoleRequest.builder.roleArn(roleArn).roleSessionName(UUID.randomUUID().toString).build()
+    val credentials = stsClient.assumeRole(assumeRoleRequest).credentials()
+    val sessionCredentials = AwsSessionCredentials.create(credentials.accessKeyId, credentials.secretAccessKey, credentials.sessionToken)
+    val provider = StaticCredentialsProvider.create(sessionCredentials)
     val configFactory = ConfigFactory.load
     val useIamAuth = configFactory.getBoolean("consignmentapi.useIamAuth")
     if (useIamAuth) {
       val rdsClient = RdsUtilities.builder().region(Region.EU_WEST_2).build()
       val port = configFactory.getInt("consignmentapi.db.port")
       val request = GenerateAuthenticationTokenRequest.builder()
-        .credentialsProvider(DefaultCredentialsProvider.builder().build())
+        .credentialsProvider(provider)
         .hostname(configFactory.getString("consignmentapi.db.host"))
         .port(port)
         .username(configFactory.getString("consignmentapi.db.user"))
