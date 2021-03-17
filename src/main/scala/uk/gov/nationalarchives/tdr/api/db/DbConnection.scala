@@ -44,17 +44,6 @@ object DbConnection {
   //it gives us a buffer if anything goes wrong getting the password.
   //IAM database passwords are valid for 15 minutes https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html
   def getPassword: Try[String] = memoize[Try, String](Some(5.minutes)) {
-//    val stsClient = StsClient.builder
-//      .httpClient(ApacheHttpClient.builder.build)
-//      .region(Region.EU_WEST_2)
-//      .build()
-//    val account = stsClient.getCallerIdentity().account()
-//    val environment = sys.env("ENVIRONMENT").capitalize
-//    val roleArn = s"arn:aws:iam::$account:role/TDRConsignmentAPIAllowIAMAuthRole$environment"
-//    val assumeRoleRequest = AssumeRoleRequest.builder.roleArn(roleArn).roleSessionName(UUID.randomUUID().toString).build()
-//    val credentials = stsClient.assumeRole(assumeRoleRequest).credentials()
-//    val sessionCredentials = AwsSessionCredentials.create(credentials.accessKeyId, credentials.secretAccessKey, credentials.sessionToken)
-//    val provider = StaticCredentialsProvider.create(sessionCredentials)
     val configFactory = ConfigFactory.load
     val useIamAuth = configFactory.getBoolean("consignmentapi.useIamAuth")
     if (useIamAuth) {
