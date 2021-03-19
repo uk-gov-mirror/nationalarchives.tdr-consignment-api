@@ -231,15 +231,15 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     when(ffidMetadataRepositoryMock.getFFIDMetadata(consignmentId)).thenReturn(Future(ffidMetadataRows))
 
     val fileMetadataRows = Seq(
-      fileMetadataRow(ffidMetadataId, fileId, "ClientSideFileLastModifiedDate", timestamp.toString),
-      fileMetadataRow(ffidMetadataId, fileId, "SHA256ClientSideChecksum", "checksum"),
-      fileMetadataRow(ffidMetadataId, fileId, "ClientSideOriginalFilepath", "filePath"),
-      fileMetadataRow(ffidMetadataId, fileId, "ClientSideFileSize", "1"),
-      fileMetadataRow(ffidMetadataId, fileId, "RightsCopyright", "rightsCopyright"),
-      fileMetadataRow(ffidMetadataId, fileId, "LegalStatus", "legalStatus"),
-      fileMetadataRow(ffidMetadataId, fileId, "HeldBy", "heldBy"),
-      fileMetadataRow(ffidMetadataId, fileId, "Language", "language"),
-      fileMetadataRow(ffidMetadataId, fileId, "FoiExemptionCode", "foiExemption")
+      fileMetadataRow(fileId, "ClientSideFileLastModifiedDate", timestamp.toString),
+      fileMetadataRow(fileId, "SHA256ClientSideChecksum", "checksum"),
+      fileMetadataRow(fileId, "ClientSideOriginalFilepath", "filePath"),
+      fileMetadataRow(fileId, "ClientSideFileSize", "1"),
+      fileMetadataRow(fileId, "RightsCopyright", "rightsCopyright"),
+      fileMetadataRow(fileId, "LegalStatus", "legalStatus"),
+      fileMetadataRow(fileId, "HeldBy", "heldBy"),
+      fileMetadataRow(fileId, "Language", "language"),
+      fileMetadataRow(fileId, "FoiExemptionCode", "foiExemption")
     )
     when(fileMetadataRepositoryMock.getFileMetadata(consignmentId)).thenReturn(Future(fileMetadataRows))
 
@@ -288,12 +288,11 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     val ffidMetadataRows = Seq(
       (fileId, (ffidMetadataRow(ffidMetadataId, fileId, datetime), ffidMetadataMatchesRow(ffidMetadataId)))
     )
-
     when(ffidMetadataRepositoryMock.getFFIDMetadata(consignmentId)).thenReturn(Future(ffidMetadataRows))
 
     val fileMetadataRows = Seq(
-      fileMetadataRow(ffidMetadataId, fileId, "customPropertyNameOne", "customValueOne"),
-      fileMetadataRow(ffidMetadataId, fileId, "customPropertyNameTwo", "customValueTwo")
+      fileMetadataRow(fileId, "customPropertyNameOne", "customValueOne"),
+      fileMetadataRow(fileId, "customPropertyNameTwo", "customValueTwo")
     )
     when(fileMetadataRepositoryMock.getFileMetadata(consignmentId)).thenReturn(Future(fileMetadataRows))
 
@@ -320,12 +319,12 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     actualFileMetadata should equal(expectedFileMetadata)
   }
 
-  private def ffidMetadataRow(ffidmetadataid: UUID, fileId: UUID, datetime: Timestamp): FfidmetadataRow =
-    FfidmetadataRow(ffidmetadataid, fileId, "pronom", "1.0", datetime, "signaturefileversion", "signature", "pronom")
+  private def ffidMetadataRow(ffidMetadataid: UUID, fileId: UUID, datetime: Timestamp): FfidmetadataRow =
+    FfidmetadataRow(ffidMetadataid, fileId, "pronom", "1.0", datetime, "signaturefileversion", "signature", "pronom")
 
-  private def ffidMetadataMatchesRow(ffidmetadataid: UUID): FfidmetadatamatchesRow =
-    FfidmetadatamatchesRow(ffidmetadataid, Some("txt"), "identification", Some("x-fmt/111"))
+  private def ffidMetadataMatchesRow(ffidMetadataid: UUID): FfidmetadatamatchesRow =
+    FfidmetadatamatchesRow(ffidMetadataid, Some("txt"), "identification", Some("x-fmt/111"))
 
-  private def fileMetadataRow(ffidmetadataid: UUID, fileId: UUID, propertyName: String, value: String): FilemetadataRow =
-    FilemetadataRow(ffidmetadataid, fileId, value, Timestamp.from(Instant.now()), UUID.randomUUID(), propertyName)
+  private def fileMetadataRow(fileId: UUID, propertyName: String, value: String): FilemetadataRow =
+    FilemetadataRow(UUID.randomUUID(), fileId, value, Timestamp.from(Instant.now()), UUID.randomUUID(), propertyName)
 }
