@@ -110,3 +110,13 @@ CREATE TABLE IF NOT EXISTS FFIDMetadataMatches (
     PUID varchar(255) not null,
     FOREIGN KEY (FFIDMetadataId) REFERENCES FFIDMetadata(FFIDMetadataId)
 );
+
+CREATE TABLE IF NOT EXISTS ConsignmentStatus (
+    ConsignmentStatusId uuid not null,
+    ConsignmentId uuid not null,
+    StatusType varchar(255) not null,
+    Value varchar(255) not null,
+    CreatedDatetime timestamp not null,
+    PRIMARY KEY (ConsignmentStatusId),
+    FOREIGN KEY (ConsignmentId) REFERENCES Consignment(ConsignmentId)
+);
