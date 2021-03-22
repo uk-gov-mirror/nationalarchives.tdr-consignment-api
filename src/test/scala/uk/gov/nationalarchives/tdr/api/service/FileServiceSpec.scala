@@ -3,15 +3,14 @@ package uk.gov.nationalarchives.tdr.api.service
 import java.sql.Timestamp
 import java.time.Instant
 import java.util.UUID
-
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, MockitoSugar}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers, MockitoSugar}
 import org.scalatest.Assertion
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables
-import uk.gov.nationalarchives.Tables.{ConsignmentRow, FileRow, FilemetadataRow}
+import uk.gov.nationalarchives.Tables.{ConsignmentRow, ConsignmentstatusRow, FileRow, FilemetadataRow}
 import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentRepository, FileMetadataRepository, FileRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields.{AddFilesInput, Files}
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.staticMetadataProperties
@@ -33,7 +32,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     val fileMetadataRepositoryMock = mock[FileMetadataRepository]
 
     val mockFileResponse = Future.successful(List(FileRow(fileId, consignmentId, uuid, Timestamp.from(Instant.now))))
-    when(fileRepositoryMock.addFiles(any[List[FileRow]])).thenReturn(mockFileResponse)
+    when(fileRepositoryMock.addFiles(any[List[FileRow]], any[ConsignmentstatusRow])).thenReturn(mockFileResponse)
     val mockConsignmentResponse = Future.successful(())
     when(consignmentRepositoryMock.addParentFolder(consignmentId, "Parent folder name")).thenReturn(mockConsignmentResponse)
     val mockFileMetadataResponse = Future.successful(Seq(FilemetadataRow(UUID.randomUUID(), fileId, "value", Timestamp.from(Instant.now), uuid, "name")))
@@ -63,7 +62,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     val captor: ArgumentCaptor[List[FileRow]] = ArgumentCaptor.forClass(classOf[List[FileRow]])
 
     val mockResponse = Future.successful(List(fileRowOne, fileRowTwo, fileRowThree))
-    when(fileRepositoryMock.addFiles(captor.capture())).thenReturn(mockResponse)
+    when(fileRepositoryMock.addFiles(captor.capture(), any[ConsignmentstatusRow])).thenReturn(mockResponse)
     val mockConsignmentResponse = Future.successful(())
     when(consignmentRepositoryMock.addParentFolder(consignmentUuid, "Parent folder name")).thenReturn(mockConsignmentResponse)
     val mockFileMetadataResponse = Future.successful(
@@ -86,27 +85,31 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     val userId = UUID.randomUUID()
     val fileUuid = fixedUuidSource.uuid
     val consignmentUuid = UUID.randomUUID()
+    val consignmentStatusUuid = fixedUuidSource.uuid
     val fileRepositoryMock = mock[FileRepository]
     val consignmentRepositoryMock = mock[ConsignmentRepository]
     val fileMetadataRepositoryMock = mock[FileMetadataRepository]
     val fileService = new FileService(fileRepositoryMock, consignmentRepositoryMock, fileMetadataRepositoryMock, FixedTimeSource, fixedUuidSource)
     fixedUuidSource.reset
+    val timeNow = Timestamp.from(FixedTimeSource.now)
 
-    val expectedRow = List(FileRow(fileUuid, consignmentUuid, userId, Timestamp.from(FixedTimeSource.now)))
-    val captor: ArgumentCaptor[List[FileRow]] = ArgumentCaptor.forClass(classOf[List[FileRow]])
-    val mockResponse = Future.successful(List(FileRow(fileUuid, consignmentUuid, userId, Timestamp.from(FixedTimeSource.now))))
-    when(fileRepositoryMock.addFiles(captor.capture())).thenReturn(mockResponse)
+    val mockConsignmentStatusRow = ConsignmentstatusRow(consignmentStatusUuid, consignmentUuid, "Upload", "InProgress", timeNow)
+    val expectedFileRow = List(FileRow(fileUuid, consignmentUuid, userId, timeNow))
+    val fileCaptor: ArgumentCaptor[List[FileRow]] = ArgumentCaptor.forClass(classOf[List[FileRow]])
+    val consignmentStatusCaptor: ArgumentCaptor[ConsignmentstatusRow] = ArgumentCaptor.forClass(classOf[ConsignmentstatusRow])
+    val mockResponse = Future.successful(List(FileRow(fileUuid, consignmentUuid, userId, timeNow)))
+    when(fileRepositoryMock.addFiles(fileCaptor.capture(), consignmentStatusCaptor.capture())).thenReturn(mockResponse)
     val mockConsignmentResponse = Future.successful(())
     when(consignmentRepositoryMock.addParentFolder(consignmentUuid, "Parent folder name")).thenReturn(mockConsignmentResponse)
-    val mockFileMetadataResponse = Future.successful(Seq(FilemetadataRow(UUID.randomUUID(), fileUuid, "value", Timestamp.from(Instant.now), userId, "name")))
+    val mockFileMetadataResponse = Future.successful(Seq(FilemetadataRow(UUID.randomUUID(), fileUuid, "value", timeNow, userId, "name")))
     when(fileMetadataRepositoryMock.addFileMetadata(any[Seq[FilemetadataRow]])).thenReturn(mockFileMetadataResponse)
 
     fileService.addFile(AddFilesInput(consignmentUuid, 1, "Parent folder name"), userId).futureValue
 
-    verify(fileRepositoryMock).addFiles(expectedRow)
-    captor.getAllValues.size should equal(1)
-    captor.getAllValues.get(0).head.consignmentid should equal(consignmentUuid)
-    captor.getAllValues.get(0).head.userid should equal(userId)
+    verify(fileRepositoryMock).addFiles(expectedFileRow, mockConsignmentStatusRow)
+    fileCaptor.getAllValues.size should equal(1)
+    fileCaptor.getAllValues.get(0).head.consignmentid should equal(consignmentUuid)
+    fileCaptor.getAllValues.get(0).head.userid should equal(userId)
   }
 
   "createFile" should "create the correct static metadata" in {
@@ -114,13 +117,14 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     val uuid = UUID.randomUUID()
     val fileId = UUID.randomUUID()
     val consignmentId = UUID.randomUUID()
+    val consignmentStatusId = fixedUUIDSource.uuid
 
     val fileRepositoryMock = mock[FileRepository]
     val consignmentRepositoryMock = mock[ConsignmentRepository]
     val fileMetadataRepositoryMock = mock[FileMetadataRepository]
 
     val mockFileResponse = Future.successful(List(FileRow(fileId, consignmentId, uuid, Timestamp.from(Instant.now))))
-    when(fileRepositoryMock.addFiles(any[List[FileRow]])).thenReturn(mockFileResponse)
+    when(fileRepositoryMock.addFiles(any[List[FileRow]], any[ConsignmentstatusRow])).thenReturn(mockFileResponse)
     val mockConsignmentResponse = Future.successful(())
     when(consignmentRepositoryMock.addParentFolder(consignmentId, "Parent folder name")).thenReturn(mockConsignmentResponse)
     val mockFileMetadataResponse = Future.successful(Seq(FilemetadataRow(UUID.randomUUID(), fileId, "value", Timestamp.from(Instant.now), uuid, "name")))
