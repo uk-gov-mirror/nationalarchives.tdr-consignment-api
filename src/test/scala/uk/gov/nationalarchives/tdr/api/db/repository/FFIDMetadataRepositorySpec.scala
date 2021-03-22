@@ -58,9 +58,14 @@ class FFIDMetadataRepositorySpec extends AnyFlatSpec with TestDatabase with Scal
     TestUtils.createFile(UUID.fromString(fileTwoId), consignmentOne)
     TestUtils.createFile(UUID.fromString(fileThreeId), consignmentTwo)
 
-    TestUtils.addFFIDMetadata(fileOneId)
-    TestUtils.addFFIDMetadata(fileTwoId)
-    TestUtils.addFFIDMetadata(fileThreeId)
+    val fileOneFfidMetadataId = TestUtils.addFFIDMetadata(fileOneId)
+    TestUtils.addFFIDMetadataMatches(fileOneFfidMetadataId.toString)
+
+    val fileTwoFfidMetadataId = TestUtils.addFFIDMetadata(fileTwoId)
+    TestUtils.addFFIDMetadataMatches(fileTwoFfidMetadataId.toString)
+
+    val fileThreeFfidMetadataId = TestUtils.addFFIDMetadata(fileThreeId)
+    TestUtils.addFFIDMetadataMatches(fileThreeFfidMetadataId.toString)
 
     val fileMetadataFiles = ffidMetadataRepository.countProcessedFfidMetadata(consignmentOne).futureValue
 
@@ -83,10 +88,17 @@ class FFIDMetadataRepositorySpec extends AnyFlatSpec with TestDatabase with Scal
     TestUtils.createFile(UUID.fromString(fileThreeId), consignmentId)
     TestUtils.createFile(UUID.fromString(fileFourId), consignmentId)
 
-    (1 to 7).foreach { _ => TestUtils.addFFIDMetadata(fileOneId) }
+    (1 to 7).foreach {
+      _ =>
+       val fileOneFfidMetadataId = TestUtils.addFFIDMetadata(fileOneId)
+        TestUtils.addFFIDMetadataMatches(fileOneFfidMetadataId.toString)
+    }
 
-    TestUtils.addFFIDMetadata(fileTwoId)
-    TestUtils.addFFIDMetadata(fileThreeId)
+    val fileTwoFfidMetadataId = TestUtils.addFFIDMetadata(fileTwoId)
+    TestUtils.addFFIDMetadataMatches(fileTwoFfidMetadataId.toString)
+
+    val fileThreeFfidMetadataId = TestUtils.addFFIDMetadata(fileThreeId)
+    TestUtils.addFFIDMetadataMatches(fileThreeFfidMetadataId.toString)
 
     val ffidMetadataFiles = ffidMetadataRepository.countProcessedFfidMetadata(consignmentId).futureValue
 
@@ -109,35 +121,62 @@ class FFIDMetadataRepositorySpec extends AnyFlatSpec with TestDatabase with Scal
     TestUtils.createFile(UUID.fromString(fileThreeId), consignmentId)
     TestUtils.createFile(UUID.fromString(fileFourId), consignmentId)
 
-    TestUtils.addFFIDMetadata(fileOneId)
-    TestUtils.addFFIDMetadata(fileTwoId)
-    TestUtils.addFFIDMetadata(fileThreeId)
+    val fileOneFfidMetadataId = TestUtils.addFFIDMetadata(fileOneId)
+    TestUtils.addFFIDMetadataMatches(fileOneFfidMetadataId.toString)
+
+    val fileTwoFfidMetadataId = TestUtils.addFFIDMetadata(fileTwoId)
+    TestUtils.addFFIDMetadataMatches(fileTwoFfidMetadataId.toString)
+
+    val fileThreeFfidMetadataId = TestUtils.addFFIDMetadata(fileThreeId)
+    TestUtils.addFFIDMetadataMatches(fileThreeFfidMetadataId.toString)
 
     val ffidMetadataRows = ffidMetadataRepository.getFFIDMetadata(consignmentId).futureValue
 
     ffidMetadataRows.length shouldBe 3
   }
-  "getFFIDMetadata" should "return the fileIds of the files that had ffidMetadata added to them" in {
+
+  "getFFIDMetadata" should "return 0 ffid metadata rows for a consignment if no files were added" in {
     val db = DbConnection.db
     val ffidMetadataRepository = new FFIDMetadataRepository(db)
     val consignmentId = UUID.fromString("21061d4d-ed73-485f-b433-c48b0868fffb")
+
+    TestUtils.createConsignment(consignmentId, userId)
+
+    val ffidMetadataRows = ffidMetadataRepository.getFFIDMetadata(consignmentId).futureValue
+
+    ffidMetadataRows.length shouldBe 0
+  }
+
+  "getFFIDMetadata" should "return the fileIds of the files that belong to that consignment" in {
+    val db = DbConnection.db
+    val ffidMetadataRepository = new FFIDMetadataRepository(db)
+    val consignmentOneId = UUID.fromString("21061d4d-ed73-485f-b433-c48b0868fffb")
+    val consignmentTwoId = UUID.fromString("89bdd66f-88c2-4edb-9911-2c605d002a1e")
 
     val fileOneId = "50f4f290-cdcc-4a0f-bd26-3bb40f320b71"
     val fileTwoId = "7f55565e-bfa5-4cf9-9e02-7e75ff033b3b"
     val fileThreeId = "89b6183d-e761-4af9-9e37-2ffa09922dba"
     val fileFourId = "939999e5-c082-4052-a99a-6b45092d826f"
 
-    TestUtils.createConsignment(consignmentId, userId)
-    TestUtils.createFile(UUID.fromString(fileOneId), consignmentId)
-    TestUtils.createFile(UUID.fromString(fileTwoId), consignmentId)
-    TestUtils.createFile(UUID.fromString(fileThreeId), consignmentId)
-    TestUtils.createFile(UUID.fromString(fileFourId), consignmentId)
+    TestUtils.createConsignment(consignmentOneId, userId)
+    TestUtils.createFile(UUID.fromString(fileOneId), consignmentOneId)
+    TestUtils.createFile(UUID.fromString(fileTwoId), consignmentOneId)
+    TestUtils.createFile(UUID.fromString(fileThreeId), consignmentOneId)
+    TestUtils.createFile(UUID.fromString(fileFourId), consignmentTwoId)
 
-    TestUtils.addFFIDMetadata(fileOneId)
-    TestUtils.addFFIDMetadata(fileTwoId)
-    TestUtils.addFFIDMetadata(fileThreeId)
+    val fileOneFfidMetadataId = TestUtils.addFFIDMetadata(fileOneId)
+    TestUtils.addFFIDMetadataMatches(fileOneFfidMetadataId.toString)
 
-    val ffidMetadataRows = ffidMetadataRepository.getFFIDMetadata(consignmentId).futureValue
+    val fileTwoFfidMetadataId = TestUtils.addFFIDMetadata(fileTwoId)
+    TestUtils.addFFIDMetadataMatches(fileTwoFfidMetadataId.toString)
+
+    val fileThreeFfidMetadataId = TestUtils.addFFIDMetadata(fileThreeId)
+    TestUtils.addFFIDMetadataMatches(fileThreeFfidMetadataId.toString)
+
+    val fileFourFfidMetadataId = TestUtils.addFFIDMetadata(fileFourId)
+    TestUtils.addFFIDMetadataMatches(fileFourFfidMetadataId.toString)
+
+    val ffidMetadataRows = ffidMetadataRepository.getFFIDMetadata(consignmentOneId).futureValue
     val fileIds: Set[UUID] = ffidMetadataRows.toMap.keySet
 
     fileIds.contains(UUID.fromString(fileOneId)) should equal(true)
@@ -146,7 +185,46 @@ class FFIDMetadataRepositorySpec extends AnyFlatSpec with TestDatabase with Scal
     fileIds.contains(UUID.fromString(fileFourId)) should equal(false)
   }
 
-  "getFFIDMetadata" should "return ffidMetadata and ffidMetadataMatches that have matching fileMetadataIds" in {
+  "getFFIDMetadata" should "return only the fileIds of the files that had ffidMetadata & ffidMetadataMatches applied to them" in {
+    val db = DbConnection.db
+    val ffidMetadataRepository = new FFIDMetadataRepository(db)
+    val consignmentId = UUID.fromString("21061d4d-ed73-485f-b433-c48b0868fffb")
+
+    val fileOneId = "50f4f290-cdcc-4a0f-bd26-3bb40f320b71"
+    val fileTwoId = "7f55565e-bfa5-4cf9-9e02-7e75ff033b3b"
+    val fileThreeId = "89b6183d-e761-4af9-9e37-2ffa09922dba"
+    val fileFourId = "939999e5-c082-4052-a99a-6b45092d826f"
+    val fileFiveId = "907a6ff7-d6b5-482b-854a-0b962f8367e3"
+
+    TestUtils.createConsignment(consignmentId, userId)
+    TestUtils.createFile(UUID.fromString(fileOneId), consignmentId)
+    TestUtils.createFile(UUID.fromString(fileTwoId), consignmentId)
+    TestUtils.createFile(UUID.fromString(fileThreeId), consignmentId)
+    TestUtils.createFile(UUID.fromString(fileFourId), consignmentId)
+    TestUtils.createFile(UUID.fromString(fileFiveId), consignmentId)
+
+    val fileOneFfidMetadataId = TestUtils.addFFIDMetadata(fileOneId)
+    TestUtils.addFFIDMetadataMatches(fileOneFfidMetadataId.toString)
+
+    val fileTwoFfidMetadataId = TestUtils.addFFIDMetadata(fileTwoId)
+    TestUtils.addFFIDMetadataMatches(fileTwoFfidMetadataId.toString)
+
+    val fileThreeFfidMetadataId = TestUtils.addFFIDMetadata(fileThreeId)
+    TestUtils.addFFIDMetadataMatches(fileThreeFfidMetadataId.toString)
+
+    val fileFourFfidMetadataId = TestUtils.addFFIDMetadata(fileFourId)
+
+    val ffidMetadataRows = ffidMetadataRepository.getFFIDMetadata(consignmentId).futureValue
+    val fileIds: Set[UUID] = ffidMetadataRows.toMap.keySet
+
+    fileIds.contains(UUID.fromString(fileOneId)) should equal(true)
+    fileIds.contains(UUID.fromString(fileTwoId)) should equal(true)
+    fileIds.contains(UUID.fromString(fileThreeId)) should equal(true)
+    fileIds.contains(UUID.fromString(fileFourId)) should equal(false)
+    fileIds.contains(UUID.fromString(fileFiveId)) should equal(false)
+  }
+
+  "getFFIDMetadata" should "return files with ffidMetadata and ffidMetadataMatches that match the metadata applied to them" in {
     val db = DbConnection.db
     val ffidMetadataRepository = new FFIDMetadataRepository(db)
     val consignmentId = UUID.fromString("21061d4d-ed73-485f-b433-c48b0868fffb")
@@ -156,21 +234,96 @@ class FFIDMetadataRepositorySpec extends AnyFlatSpec with TestDatabase with Scal
     val fileThreeId = "89b6183d-e761-4af9-9e37-2ffa09922dba"
     val fileFourId = "939999e5-c082-4052-a99a-6b45092d826f"
 
+    val fileOneSoftware = "TEST DATA fileOne software"
+    val fileOneSoftwareVersion = "TEST DATA fileOne software version"
+    val fileOneBinarySigFileVersion = "TEST DATA fileOne binary signature file version"
+    val fileOneContainerSigFileVersion = "TEST DATA fileOne container signature file version"
+    val fileOneMethod = "TEST DATA fileOne method"
+    val fileOneExtension = "pdf"
+    val fileOneIdentificationBasis = "TEST DATA fileOne identification basis"
+    val fileOnePuid = "TEST DATA fileOne puid"
+
     TestUtils.createConsignment(consignmentId, userId)
     TestUtils.createFile(UUID.fromString(fileOneId), consignmentId)
     TestUtils.createFile(UUID.fromString(fileTwoId), consignmentId)
     TestUtils.createFile(UUID.fromString(fileThreeId), consignmentId)
     TestUtils.createFile(UUID.fromString(fileFourId), consignmentId)
 
-    TestUtils.addFFIDMetadata(fileOneId)
-    TestUtils.addFFIDMetadata(fileTwoId)
-    TestUtils.addFFIDMetadata(fileThreeId)
+    val fileOneFfidMetadataId = TestUtils.addFFIDMetadata(fileOneId, fileOneSoftware, fileOneSoftwareVersion,
+      fileOneBinarySigFileVersion, fileOneContainerSigFileVersion, fileOneMethod)
+    TestUtils.addFFIDMetadataMatches(fileOneFfidMetadataId.toString, fileOneExtension, fileOneIdentificationBasis, fileOnePuid)
+
+    val fileTwoFfidMetadataId = TestUtils.addFFIDMetadata(fileTwoId)
+    TestUtils.addFFIDMetadataMatches(fileTwoFfidMetadataId.toString)
+
+    val fileThreeFfidMetadataId = TestUtils.addFFIDMetadata(fileThreeId)
+    TestUtils.addFFIDMetadataMatches(fileThreeFfidMetadataId.toString)
 
     val ffidMetadataRows = ffidMetadataRepository.getFFIDMetadata(consignmentId).futureValue
+    val fileOneFfidMetadata = ffidMetadataRows.head._2._1
+    val fileOneFfidMetadataMatches = ffidMetadataRows.head._2._2
 
-    ffidMetadataRows.toMap.values.foreach(
-      ffidMetadataAndMatches =>
-        ffidMetadataAndMatches._1.ffidmetadataid == ffidMetadataAndMatches._2.ffidmetadataid should equal(true)
-    )
+    fileOneFfidMetadata.binarysignaturefileversion should equal(fileOneBinarySigFileVersion)
+    fileOneFfidMetadata.containersignaturefileversion should equal(fileOneContainerSigFileVersion)
+    //datetime was left out, as it is generated automatically
+    fileOneFfidMetadata.ffidmetadataid should equal(fileOneFfidMetadataId)
+    fileOneFfidMetadata.fileid.toString should equal(fileOneId)
+    fileOneFfidMetadata.method should equal(fileOneMethod)
+    fileOneFfidMetadata.software should equal(fileOneSoftware)
+    fileOneFfidMetadata.softwareversion should equal(fileOneSoftwareVersion)
+
+    fileOneFfidMetadataMatches.ffidmetadataid should equal(fileOneFfidMetadataId)
+    fileOneFfidMetadataMatches.extension.get should equal(fileOneExtension)
+    fileOneFfidMetadataMatches.identificationbasis should equal(fileOneIdentificationBasis)
+    fileOneFfidMetadataMatches.puid.get should equal(fileOnePuid)
+  }
+
+  "getFFIDMetadata" should "return multiple ffidMetadataMatches for the files that were given multiple ffidMetadataMatches" in {
+    val db = DbConnection.db
+    val ffidMetadataRepository = new FFIDMetadataRepository(db)
+    val consignmentId = UUID.fromString("21061d4d-ed73-485f-b433-c48b0868fffb")
+
+    val fileOneId = "50f4f290-cdcc-4a0f-bd26-3bb40f320b71"
+    val fileTwoId = "7f55565e-bfa5-4cf9-9e02-7e75ff033b3b"
+    val fileThreeId = "89b6183d-e761-4af9-9e37-2ffa09922dba"
+    val fileFourId = "939999e5-c082-4052-a99a-6b45092d826f"
+
+    val fileOneFirstExtensionMatch = "pdf"
+    val fileOneFirstIdentificationBasisMatch = "TEST DATA fileOne first identification basis"
+    val fileOneFirstPuidMatch = "TEST DATA fileOne first puid"
+
+    val fileOneSecondExtensionMatch = "png"
+    val fileOneSecondIdentificationBasisMatch = "TEST DATA fileTwo second identification basis"
+    val fileOneSecondPuidMatch = "TEST DATA fileTwo second puid"
+
+    TestUtils.createConsignment(consignmentId, userId)
+    TestUtils.createFile(UUID.fromString(fileOneId), consignmentId)
+    TestUtils.createFile(UUID.fromString(fileTwoId), consignmentId)
+    TestUtils.createFile(UUID.fromString(fileThreeId), consignmentId)
+    TestUtils.createFile(UUID.fromString(fileFourId), consignmentId)
+
+    val fileOneFfidMetadataId = TestUtils.addFFIDMetadata(fileOneId)
+    TestUtils.addFFIDMetadataMatches(fileOneFfidMetadataId.toString, fileOneFirstExtensionMatch, fileOneFirstIdentificationBasisMatch, fileOneFirstPuidMatch)
+    TestUtils.addFFIDMetadataMatches(fileOneFfidMetadataId.toString, fileOneSecondExtensionMatch, fileOneSecondIdentificationBasisMatch, fileOneSecondPuidMatch)
+
+    val fileTwoFfidMetadataId = TestUtils.addFFIDMetadata(fileTwoId)
+    TestUtils.addFFIDMetadataMatches(fileTwoFfidMetadataId.toString)
+
+    val fileThreeFfidMetadataId = TestUtils.addFFIDMetadata(fileThreeId)
+    TestUtils.addFFIDMetadataMatches(fileThreeFfidMetadataId.toString)
+
+    val ffidMetadataRows = ffidMetadataRepository.getFFIDMetadata(consignmentId).futureValue
+    val fileOneFirstFfidMetadataMatches = ffidMetadataRows(0)._2._2
+    val fileOneSecondFfidMetadataMatches = ffidMetadataRows(1)._2._2
+
+    fileOneFirstFfidMetadataMatches.ffidmetadataid should equal(fileOneFfidMetadataId)
+    fileOneFirstFfidMetadataMatches.extension.get should equal(fileOneFirstExtensionMatch)
+    fileOneFirstFfidMetadataMatches.identificationbasis should equal(fileOneFirstIdentificationBasisMatch)
+    fileOneFirstFfidMetadataMatches.puid.get should equal(fileOneFirstPuidMatch)
+
+    fileOneSecondFfidMetadataMatches.ffidmetadataid should equal(fileOneFfidMetadataId)
+    fileOneSecondFfidMetadataMatches.extension.get should equal(fileOneSecondExtensionMatch)
+    fileOneSecondFfidMetadataMatches.identificationbasis should equal(fileOneSecondIdentificationBasisMatch)
+    fileOneSecondFfidMetadataMatches.puid.get should equal(fileOneSecondPuidMatch)
   }
 }
