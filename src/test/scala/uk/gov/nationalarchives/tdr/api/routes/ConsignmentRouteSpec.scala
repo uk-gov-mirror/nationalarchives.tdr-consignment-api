@@ -138,6 +138,10 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     val fileTwoId = "42910a85-85c3-40c3-888f-32f697bfadb6"
     val fileThreeId = "9757f402-ee1a-43a2-ae2a-81a9ea9729b9"
 
+    val extensionMatch = "txt"
+    val identificationBasisMatch = "TEST DATA identification"
+    val puidMatch = "TEST DATA puid"
+
     createFile(UUID.fromString(fileOneId), UUID.fromString(consignmentId))
     createFile(UUID.fromString(fileTwoId), UUID.fromString(consignmentId))
     createFile(UUID.fromString(fileThreeId), UUID.fromString(consignmentId))
@@ -157,9 +161,14 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
       addFileMetadata(UUID.randomUUID().toString, fileThreeId, propertyName, value)
     })
 
-    addFFIDMetadata(fileOneId)
-    addFFIDMetadata(fileTwoId)
-    addFFIDMetadata(fileThreeId)
+    val fileOneFfidMetadataId = addFFIDMetadata(fileOneId)
+    addFFIDMetadataMatches(fileOneFfidMetadataId.toString, extensionMatch, identificationBasisMatch, puidMatch)
+
+    val fileTwoFfidMetadataId = addFFIDMetadata(fileTwoId)
+    addFFIDMetadataMatches(fileTwoFfidMetadataId.toString, extensionMatch, identificationBasisMatch, puidMatch)
+
+    val fileThreeFfidMetadataId = addFFIDMetadata(fileThreeId)
+    addFFIDMetadataMatches(fileThreeFfidMetadataId.toString, extensionMatch, identificationBasisMatch, puidMatch)
 
     addParentFolderName(UUID.fromString(consignmentId), "ALL CONSIGNMENT DATA PARENT FOLDER")
 
@@ -178,6 +187,11 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   "getConsignment" should "return the file metadata" in {
     val consignmentId = UUID.fromString("c31b3d3e-1931-421b-a829-e2ef4cd8930c")
     val fileId = UUID.fromString("3ce8ef99-a999-4bae-8425-325a67f2d3da")
+
+    val extensionMatch = "txt"
+    val identificationBasisMatch = "TEST DATA identification"
+    val puidMatch = "TEST DATA puid"
+
     createConsignment(consignmentId, userId, UUID.randomUUID())
     createFile(fileId, consignmentId)
     staticMetadataProperties.foreach(smp => addFileMetadata(UUID.randomUUID().toString, fileId.toString, smp.name, smp.value))
@@ -190,9 +204,13 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
         }
       )
     }
-    addFFIDMetadata(fileId.toString)
+
+    val fileOneFfidMetadataId = addFFIDMetadata(fileId.toString)
+    addFFIDMetadataMatches(fileOneFfidMetadataId.toString, extensionMatch, identificationBasisMatch, puidMatch)
+
     val response: GraphqlQueryData = runTestQuery("query_filemetadata", validUserToken())
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_file_metadata")
+
     response should equal(expectedResponse)
   }
 
