@@ -1,13 +1,13 @@
 package uk.gov.nationalarchives.tdr.api.db.repository
 
-import java.util.UUID
-
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.utils.{TestDatabase, TestUtils}
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
+import uk.gov.nationalarchives.tdr.api.utils.{TestDatabase, TestUtils}
+
+import java.util.UUID
 
 
 class FFIDMetadataRepositorySpec extends AnyFlatSpec with TestDatabase with ScalaFutures with Matchers {
@@ -90,7 +90,7 @@ class FFIDMetadataRepositorySpec extends AnyFlatSpec with TestDatabase with Scal
 
     (1 to 7).foreach {
       _ =>
-       val fileOneFfidMetadataId = TestUtils.addFFIDMetadata(fileOneId)
+        val fileOneFfidMetadataId = TestUtils.addFFIDMetadata(fileOneId)
         TestUtils.addFFIDMetadataMatches(fileOneFfidMetadataId.toString)
     }
 
@@ -212,7 +212,7 @@ class FFIDMetadataRepositorySpec extends AnyFlatSpec with TestDatabase with Scal
     val fileThreeFfidMetadataId = TestUtils.addFFIDMetadata(fileThreeId)
     TestUtils.addFFIDMetadataMatches(fileThreeFfidMetadataId.toString)
 
-    val fileFourFfidMetadataId = TestUtils.addFFIDMetadata(fileFourId)
+    TestUtils.addFFIDMetadata(fileFourId)
 
     val ffidMetadataRows = ffidMetadataRepository.getFFIDMetadata(consignmentId).futureValue
     val fileIds: Set[UUID] = ffidMetadataRows.toMap.keySet

@@ -1,11 +1,10 @@
 package uk.gov.nationalarchives.tdr.api.db.repository
 
-import java.util.UUID
 import slick.jdbc.PostgresProfile.api._
 import uk.gov.nationalarchives.Tables
 import uk.gov.nationalarchives.Tables.{Ffidmetadata, FfidmetadataRow, Ffidmetadatamatches, File}
-import uk.gov.nationalarchives.tdr.api.graphql.fields.FFIDMetadataFields.FFIDMetadataMatches
 
+import java.util.UUID
 import scala.concurrent.Future
 
 class FFIDMetadataRepository(db: Database) {

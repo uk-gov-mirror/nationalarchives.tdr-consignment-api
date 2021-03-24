@@ -11,7 +11,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class FileMetadataRepository(db: Database)(implicit val executionContext: ExecutionContext) {
 
   private val insertQuery = Filemetadata returning Filemetadata.map(_.metadataid) into
-      ((filemetadata, metadataid) => filemetadata.copy(metadataid = metadataid))
+    ((filemetadata, metadataid) => filemetadata.copy(metadataid = metadataid))
 
   def addFileMetadata(rows: Seq[FilemetadataRow]): Future[Seq[FilemetadataRow]] = {
     db.run(insertQuery ++= rows)
@@ -34,9 +34,9 @@ class FileMetadataRepository(db: Database)(implicit val executionContext: Execut
 
   def getFileMetadata(consignmentId: UUID): Future[Seq[FilemetadataRow]] = {
     val query = Filemetadata.join(File)
-          .on(_.fileid === _.fileid)
-          .filter(_._2.consignmentid === consignmentId)
-          .map(_._1)
+      .on(_.fileid === _.fileid)
+      .filter(_._2.consignmentid === consignmentId)
+      .map(_._1)
     db.run(query.result)
   }
 

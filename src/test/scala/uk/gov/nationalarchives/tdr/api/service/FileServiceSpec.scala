@@ -9,7 +9,6 @@ import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.Tables
 import uk.gov.nationalarchives.Tables.{ConsignmentRow, ConsignmentstatusRow, FfidmetadataRow, FfidmetadatamatchesRow, FileRow, FilemetadataRow}
 import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentRepository, FFIDMetadataRepository, FileMetadataRepository, FileRepository}
-import uk.gov.nationalarchives.tdr.api.graphql.fields.FFIDMetadataFields
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FFIDMetadataFields.{FFIDMetadata, FFIDMetadataMatches}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields.{AddFilesInput, Files}
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.{File, FileMetadataValues, staticMetadataProperties}
