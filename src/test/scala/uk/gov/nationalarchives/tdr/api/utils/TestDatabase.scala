@@ -28,6 +28,7 @@ trait TestDatabase extends BeforeAndAfterEach {
     databaseConnection.prepareStatement("DELETE FROM File").execute()
     databaseConnection.prepareStatement("DELETE FROM ConsignmentMetadata").execute()
     databaseConnection.prepareStatement("DELETE FROM ConsignmentProperty").execute()
+    databaseConnection.prepareStatement("DELETE FROM ConsignmentStatus").execute()
     databaseConnection.prepareStatement("DELETE FROM Consignment").execute()
     databaseConnection.prepareStatement("DELETE FROM Series").execute()
     databaseConnection.prepareStatement("DELETE FROM Body").execute()
