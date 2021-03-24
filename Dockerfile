@@ -13,6 +13,5 @@ USER apiuser
 CMD java -Dconfig.resource=application.$ENVIRONMENT.conf \
             -jar /api/consignmentapi.jar \
             -Dconsignmentapi.db.user=$DB_USER \
-            -Dconsignmentapi.db.password=$DB_PASSWORD \
             -Dconsignmentapi.db.url=jdbc:mysql://$DB_URL:3306/consignmentapi \
             -Dauth.url=$AUTH_URL

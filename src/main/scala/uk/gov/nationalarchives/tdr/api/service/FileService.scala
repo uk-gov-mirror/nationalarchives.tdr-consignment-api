@@ -1,10 +1,10 @@
 package uk.gov.nationalarchives.tdr.api.service
 
-import uk.gov.nationalarchives.Tables.{FileRow, FilemetadataRow}
-import uk.gov.nationalarchives.tdr.api.db.repository._
-import uk.gov.nationalarchives.tdr.api.graphql.fields.FFIDMetadataFields.{FFIDMetadata, FFIDMetadataMatches}
-import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields.{AddFilesInput, Files}
+import uk.gov.nationalarchives.Tables.{ConsignmentstatusRow, FileRow, FilemetadataRow}
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
+import uk.gov.nationalarchives.tdr.api.db.repository._
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields.{AddFilesInput, Files}
+
 
 import java.sql.Timestamp
 import java.util.UUID
@@ -25,6 +25,8 @@ class FileService(
     val rows: Seq[FileRow] = List.fill(addFilesInput.numberOfFiles)(1)
       .map(_ => FileRow(uuidSource.uuid, addFilesInput.consignmentId, userId, now))
 
+    val consignmentStatusRow = ConsignmentstatusRow(uuidSource.uuid, addFilesInput.consignmentId, "Upload", "InProgress", now)
+
     def fileMetadataRows(fileRows: Seq[FileRow]): Seq[FilemetadataRow] = for {
       staticMetadata <- staticMetadataProperties
       fileId <- fileRows.map(_.fileid)
@@ -32,7 +34,7 @@ class FileService(
 
     for {
       _ <- consignmentRepository.addParentFolder(addFilesInput.consignmentId, addFilesInput.parentFolder)
-      files <- fileRepository.addFiles(rows)
+      files <- fileRepository.addFiles(rows, consignmentStatusRow)
       _ <- fileMetadataRepository.addFileMetadata(fileMetadataRows(files))
     } yield Files(files.map(_.fileid))
   }

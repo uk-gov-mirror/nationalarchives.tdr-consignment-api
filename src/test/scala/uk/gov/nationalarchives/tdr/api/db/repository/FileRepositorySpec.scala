@@ -1,16 +1,51 @@
 package uk.gov.nationalarchives.tdr.api.db.repository
 
-import java.util.UUID
-
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import uk.gov.nationalarchives
+import uk.gov.nationalarchives.Tables._
 import uk.gov.nationalarchives.tdr.api.db.DbConnection
-import uk.gov.nationalarchives.tdr.api.utils.{TestDatabase, TestUtils}
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
+import uk.gov.nationalarchives.tdr.api.utils.{TestDatabase, TestUtils}
+
+import java.sql.{PreparedStatement, ResultSet, Timestamp}
+import java.time.Instant
+import java.util.UUID
+import scala.concurrent.ExecutionContext
 
 
 class FileRepositorySpec extends AnyFlatSpec with TestDatabase with ScalaFutures with Matchers {
+  implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
+
+  "addFiles" should "create files and update ConsignmentStatus table for a consignment" in {
+    val db = DbConnection.db
+    val fileRepository = new FileRepository(db)
+    val consignmentId = UUID.fromString("94abafc4-165e-469b-ba93-eace3f224de5")
+    val fileOneId = UUID.fromString("7499a278-2fec-4c47-92fb-dd9024c65d0d")
+    val fileTwoId = UUID.fromString("e7d21444-0c62-4115-a4ad-320fd3d3dae3")
+    val fileRows = Seq(
+      FileRow(fileOneId, consignmentId, userId, Timestamp.from(Instant.now)),
+      FileRow(fileTwoId, consignmentId, userId, Timestamp.from(Instant.now))
+    )
+    val consignmentStatusRow = ConsignmentstatusRow(
+      UUID.fromString("ad5ac54c-6a67-4892-b8ac-120362df7917"),
+      consignmentId,
+      "Upload",
+      "InProgress",
+      Timestamp.from(Instant.now)
+    )
+
+    TestUtils.createConsignment(consignmentId, userId)
+
+    val addFiles: Seq[nationalarchives.Tables.FileRow] = fileRepository.addFiles(fileRows, consignmentStatusRow).futureValue
+
+    addFiles.foreach{ file =>
+      file.consignmentid shouldBe consignmentId
+      file.userid shouldBe userId
+    }
+    checkConsignmentStatusExists(consignmentId)
+  }
 
   "countFilesInConsignment" should "return 0 if a consignment has no files" in {
     val db = DbConnection.db
@@ -120,5 +155,15 @@ class FileRepositorySpec extends AnyFlatSpec with TestDatabase with ScalaFutures
 
     files.size shouldBe 1
     files.head.fileid shouldBe fileOneId
+  }
+
+  private def checkConsignmentStatusExists(consignmentId: UUID): Unit = {
+    val sql = "SELECT * FROM ConsignmentStatus WHERE ConsignmentId = ?"
+    val ps:PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, consignmentId.toString)
+    val rs: ResultSet = ps.executeQuery()
+    rs.next()
+    rs.getString("ConsignmentId") should equal(consignmentId.toString)
+    rs.next() should equal (false)
   }
 }
