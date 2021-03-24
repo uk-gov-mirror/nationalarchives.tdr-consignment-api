@@ -9,7 +9,7 @@ import uk.gov.nationalarchives.tdr.api.db.DbConnection
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 import uk.gov.nationalarchives.tdr.api.utils.{TestDatabase, TestUtils}
 
-import java.sql.Timestamp
+import java.sql.{PreparedStatement, ResultSet, Timestamp}
 import java.time.Instant
 import java.util.UUID
 import scala.concurrent.ExecutionContext
@@ -44,6 +44,7 @@ class FileRepositorySpec extends AnyFlatSpec with TestDatabase with ScalaFutures
       file.consignmentid shouldBe consignmentId
       file.userid shouldBe userId
     }
+    checkConsignmentStatusExists(consignmentId)
   }
 
   "countFilesInConsignment" should "return 0 if a consignment has no files" in {
@@ -154,5 +155,15 @@ class FileRepositorySpec extends AnyFlatSpec with TestDatabase with ScalaFutures
 
     files.size shouldBe 1
     files.head.fileid shouldBe fileOneId
+  }
+
+  private def checkConsignmentStatusExists(consignmentId: UUID): Unit = {
+    val sql = "SELECT * FROM ConsignmentStatus WHERE ConsignmentId = ?"
+    val ps:PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, consignmentId.toString)
+    val rs: ResultSet = ps.executeQuery()
+    rs.next()
+    rs.getString("ConsignmentId") should equal(consignmentId.toString)
+    rs.next() should equal (false)
   }
 }

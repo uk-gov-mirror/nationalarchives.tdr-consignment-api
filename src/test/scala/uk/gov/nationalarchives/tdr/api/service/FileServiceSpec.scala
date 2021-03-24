@@ -1,10 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.service
 
-import java.sql.Timestamp
-import java.time.Instant
-import java.util.UUID
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, ArgumentMatchers, MockitoSugar}
+import org.mockito.{ArgumentCaptor, MockitoSugar}
 import org.scalatest.Assertion
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
@@ -16,6 +13,9 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields.{AddFilesInput,
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.staticMetadataProperties
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
 
+import java.sql.Timestamp
+import java.time.Instant
+import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with ScalaFutures {
@@ -80,7 +80,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     result.fileIds shouldBe List(fileUuidOne, fileUuidTwo, fileUuidThree)
   }
 
-  "createFile" should "link a file to the correct user and consignment" in {
+  "createFile" should "link a file to the correct user, consignment, and consignment status" in {
     val fixedUuidSource = new FixedUUIDSource()
     val userId = UUID.randomUUID()
     val fileUuid = fixedUuidSource.uuid
@@ -110,6 +110,12 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     fileCaptor.getAllValues.size should equal(1)
     fileCaptor.getAllValues.get(0).head.consignmentid should equal(consignmentUuid)
     fileCaptor.getAllValues.get(0).head.userid should equal(userId)
+    consignmentStatusCaptor.getAllValues.size() should equal(1)
+    consignmentStatusCaptor.getAllValues.get(0).consignmentstatusid should equal(consignmentStatusUuid)
+    consignmentStatusCaptor.getAllValues.get(0).consignmentid should equal(consignmentUuid)
+    consignmentStatusCaptor.getAllValues.get(0).statustype should equal("Upload")
+    consignmentStatusCaptor.getAllValues.get(0).value should equal("InProgress")
+    consignmentStatusCaptor.getAllValues.get(0).createddatetime should equal(timeNow)
   }
 
   "createFile" should "create the correct static metadata" in {
@@ -117,7 +123,6 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     val uuid = UUID.randomUUID()
     val fileId = UUID.randomUUID()
     val consignmentId = UUID.randomUUID()
-    val consignmentStatusId = fixedUUIDSource.uuid
 
     val fileRepositoryMock = mock[FileRepository]
     val consignmentRepositoryMock = mock[ConsignmentRepository]
