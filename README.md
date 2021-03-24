@@ -24,6 +24,17 @@ Run the api:
 * From IntelliJ, run the ApiServer app
 * Or from the command line, run `sbt run`
 
+### Testing within IntelliJ
+
+Running API tests within IntelliJ requires an additional VM option so that IntelliJ does not confuse the normal run config and test run config.
+Within your test run configuration, set the VM of:
+
+`-Dconfig.file=src/test/resources/application.conf`
+
+If this is not set, you may see errors with the message: 
+
+`Could not resolve substitution to a value: ${DB_PORT}`
+
 #### Generate Graphql Schema Locally
 
 To generate the Graphql schema locally run the following command:
