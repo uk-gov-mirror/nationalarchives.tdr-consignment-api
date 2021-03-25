@@ -19,7 +19,7 @@
       "files": [
         {
           "fileId": "9757f402-ee1a-43a2-ae2a-81a9ea9729b9",
-          "fileMetadata": {
+          "metadata": {
             "clientSideOriginalFilePath": "ClientSideOriginalFilepath value",
             "legalStatus": "LegalStatus value",
             "clientSideFileSize": 1,
@@ -47,7 +47,7 @@
         },
         {
           "fileId": "e7ba59c9-5b8b-4029-9f27-2d03957463ad",
-          "fileMetadata": {
+          "metadata": {
             "clientSideOriginalFilePath": "ClientSideOriginalFilepath value",
             "legalStatus": "LegalStatus value",
             "clientSideFileSize": 1,
@@ -75,7 +75,7 @@
         },
         {
           "fileId": "42910a85-85c3-40c3-888f-32f697bfadb6",
-          "fileMetadata": {
+          "metadata": {
             "clientSideOriginalFilePath": "ClientSideOriginalFilepath value",
             "legalStatus": "LegalStatus value",
             "clientSideFileSize": 1,

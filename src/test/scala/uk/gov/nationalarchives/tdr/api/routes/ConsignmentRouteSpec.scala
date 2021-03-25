@@ -51,7 +51,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   case class AddConsignment(addConsignment: Consignment)
   case class UpdateExportLocation(updateExportLocation: Int)
   case class UpdateTransferInitiated(updateTransferInitiated: Int)
-  case class File(fileId: UUID, fileMetadata: FileMetadataValues, ffidMetadata: FFIDMetadataValues)
+  case class File(fileId: UUID, metadata: FileMetadataValues, ffidMetadata: FFIDMetadataValues)
   case class FFIDMetadataMatches(extension: Option[String] = None, identificationBasis: String, puid: Option[String])
   case class FileMetadataValues(sha256ClientSideChecksum: Option[String],
                                 clientSideOriginalFilePath: Option[String],

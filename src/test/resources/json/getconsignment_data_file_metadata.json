@@ -4,7 +4,7 @@
       "files": [
         {
           "fileId": "3ce8ef99-a999-4bae-8425-325a67f2d3da",
-          "fileMetadata": {
+          "metadata": {
             "clientSideOriginalFilePath": "ClientSideOriginalFilepath value",
             "legalStatus": "Public Record",
             "clientSideFileSize": 1,
