@@ -179,10 +179,10 @@ class FFIDMetadataRepositorySpec extends AnyFlatSpec with TestDatabase with Scal
     val ffidMetadataRows = ffidMetadataRepository.getFFIDMetadata(consignmentOneId).futureValue
     val fileIds: Set[UUID] = ffidMetadataRows.toMap.keySet
 
-    fileIds.contains(UUID.fromString(fileOneId)) should equal(true)
-    fileIds.contains(UUID.fromString(fileTwoId)) should equal(true)
-    fileIds.contains(UUID.fromString(fileThreeId)) should equal(true)
-    fileIds.contains(UUID.fromString(fileFourId)) should equal(false)
+    fileIds should contain(UUID.fromString(fileOneId))
+    fileIds should contain(UUID.fromString(fileTwoId))
+    fileIds should contain(UUID.fromString(fileThreeId))
+    fileIds should not contain(UUID.fromString(fileFourId))
   }
 
   "getFFIDMetadata" should "return only the fileIds of the files that had ffidMetadata & ffidMetadataMatches applied to them" in {
@@ -217,11 +217,11 @@ class FFIDMetadataRepositorySpec extends AnyFlatSpec with TestDatabase with Scal
     val ffidMetadataRows = ffidMetadataRepository.getFFIDMetadata(consignmentId).futureValue
     val fileIds: Set[UUID] = ffidMetadataRows.toMap.keySet
 
-    fileIds.contains(UUID.fromString(fileOneId)) should equal(true)
-    fileIds.contains(UUID.fromString(fileTwoId)) should equal(true)
-    fileIds.contains(UUID.fromString(fileThreeId)) should equal(true)
-    fileIds.contains(UUID.fromString(fileFourId)) should equal(false)
-    fileIds.contains(UUID.fromString(fileFiveId)) should equal(false)
+    fileIds should contain(UUID.fromString(fileOneId))
+    fileIds should contain(UUID.fromString(fileTwoId))
+    fileIds should contain(UUID.fromString(fileThreeId))
+    fileIds should not contain(UUID.fromString(fileFourId))
+    fileIds should not contain(UUID.fromString(fileFiveId))
   }
 
   "getFFIDMetadata" should "return files with ffidMetadata and ffidMetadataMatches that match the metadata applied to them" in {
