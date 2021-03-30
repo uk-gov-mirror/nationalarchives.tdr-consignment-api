@@ -13,6 +13,15 @@
             "heldBy": "TNA",
             "foiExemptionCode": "open",
             "language": "English"
+          },
+          "ffidMetadata": {
+            "software": "TEST DATA software",
+            "softwareVersion": "TEST DATA software version",
+            "binarySignatureFileVersion": "TEST DATA binary signature file version",
+            "containerSignatureFileVersion": "TEST DATA container signature file version",
+            "method": "TEST DATA method",
+            "matches": [{"extension": "txt", "identificationBasis" : "TEST DATA identification", "puid": "TEST DATA puid"}],
+            "datetime": 1577869200000
           }
         }
       ]

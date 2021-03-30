@@ -36,16 +36,13 @@ object GraphQLServer {
     HandledException(message, additionalFields)
   }
 
-  val exceptionHandler = ExceptionHandler {
-    case (resultMarshaller, AuthorisationException(message)) => {
+  val exceptionHandler: ExceptionHandler = ExceptionHandler {
+    case (resultMarshaller, AuthorisationException(message)) =>
       handleException(resultMarshaller, ErrorCodes.notAuthorised, message)
-    }
-    case (resultMarshaller, ConsignmentStateException(message)) => {
+    case (resultMarshaller, ConsignmentStateException(message)) =>
       handleException(resultMarshaller, ErrorCodes.invalidConsignmentState, message)
-    }
-    case (resultMarshaller, InputDataException(message, _)) => {
+    case (resultMarshaller, InputDataException(message, _)) =>
       handleException(resultMarshaller, ErrorCodes.invalidInputData, message)
-    }
   }
 
   def endpoint(requestJSON: JsValue, accessToken: Token)(implicit ec: ExecutionContext): Route = {
@@ -69,8 +66,7 @@ object GraphQLServer {
     }
   }
 
-  private def executeGraphQLQuery(query: Document, operation: Option[String], vars: JsObject, accessToken: Token)
-                                 (implicit ec: ExecutionContext): Future[(StatusCode with Serializable, JsValue)] = {
+  private def generateConsignmentApiContext(accessToken: Token)(implicit ec: ExecutionContext): ConsignmentApiContext = {
     val uuidSourceClass: Class[_] = Class.forName(ConfigFactory.load().getString("source.uuid"))
     val uuidSource: UUIDSource = uuidSourceClass.getDeclaredConstructor().newInstance().asInstanceOf[UUIDSource]
     val timeSource = new CurrentTimeSource
@@ -86,7 +82,8 @@ object GraphQLServer {
     val transferAgreementService = new TransferAgreementService(new ConsignmentMetadataRepository(db), uuidSource, timeSource)
     val finalTransferConfirmationService = new FinalTransferConfirmationService(new ConsignmentMetadataRepository(db), uuidSource, timeSource)
     val clientFileMetadataService = new ClientFileMetadataService(fileMetadataRepository, uuidSource, timeSource)
-    val fileService = new FileService(fileRepository, consignmentRepository, fileMetadataRepository, new CurrentTimeSource, uuidSource)
+    val fileService = new FileService(fileRepository, consignmentRepository, fileMetadataRepository, ffidMetadataRepository,
+      new CurrentTimeSource, uuidSource)
     val transferringBodyService = new TransferringBodyService(new TransferringBodyRepository(db))
     val antivirusMetadataService = new AntivirusMetadataService(new AntivirusMetadataRepository(db))
     val fileMetadataService = new FileMetadataService(
@@ -94,7 +91,7 @@ object GraphQLServer {
     )
     val ffidMetadataService = new FFIDMetadataService(ffidMetadataRepository, new FFIDMetadataMatchesRepository(db), timeSource, uuidSource)
 
-    val context = ConsignmentApiContext(
+    ConsignmentApiContext(
       accessToken,
       antivirusMetadataService,
       clientFileMetadataService,
@@ -107,17 +104,23 @@ object GraphQLServer {
       transferAgreementService,
       transferringBodyService
     )
+  }
+
+  private def executeGraphQLQuery(query: Document, operation: Option[String], vars: JsObject, accessToken: Token)
+                                 (implicit ec: ExecutionContext): Future[(StatusCode with Serializable, JsValue)] = {
+    val context = generateConsignmentApiContext(accessToken: Token)
+
     Executor.execute(
       GraphQlTypes.schema,
-      query,  context,
+      query, context,
       variables = vars,
       operationName = operation,
       deferredResolver = new DeferredResolver,
       middleware = new ValidationAuthoriser :: new ConsignmentStateValidator :: Nil,
       exceptionHandler = exceptionHandler
     ).map(OK -> _).recover {
-        case error: QueryAnalysisError => BadRequest -> error.resolveError
-        case error: ErrorWithResolver => InternalServerError -> error.resolveError
-      }
+      case error: QueryAnalysisError => BadRequest -> error.resolveError
+      case error: ErrorWithResolver => InternalServerError -> error.resolveError
+    }
   }
 }

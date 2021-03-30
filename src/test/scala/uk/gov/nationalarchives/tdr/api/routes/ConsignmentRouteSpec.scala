@@ -1,9 +1,5 @@
 package uk.gov.nationalarchives.tdr.api.routes
 
-import java.sql.{PreparedStatement, Timestamp}
-import java.time.{LocalDateTime, ZonedDateTime}
-import java.util.UUID
-
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.auto._
@@ -13,6 +9,10 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256S
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource, TestDatabase, TestRequest}
+
+import java.sql.{PreparedStatement, Timestamp}
+import java.time.{LocalDateTime, ZonedDateTime}
+import java.util.UUID
 
 class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest with TestDatabase {
   private val addConsignmentJsonFilePrefix: String = "json/addconsignment_"
@@ -27,6 +27,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   case class GraphqlMutationData(data: Option[AddConsignment], errors: List[GraphqlError] = Nil)
   case class GraphqlMutationExportLocation(data: Option[UpdateExportLocation])
   case class GraphqlMutationTransferInitiated(data: Option[UpdateTransferInitiated])
+
   case class Consignment(consignmentid: Option[UUID] = None,
                          userid: Option[UUID] = None,
                          seriesid: Option[UUID] = None,
@@ -50,7 +51,8 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   case class AddConsignment(addConsignment: Consignment)
   case class UpdateExportLocation(updateExportLocation: Int)
   case class UpdateTransferInitiated(updateTransferInitiated: Int)
-  case class File(fileId: UUID, metadata: FileMetadataValues)
+  case class File(fileId: UUID, metadata: FileMetadataValues, ffidMetadata: FFIDMetadataValues)
+  case class FFIDMetadataMatches(extension: Option[String] = None, identificationBasis: String, puid: Option[String])
   case class FileMetadataValues(sha256ClientSideChecksum: Option[String],
                                 clientSideOriginalFilePath: Option[String],
                                 clientSideLastModifiedDate: Option[LocalDateTime],
@@ -61,6 +63,13 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
                                 language: Option[String],
                                 foiExemptionCode: Option[String]
                                )
+  case class FFIDMetadataValues(software: String,
+                                softwareVersion: String,
+                                binarySignatureFileVersion: String,
+                                containerSignatureFileVersion: String,
+                                method: String,
+                                matches: List[FFIDMetadataMatches],
+                                datetime: Long)
 
   val runTestQuery: (String, OAuth2BearerToken) => GraphqlQueryData = runTestRequest[GraphqlQueryData](getConsignmentJsonFilePrefix)
   val runTestMutation: (String, OAuth2BearerToken) => GraphqlMutationData = runTestRequest[GraphqlMutationData](addConsignmentJsonFilePrefix)
@@ -131,6 +140,10 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
     val fileTwoId = "42910a85-85c3-40c3-888f-32f697bfadb6"
     val fileThreeId = "9757f402-ee1a-43a2-ae2a-81a9ea9729b9"
 
+    val extensionMatch = "txt"
+    val identificationBasisMatch = "TEST DATA identification"
+    val puidMatch = "TEST DATA puid"
+
     createFile(UUID.fromString(fileOneId), UUID.fromString(consignmentId))
     createFile(UUID.fromString(fileTwoId), UUID.fromString(consignmentId))
     createFile(UUID.fromString(fileThreeId), UUID.fromString(consignmentId))
@@ -139,10 +152,25 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
     addFileMetadata("06209e0d-95d0-4f13-8933-e5b9d00eb435", fileOneId, SHA256ServerSideChecksum)
     addFileMetadata("c4759aae-dc68-45ec-aee1-5a562c7b42cc", fileTwoId, SHA256ServerSideChecksum)
+    (clientSideProperties ++ staticMetadataProperties.map(_.name)).foreach(propertyName => {
+      val value = propertyName match {
+        case ClientSideFileLastModifiedDate => "2021-03-11 12:30:30.592853"
+        case ClientSideFileSize => "1"
+        case _ => s"$propertyName value"
+      }
+      addFileMetadata(UUID.randomUUID().toString, fileOneId, propertyName, value)
+      addFileMetadata(UUID.randomUUID().toString, fileTwoId, propertyName, value)
+      addFileMetadata(UUID.randomUUID().toString, fileThreeId, propertyName, value)
+    })
 
-    addFFIDMetadata(fileOneId)
-    addFFIDMetadata(fileTwoId)
-    addFFIDMetadata(fileThreeId)
+    val fileOneFfidMetadataId = addFFIDMetadata(fileOneId)
+    addFFIDMetadataMatches(fileOneFfidMetadataId.toString, extensionMatch, identificationBasisMatch, puidMatch)
+
+    val fileTwoFfidMetadataId = addFFIDMetadata(fileTwoId)
+    addFFIDMetadataMatches(fileTwoFfidMetadataId.toString, extensionMatch, identificationBasisMatch, puidMatch)
+
+    val fileThreeFfidMetadataId = addFFIDMetadata(fileThreeId)
+    addFFIDMetadataMatches(fileThreeFfidMetadataId.toString, extensionMatch, identificationBasisMatch, puidMatch)
 
     addParentFolderName(UUID.fromString(consignmentId), "ALL CONSIGNMENT DATA PARENT FOLDER")
 
@@ -161,16 +189,30 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   "getConsignment" should "return the file metadata" in {
     val consignmentId = UUID.fromString("c31b3d3e-1931-421b-a829-e2ef4cd8930c")
     val fileId = UUID.fromString("3ce8ef99-a999-4bae-8425-325a67f2d3da")
+
+    val extensionMatch = "txt"
+    val identificationBasisMatch = "TEST DATA identification"
+    val puidMatch = "TEST DATA puid"
+
     createConsignment(consignmentId, userId, UUID.randomUUID())
     createFile(fileId, consignmentId)
     staticMetadataProperties.foreach(smp => addFileMetadata(UUID.randomUUID().toString, fileId.toString, smp.name, smp.value))
-    clientSideProperties.foreach(csp => addFileMetadata(UUID.randomUUID().toString, fileId.toString, csp, csp match {
-      case ClientSideFileLastModifiedDate => s"2021-02-08 16:00:00"
-      case ClientSideFileSize => "1"
-      case _ => s"$csp value"
-    }))
+    clientSideProperties.foreach { csp =>
+      addFileMetadata(UUID.randomUUID().toString, fileId.toString, csp,
+        csp match {
+          case ClientSideFileLastModifiedDate => s"2021-02-08 16:00:00"
+          case ClientSideFileSize => "1"
+          case _ => s"$csp value"
+        }
+      )
+    }
+
+    val fileOneFfidMetadataId = addFFIDMetadata(fileId.toString)
+    addFFIDMetadataMatches(fileOneFfidMetadataId.toString, extensionMatch, identificationBasisMatch, puidMatch)
+
     val response: GraphqlQueryData = runTestQuery("query_filemetadata", validUserToken())
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_file_metadata")
+
     response should equal(expectedResponse)
   }
 

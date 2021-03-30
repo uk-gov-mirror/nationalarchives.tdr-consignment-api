@@ -142,20 +142,44 @@ object TestUtils {
     ps.executeUpdate()
   }
 
-  def addFFIDMetadata(fileId: String): Unit = {
+  def addFFIDMetadata(fileId: String,
+                      software: String="TEST DATA software",
+                      softwareVersion: String="TEST DATA software version",
+                      binarySigFileVersion: String="TEST DATA binary signature file version",
+                      containerSigFileVersion: String="TEST DATA container signature file version",
+                      method: String="TEST DATA method"
+                     ): UUID = {
     val ffidMetadataId = java.util.UUID.randomUUID()
     val sql = s"INSERT INTO FFIDMetadata" +
       s"(FileId, Software, SoftwareVersion, BinarySignatureFileVersion, ContainerSignatureFileVersion, Method, Datetime, FFIDMetadataId)" +
       s"VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
     ps.setString(1, fileId)
-    ps.setString(2, "TEST DATA software")
-    ps.setString(3, "TEST DATA software version")
-    ps.setString(4, "TEST DATA binary signature file version")
-    ps.setString(5, "TEST DATA container signature file version")
-    ps.setString(6, "TEST DATA method")
+    ps.setString(2, software)
+    ps.setString(3, softwareVersion)
+    ps.setString(4, binarySigFileVersion)
+    ps.setString(5, containerSigFileVersion)
+    ps.setString(6, method)
     ps.setTimestamp(7, Timestamp.from(FixedTimeSource.now))
     ps.setObject(8, ffidMetadataId)
+
+    ps.executeUpdate()
+    ffidMetadataId // ffidMetadataId has to be returned so that the addFFIDMetadataMatches method can be called with it
+  }
+
+  def addFFIDMetadataMatches(ffidMetadataId: String,
+                             extension: String="txt",
+                             identificationBasis: String="TEST DATA identification",
+                             puid: String="TEST DATA puid"
+                            ): Unit = {
+    val sql = s"INSERT INTO FFIDMetadataMatches" +
+      s"(FFIDMetadataId, Extension, IdentificationBasis, PUID)" +
+      s"VALUES (?, ?, ?, ?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, ffidMetadataId)
+    ps.setString(2, extension)
+    ps.setString(3, identificationBasis)
+    ps.setString(4, puid)
 
     ps.executeUpdate()
   }

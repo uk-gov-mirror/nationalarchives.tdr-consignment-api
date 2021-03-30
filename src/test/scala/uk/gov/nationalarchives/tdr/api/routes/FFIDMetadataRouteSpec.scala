@@ -74,7 +74,7 @@ class FFIDMetadataRouteSpec extends AnyFlatSpec with Matchers with TestRequest w
     checkNoFFIDMetadataAdded()
   }
 
-  "addFFIDMetadata" should "throw an error if manadatory fields are missing" in {
+  "addFFIDMetadata" should "throw an error if mandatory fields are missing" in {
     val expectedResponse: GraphqlMutationData = expectedMutationResponse("data_mandatory_missing")
     val response: GraphqlMutationData = runTestMutation("mutation_mandatorymissing", validBackendChecksToken("file_format"))
     response.errors.map(e => e.message.trim) should equal (expectedResponse.errors.map(_.message.trim))

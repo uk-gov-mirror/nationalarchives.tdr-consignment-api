@@ -1,8 +1,9 @@
 package uk.gov.nationalarchives.tdr.api.service
 
+import uk.gov.nationalarchives.Tables
+
 import java.sql.{SQLException, Timestamp}
 import java.util.UUID
-
 import uk.gov.nationalarchives.Tables.{FfidmetadataRow, FfidmetadatamatchesRow}
 import uk.gov.nationalarchives.tdr.api.db.repository.{FFIDMetadataMatchesRepository, FFIDMetadataRepository}
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
@@ -21,24 +22,25 @@ class FFIDMetadataService(ffidMetadataRepository: FFIDMetadataRepository, matche
       ffidMetadata.containerSignatureFileVersion,
       ffidMetadata.method)
 
-    def addMatches(uuid: UUID) = {
-      val matchRows = ffidMetadata.matches.map(m =>FfidmetadatamatchesRow(uuid, m.extension, m.identificationBasis, m.puid))
+    def addFFIDMetadataMatches(ffidmetadataid: UUID): Future[Seq[Tables.FfidmetadatamatchesRow]] = {
+      val matchRows = ffidMetadata.matches.map(m => FfidmetadatamatchesRow(ffidmetadataid, m.extension, m.identificationBasis, m.puid))
       matchesRepository.addFFIDMetadataMatches(matchRows)
 
     }
+
     (for {
-      metadata <- ffidMetadataRepository.addFFIDMetadata(metadataRows)
-      matchrow <- addMatches(metadata.ffidmetadataid)
+      ffidMetadataRow <- ffidMetadataRepository.addFFIDMetadata(metadataRows)
+      ffidMetadataMatchesRow <- addFFIDMetadataMatches(ffidMetadataRow.ffidmetadataid)
     } yield {
       FFIDMetadata(
-        metadata.fileid,
-        metadata.software,
-        metadata.softwareversion,
-        metadata.binarysignaturefileversion,
-        metadata.containersignaturefileversion,
-        metadata.method,
-        matchrow.map(r => FFIDMetadataMatches(r.extension, r.identificationbasis, r.puid)).toList,
-        metadata.datetime.getTime
+        ffidMetadataRow.fileid,
+        ffidMetadataRow.software,
+        ffidMetadataRow.softwareversion,
+        ffidMetadataRow.binarysignaturefileversion,
+        ffidMetadataRow.containersignaturefileversion,
+        ffidMetadataRow.method,
+        ffidMetadataMatchesRow.map(r => FFIDMetadataMatches(r.extension, r.identificationbasis, r.puid)).toList,
+        ffidMetadataRow.datetime.getTime
       )
     }).recover {
       case e: SQLException => throw InputDataException(e.getLocalizedMessage)
