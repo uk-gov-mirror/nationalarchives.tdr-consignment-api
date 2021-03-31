@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS FFIDMetadataMatches (
 );
 
 CREATE TABLE IF NOT EXISTS ConsignmentStatus (
-    ConsignmentStatusId uuid not null,
+    ConsignmentStatusId uuid not null default 'e5be1753-de38-4673-8719-729761169e83',
     ConsignmentId uuid not null,
     StatusType varchar(255) not null,
     Value varchar(255) not null,

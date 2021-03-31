@@ -106,6 +106,17 @@ object TestUtils {
     ps.executeUpdate()
   }
 
+  def createConsignmentUploadStatus(consignmentId: UUID): Unit = {
+    val sql =
+      s"INSERT INTO ConsignmentStatus (ConsignmentId, StatusType, Value, CreatedDatetime) VALUES (?, ?, ?, ?)"
+    val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
+    ps.setString(1, consignmentId.toString)
+    ps.setString(2, "Upload")
+    ps.setString(3, "InProgress")
+    ps.setTimestamp(4, Timestamp.from(FixedTimeSource.now))
+    ps.executeUpdate()
+  }
+
   def createFile(fileId: UUID, consignmentId: UUID): Unit = {
     val sql = s"INSERT INTO File (FileId, ConsignmentId, UserId, Datetime) VALUES (?, ?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
