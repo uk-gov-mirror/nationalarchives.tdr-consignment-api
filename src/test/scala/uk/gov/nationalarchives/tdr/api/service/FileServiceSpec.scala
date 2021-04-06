@@ -197,7 +197,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
 
     owners should have size 2
 
-    owners(0).userId should equal(userId1)
+    owners.head.userId should equal(userId1)
     owners(1).userId should equal(userId2)
   }
   //scalastyle:on magic.number
@@ -236,7 +236,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     val ffidMetadataId = UUID.randomUUID()
 
     val ffidMetadataRows = Seq(
-      (fileId, (ffidMetadataRow(ffidMetadataId, fileId, datetime), ffidMetadataMatchesRow(ffidMetadataId)))
+      (ffidMetadataRow(ffidMetadataId, fileId, datetime), ffidMetadataMatchesRow(ffidMetadataId))
     )
 
     when(ffidMetadataRepositoryMock.getFFIDMetadata(consignmentId)).thenReturn(Future(ffidMetadataRows))
@@ -272,7 +272,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
         Some("heldBy"),
         Some("language"),
         Some("foiExemption")),
-      FFIDMetadata(
+      Some(FFIDMetadata(
         fileId,
         "pronom",
         "1.0",
@@ -280,7 +280,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
         "signature",
         "pronom",
         List(FFIDMetadataMatches(Some("txt"), "identification", Some("x-fmt/111"))),
-        datetime.getTime)
+        datetime.getTime))
     )
 
     actualFileMetadata should equal(expectedFileMetadata)
@@ -297,7 +297,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     val ffidMetadataId = UUID.randomUUID()
 
     val ffidMetadataRows = Seq(
-      (fileId, (ffidMetadataRow(ffidMetadataId, fileId, datetime), ffidMetadataMatchesRow(ffidMetadataId)))
+      (ffidMetadataRow(ffidMetadataId, fileId, datetime), ffidMetadataMatchesRow(ffidMetadataId))
     )
     when(ffidMetadataRepositoryMock.getFFIDMetadata(consignmentId)).thenReturn(Future(ffidMetadataRows))
 
@@ -316,7 +316,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     val actualFileMetadata = fileMetadataList.head
     val expectedFileMetadata = File(fileId,
       FileMetadataValues(None, None, None, None, None, None, None, None, None),
-      FFIDMetadata(
+      Some(FFIDMetadata(
         fileId,
         "pronom",
         "1.0",
@@ -324,7 +324,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
         "signature",
         "pronom",
         List(FFIDMetadataMatches(Some("txt"), "identification", Some("x-fmt/111"))),
-        datetime.getTime)
+        datetime.getTime))
     )
 
     actualFileMetadata should equal(expectedFileMetadata)
