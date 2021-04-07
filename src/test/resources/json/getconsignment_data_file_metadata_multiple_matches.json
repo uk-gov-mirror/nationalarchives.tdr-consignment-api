@@ -1,0 +1,41 @@
+{
+  "data": {
+    "getConsignment": {
+      "files": [
+        {
+          "fileId": "3ce8ef99-a999-4bae-8425-325a67f2d3da",
+          "metadata": {
+            "clientSideOriginalFilePath": "ClientSideOriginalFilepath value",
+            "legalStatus": "Public Record",
+            "clientSideFileSize": 1,
+            "clientSideLastModifiedDate": "2021-02-08T16:00",
+            "rightsCopyright": "Crown Copyright",
+            "heldBy": "TNA",
+            "foiExemptionCode": "open",
+            "language": "English"
+          },
+          "ffidMetadata": {
+            "method": "TEST DATA method",
+            "softwareVersion": "TEST DATA software version",
+            "datetime": 1577869200000,
+            "software": "TEST DATA software",
+            "matches": [
+              {
+                "extension": "ext1",
+                "identificationBasis": "identification1",
+                "puid": "puid1"
+              },
+              {
+                "extension": "ext2",
+                "identificationBasis": "identification2",
+                "puid": "puid2"
+              }
+            ],
+            "containerSignatureFileVersion": "TEST DATA container signature file version",
+            "binarySignatureFileVersion": "TEST DATA binary signature file version"
+          }
+        }
+      ]
+    }
+  }
+}

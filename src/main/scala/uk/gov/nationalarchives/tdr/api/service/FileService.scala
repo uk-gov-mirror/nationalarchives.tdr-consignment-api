@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.tdr.api.service
 
-import uk.gov.nationalarchives.Tables.{ConsignmentstatusRow, FileRow, FilemetadataRow}
+import uk.gov.nationalarchives.Tables.{ConsignmentstatusRow, FfidmetadataRow, FfidmetadatamatchesRow, FileRow, FilemetadataRow}
 import uk.gov.nationalarchives.tdr.api.db.repository._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FFIDMetadataFields.{FFIDMetadata, FFIDMetadataMatches}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields.{AddFilesInput, Files}
@@ -55,7 +55,8 @@ class FileService(
   def getFileMetadata(consignmentId: UUID): Future[List[File]] = {
     ffidMetadataRepository.getFFIDMetadata(consignmentId).map {
       ffidMetadataAndMatchesRows =>
-        val ffidMetadataAndMatches = ffidMetadataAndMatchesRows.toMap
+        val ffidMetadataAndMatches: Map[FfidmetadataRow, Seq[FfidmetadatamatchesRow]] =
+          ffidMetadataAndMatchesRows.groupBy(_._1).view.mapValues(_.map(_._2)).toMap
 
         fileMetadataRepository.getFileMetadata(consignmentId).map {
           rows =>
@@ -75,20 +76,18 @@ class FileService(
                 propertyNameMap.get(FoiExemptionCode.name)
               )
               val fileId = entry._1
-              val ffidMetadata = ffidMetadataAndMatches(fileId)._1
-              val ffidMetadataMatches = ffidMetadataAndMatches(fileId)._2
-
-              val fullFfidMetadata: FFIDMetadata = FFIDMetadata(
-                ffidMetadata.fileid,
-                ffidMetadata.software,
-                ffidMetadata.softwareversion,
-                ffidMetadata.binarysignaturefileversion,
-                ffidMetadata.containersignaturefileversion,
-                ffidMetadata.method,
-                List(FFIDMetadataMatches(ffidMetadataMatches.extension, ffidMetadataMatches.identificationbasis, ffidMetadataMatches.puid)),
-                ffidMetadata.datetime.getTime
-              )
-
+              val fullFfidMetadata = ffidMetadataAndMatches.find(_._1.fileid == fileId).map {
+                case (metadata, matches) => FFIDMetadata(
+                  metadata.fileid,
+                  metadata.software,
+                  metadata.softwareversion,
+                  metadata.binarysignaturefileversion,
+                  metadata.containersignaturefileversion,
+                  metadata.method,
+                  matches.map(m => FFIDMetadataMatches(m.extension, m.identificationbasis, m.puid)).toList,
+                  metadata.datetime.getTime
+                )
+              }
               File(fileId, fileMetadataValues, fullFfidMetadata)
             }).toList
         }

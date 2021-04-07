@@ -51,7 +51,7 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
   case class AddConsignment(addConsignment: Consignment)
   case class UpdateExportLocation(updateExportLocation: Int)
   case class UpdateTransferInitiated(updateTransferInitiated: Int)
-  case class File(fileId: UUID, metadata: FileMetadataValues, ffidMetadata: FFIDMetadataValues)
+  case class File(fileId: UUID, metadata: FileMetadataValues, ffidMetadata: Option[FFIDMetadataValues])
   case class FFIDMetadataMatches(extension: Option[String] = None, identificationBasis: String, puid: Option[String])
   case class FileMetadataValues(sha256ClientSideChecksum: Option[String],
                                 clientSideOriginalFilePath: Option[String],
@@ -212,6 +212,56 @@ class ConsignmentRouteSpec extends AnyFlatSpec with Matchers with TestRequest wi
 
     val response: GraphqlQueryData = runTestQuery("query_filemetadata", validUserToken())
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_file_metadata")
+
+    response should equal(expectedResponse)
+  }
+
+  "getConsignment" should "return empty ffid metadata if the ffid metadata is missing" in {
+    val consignmentId = UUID.fromString("c31b3d3e-1931-421b-a829-e2ef4cd8930c")
+    val fileId = UUID.fromString("3ce8ef99-a999-4bae-8425-325a67f2d3da")
+
+    createConsignment(consignmentId, userId, UUID.randomUUID())
+    createFile(fileId, consignmentId)
+    staticMetadataProperties.foreach(smp => addFileMetadata(UUID.randomUUID().toString, fileId.toString, smp.name, smp.value))
+    clientSideProperties.foreach { csp =>
+      addFileMetadata(UUID.randomUUID().toString, fileId.toString, csp,
+        csp match {
+          case ClientSideFileLastModifiedDate => s"2021-02-08 16:00:00"
+          case ClientSideFileSize => "1"
+          case _ => s"$csp value"
+        }
+      )
+    }
+
+    val response: GraphqlQueryData = runTestQuery("query_filemetadata", validUserToken())
+
+    response.data.get.getConsignment.get.files.get.head.ffidMetadata.isEmpty should be(true)
+  }
+
+  "getConsignment" should "return multiple droid matches" in {
+    val consignmentId = UUID.fromString("c31b3d3e-1931-421b-a829-e2ef4cd8930c")
+    val fileId = UUID.fromString("3ce8ef99-a999-4bae-8425-325a67f2d3da")
+
+    createConsignment(consignmentId, userId, UUID.randomUUID())
+    createFile(fileId, consignmentId)
+    staticMetadataProperties.foreach(smp => addFileMetadata(UUID.randomUUID().toString, fileId.toString, smp.name, smp.value))
+    clientSideProperties.foreach { csp =>
+      addFileMetadata(UUID.randomUUID().toString, fileId.toString, csp,
+        csp match {
+          case ClientSideFileLastModifiedDate => s"2021-02-08 16:00:00"
+          case ClientSideFileSize => "1"
+          case _ => s"$csp value"
+        }
+      )
+    }
+
+    val fileOneFfidMetadataId = addFFIDMetadata(fileId.toString)
+    addFFIDMetadataMatches(fileOneFfidMetadataId.toString, "ext1", "identification1", "puid1")
+    addFFIDMetadataMatches(fileOneFfidMetadataId.toString, "ext2", "identification2", "puid2")
+
+    val response: GraphqlQueryData = runTestQuery("query_filemetadata", validUserToken())
+
+    val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_file_metadata_multiple_matches")
 
     response should equal(expectedResponse)
   }
