@@ -106,14 +106,20 @@ object TestUtils {
     ps.executeUpdate()
   }
 
-  def createConsignmentUploadStatus(consignmentId: UUID): Unit = {
+  def createConsignmentUploadStatus(consignmentStatusId: UUID,
+                                    consignmentId: UUID,
+                                    statusType: String,
+                                    statusValue: String,
+                                    createdTime: Timestamp
+                                   ): Unit = {
     val sql =
-      s"INSERT INTO ConsignmentStatus (ConsignmentId, StatusType, Value, CreatedDatetime) VALUES (?, ?, ?, ?)"
+      s"INSERT INTO ConsignmentStatus (ConsignmentStatusId, ConsignmentId, StatusType, Value, CreatedDatetime) VALUES (?, ?, ?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.setString(1, consignmentId.toString)
-    ps.setString(2, "Upload")
-    ps.setString(3, "InProgress")
-    ps.setTimestamp(4, Timestamp.from(FixedTimeSource.now))
+    ps.setString(1, consignmentStatusId.toString)
+    ps.setString(2, consignmentId.toString)
+    ps.setString(3, statusType)
+    ps.setString(4, statusValue)
+    ps.setTimestamp(5, createdTime)
     ps.executeUpdate()
   }
 
