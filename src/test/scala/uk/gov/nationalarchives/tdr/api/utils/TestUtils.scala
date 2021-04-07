@@ -106,6 +106,7 @@ object TestUtils {
     ps.executeUpdate()
   }
 
+  //scalastyle:off magic.number
   def createConsignmentUploadStatus(consignmentStatusId: UUID,
                                     consignmentId: UUID,
                                     statusType: String,
@@ -122,6 +123,8 @@ object TestUtils {
     ps.setTimestamp(5, createdTime)
     ps.executeUpdate()
   }
+
+  //scalastyle:on magic.number
 
   def createFile(fileId: UUID, consignmentId: UUID): Unit = {
     val sql = s"INSERT INTO File (FileId, ConsignmentId, UserId, Datetime) VALUES (?, ?, ?, ?)"
