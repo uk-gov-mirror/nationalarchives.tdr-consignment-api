@@ -107,20 +107,19 @@ object TestUtils {
   }
 
   //scalastyle:off magic.number
-  def createConsignmentUploadStatus(consignmentStatusId: UUID,
-                                    consignmentId: UUID,
+  def createConsignmentUploadStatus(consignmentId: UUID,
                                     statusType: String,
                                     statusValue: String,
-                                    createdTime: Timestamp
+                                    createdDate: Timestamp = Timestamp.from(FixedTimeSource.now)
                                    ): Unit = {
     val sql =
       s"INSERT INTO ConsignmentStatus (ConsignmentStatusId, ConsignmentId, StatusType, Value, CreatedDatetime) VALUES (?, ?, ?, ?, ?)"
     val ps: PreparedStatement = DbConnection.db.source.createConnection().prepareStatement(sql)
-    ps.setString(1, consignmentStatusId.toString)
+    ps.setString(1, UUID.randomUUID().toString)
     ps.setString(2, consignmentId.toString)
     ps.setString(3, statusType)
     ps.setString(4, statusValue)
-    ps.setTimestamp(5, createdTime)
+    ps.setTimestamp(5, createdDate)
     ps.executeUpdate()
   }
 
