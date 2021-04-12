@@ -13,18 +13,16 @@ import scala.concurrent.ExecutionContext
 class ConsignmentStatusRepositorySpec extends AnyFlatSpec with TestDatabase with ScalaFutures with Matchers {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
 
-  "getConsignmentStatus" should "return status information for a consignment" in {
+  "getConsignmentStatus" should "return all of a consignment's status markers" in {
     val db = DbConnection.db
     val consignmentStatusRepository = new ConsignmentStatusRepository(db)
     val consignmentId = UUID.fromString("b8271ba9-9ef4-4584-b074-5a48b2a34cec")
-    val consignmentStatusId = UUID.fromString("36effb1c-905d-4539-9d84-70d8ad7b606f")
     val userId = UUID.fromString("aee2d1a9-e1db-43a0-9fd6-a6c342bb187b")
     val statusType = "Upload"
     val statusValue = "InProgress"
-    val createdTime: Timestamp = Timestamp.from(FixedTimeSource.now)
 
     TestUtils.createConsignment(consignmentId, userId)
-    TestUtils.createConsignmentUploadStatus(consignmentStatusId, consignmentId, statusType, statusValue, createdTime)
+    TestUtils.createConsignmentUploadStatus(consignmentId, statusType, statusValue)
 
     val consignmentUploadStatus = consignmentStatusRepository.getConsignmentStatus(consignmentId).futureValue.head
 
