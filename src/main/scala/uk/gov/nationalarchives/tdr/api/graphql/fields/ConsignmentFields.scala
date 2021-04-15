@@ -33,6 +33,7 @@ object ConsignmentFields {
 
   case class FileChecks(antivirusProgress: AntivirusProgress, checksumProgress: ChecksumProgress, ffidProgress: FFIDProgress)
   case class TransferringBody(name: Option[String], code: Option[String])
+  case class CurrentStatus(upload: Option[String])
 
   case class UpdateExportLocationInput(consignmentId: UUID, exportLocation: String, exportDatetime: Option[ZonedDateTime])
 
@@ -48,8 +49,12 @@ object ConsignmentFields {
     deriveObjectType[Unit, TransferringBody]()
   implicit val FileType: ObjectType[Unit, File] =
     deriveObjectType[Unit, File]()
-  implicit val FileMetadataType: ObjectType[Unit, FileMetadataValues] =
+  implicit val FileMetadataType: ObjectType[Unit, FileMetadataValues] = {
     deriveObjectType[Unit, FileMetadataValues]()
+  }
+  implicit val CurrentStatusType: ObjectType[Unit, CurrentStatus] =
+    deriveObjectType[Unit, CurrentStatus]()
+
 
   implicit val ConsignmentType: ObjectType[Unit, Consignment] = ObjectType(
     "Consignment",
@@ -94,6 +99,11 @@ object ConsignmentFields {
         "consignmentReference",
         StringType,
         resolve = _.value.consignmentReference
+      ),
+      Field(
+        "currentStatus",
+        CurrentStatusType,
+        resolve = context => DeferCurrentConsignmentStatus(context.value.consignmentid)
       )
     )
   )
