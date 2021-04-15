@@ -9,7 +9,7 @@ import scala.concurrent.Future
 class ConsignmentStatusRepository(db: Database) {
 
   def getConsignmentStatus(consignmentId: UUID): Future[Seq[ConsignmentstatusRow]] = {
-    val query = Consignmentstatus.filter(_.consignmentid === consignmentId).sortBy(_.createddatetime.desc)
+    val query = Consignmentstatus.filter(_.consignmentid === consignmentId)
     db.run(query.result)
   }
 }

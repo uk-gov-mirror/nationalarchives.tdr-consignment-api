@@ -43,25 +43,4 @@ class ConsignmentStatusRepositorySpec extends AnyFlatSpec with TestDatabase with
 
     consignmentUploadStatus should be(empty)
   }
-
-  "getConsignmentStatus" should "return the rows in created date order" in {
-    val db = DbConnection.db
-    val consignmentStatusRepository = new ConsignmentStatusRepository(db)
-    val consignmentId = UUID.fromString("b8271ba9-9ef4-4584-b074-5a48b2a34cec")
-    val userId = UUID.fromString("aee2d1a9-e1db-43a0-9fd6-a6c342bb187b")
-    val oldestTime = Timestamp.from(FixedTimeSource.now)
-    val middleTime = Timestamp.from(FixedTimeSource.now.plus(Duration.ofDays(1)))
-    val newestTime = Timestamp.from(FixedTimeSource.now.plus(Duration.ofDays(2)))
-
-    TestUtils.createConsignment(consignmentId, userId)
-    TestUtils.createConsignmentUploadStatus(consignmentId, "Upload", "oldestValue", oldestTime)
-    TestUtils.createConsignmentUploadStatus(consignmentId, "Upload", "middleValue", middleTime)
-    TestUtils.createConsignmentUploadStatus(consignmentId, "Upload", "newestValue", newestTime)
-
-    val consignmentUploadStatus = consignmentStatusRepository.getConsignmentStatus(consignmentId).futureValue
-
-    consignmentUploadStatus.head.value should be("newestValue")
-    consignmentUploadStatus.tail.head.value should be("middleValue")
-    consignmentUploadStatus.last.value should be("oldestValue")
-  }
 }
