@@ -1,8 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.service
 
-import uk.gov.nationalarchives.Tables.{ConsignmentstatusRow, FfidmetadataRow, FfidmetadatamatchesRow, FileRow, FilemetadataRow}
+import uk.gov.nationalarchives.Tables.{ConsignmentstatusRow, FileRow, FilemetadataRow}
 import uk.gov.nationalarchives.tdr.api.db.repository._
-import uk.gov.nationalarchives.tdr.api.graphql.fields.FFIDMetadataFields.{FFIDMetadata, FFIDMetadataMatches}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields.{AddFilesInput, Files}
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
 
@@ -15,6 +14,7 @@ class FileService(
                    consignmentRepository: ConsignmentRepository,
                    fileMetadataRepository: FileMetadataRepository,
                    ffidMetadataRepository: FFIDMetadataRepository,
+                   ffidMetadataMatchesRepository: FFIDMetadataMatchesRepository,
                    timeSource: TimeSource,
                    uuidSource: UUIDSource
                  )(implicit val executionContext: ExecutionContext) {
@@ -53,45 +53,17 @@ class FileService(
   }
 
   def getFileMetadata(consignmentId: UUID): Future[List[File]] = {
-    ffidMetadataRepository.getFFIDMetadata(consignmentId).map {
-      ffidMetadataAndMatchesRows =>
-        val ffidMetadataAndMatches: Map[FfidmetadataRow, Seq[FfidmetadatamatchesRow]] =
-          ffidMetadataAndMatchesRows.groupBy(_._1).view.mapValues(_.map(_._2)).toMap
-
-        fileMetadataRepository.getFileMetadata(consignmentId).map {
-          rows =>
-            rows.groupBy(_.fileid).map(entry => {
-              val propertyNameMap: Map[String, String] = entry._2.groupBy(_.propertyname)
-                .transform((_, value) => value.head.value)
-
-              val fileMetadataValues = FileMetadataValues(
-                propertyNameMap.get(SHA256ClientSideChecksum),
-                propertyNameMap.get(ClientSideOriginalFilepath),
-                propertyNameMap.get(ClientSideFileLastModifiedDate).map(d => Timestamp.valueOf(d).toLocalDateTime),
-                propertyNameMap.get(ClientSideFileSize).map(_.toLong),
-                propertyNameMap.get(RightsCopyright.name),
-                propertyNameMap.get(LegalStatus.name),
-                propertyNameMap.get(HeldBy.name),
-                propertyNameMap.get(Language.name),
-                propertyNameMap.get(FoiExemptionCode.name)
-              )
-              val fileId = entry._1
-              val fullFfidMetadata = ffidMetadataAndMatches.find(_._1.fileid == fileId).map {
-                case (metadata, matches) => FFIDMetadata(
-                  metadata.fileid,
-                  metadata.software,
-                  metadata.softwareversion,
-                  metadata.binarysignaturefileversion,
-                  metadata.containersignaturefileversion,
-                  metadata.method,
-                  matches.map(m => FFIDMetadataMatches(m.extension, m.identificationbasis, m.puid)).toList,
-                  metadata.datetime.getTime
-                )
-              }
-              File(fileId, fileMetadataValues, fullFfidMetadata)
-            }).toList
-        }
-    }.flatten
+    val fileMetadataService = new FileMetadataService(fileMetadataRepository, timeSource, uuidSource)
+    val ffidMetadataService = new FFIDMetadataService(ffidMetadataRepository, ffidMetadataMatchesRepository, timeSource, uuidSource)
+    for {
+      fileMetadataList <- fileMetadataService.getFileMetadata(consignmentId)
+      ffidMetadataList <- ffidMetadataService.getFFIDMetadata(consignmentId)
+    } yield {
+      fileMetadataList map {
+        case (fileId, fileMetadata) =>
+          File(fileId, fileMetadata, ffidMetadataList.find(_.fileId == fileId))
+      }
+    }.toList
   }
 }
 
