@@ -15,6 +15,7 @@ class FileService(
                    fileMetadataRepository: FileMetadataRepository,
                    ffidMetadataRepository: FFIDMetadataRepository,
                    ffidMetadataMatchesRepository: FFIDMetadataMatchesRepository,
+                   antivirusMetadataRepository: AntivirusMetadataRepository,
                    timeSource: TimeSource,
                    uuidSource: UUIDSource
                  )(implicit val executionContext: ExecutionContext) {
@@ -55,13 +56,15 @@ class FileService(
   def getFileMetadata(consignmentId: UUID): Future[List[File]] = {
     val fileMetadataService = new FileMetadataService(fileMetadataRepository, timeSource, uuidSource)
     val ffidMetadataService = new FFIDMetadataService(ffidMetadataRepository, ffidMetadataMatchesRepository, timeSource, uuidSource)
+    val avMetadataService = new AntivirusMetadataService(antivirusMetadataRepository)
     for {
       fileMetadataList <- fileMetadataService.getFileMetadata(consignmentId)
       ffidMetadataList <- ffidMetadataService.getFFIDMetadata(consignmentId)
+      avList <- avMetadataService.getAntivirusMetadata(consignmentId)
     } yield {
       fileMetadataList map {
         case (fileId, fileMetadata) =>
-          File(fileId, fileMetadata, ffidMetadataList.find(_.fileId == fileId))
+          File(fileId, fileMetadata, ffidMetadataList.find(_.fileId == fileId), avList.find(_.fileId == fileId))
       }
     }.toList
   }

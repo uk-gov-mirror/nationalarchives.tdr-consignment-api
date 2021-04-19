@@ -6,6 +6,7 @@ import java.util.UUID
 import uk.gov.nationalarchives.Tables.FilemetadataRow
 import uk.gov.nationalarchives.tdr.api.db.repository.FileMetadataRepository
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
+import uk.gov.nationalarchives.tdr.api.graphql.fields.AntivirusMetadataFields.AntivirusMetadata
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FFIDMetadataFields.FFIDMetadata
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.{AddFileMetadataInput, FileMetadata, SHA256ServerSideChecksum}
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
@@ -81,7 +82,7 @@ object FileMetadataService {
   val clientSideProperties = List(SHA256ClientSideChecksum, ClientSideOriginalFilepath, ClientSideFileLastModifiedDate, ClientSideFileSize)
   val staticMetadataProperties = List(RightsCopyright, LegalStatus, HeldBy, Language, FoiExemptionCode)
 
-  case class File(fileId: UUID, metadata: FileMetadataValues, ffidMetadata: Option[FFIDMetadata])
+  case class File(fileId: UUID, metadata: FileMetadataValues, ffidMetadata: Option[FFIDMetadata], antivirusMetadata: Option[AntivirusMetadata])
 
   case class FileMetadataValues(sha256ClientSideChecksum: Option[String],
                                 clientSideOriginalFilePath: Option[String],
