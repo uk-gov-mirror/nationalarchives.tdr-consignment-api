@@ -12,9 +12,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class FileService(
                    fileRepository: FileRepository,
                    consignmentRepository: ConsignmentRepository,
-                   fileMetadataRepository: FileMetadataRepository,
-                   ffidMetadataRepository: FFIDMetadataRepository,
-                   ffidMetadataMatchesRepository: FFIDMetadataMatchesRepository,
+                   fileMetadataService: FileMetadataService,
+                   ffidMetadataService: FFIDMetadataService,
                    timeSource: TimeSource,
                    uuidSource: UUIDSource
                  )(implicit val executionContext: ExecutionContext) {
@@ -27,15 +26,10 @@ class FileService(
 
     val consignmentStatusRow = ConsignmentstatusRow(uuidSource.uuid, addFilesInput.consignmentId, "Upload", "InProgress", now)
 
-    def fileMetadataRows(fileRows: Seq[FileRow]): Seq[FilemetadataRow] = for {
-      staticMetadata <- staticMetadataProperties
-      fileId <- fileRows.map(_.fileid)
-    } yield FilemetadataRow(uuidSource.uuid, fileId, staticMetadata.value, now, userId, staticMetadata.name)
-
     for {
       _ <- consignmentRepository.addParentFolder(addFilesInput.consignmentId, addFilesInput.parentFolder)
       files <- fileRepository.addFiles(rows, consignmentStatusRow)
-      _ <- fileMetadataRepository.addFileMetadata(fileMetadataRows(files))
+      _ <- fileMetadataService.addStaticMetadata(files, userId)
     } yield Files(files.map(_.fileid))
   }
 
@@ -53,8 +47,6 @@ class FileService(
   }
 
   def getFileMetadata(consignmentId: UUID): Future[List[File]] = {
-    val fileMetadataService = new FileMetadataService(fileMetadataRepository, timeSource, uuidSource)
-    val ffidMetadataService = new FFIDMetadataService(ffidMetadataRepository, ffidMetadataMatchesRepository, timeSource, uuidSource)
     for {
       fileMetadataList <- fileMetadataService.getFileMetadata(consignmentId)
       ffidMetadataList <- ffidMetadataService.getFFIDMetadata(consignmentId)
