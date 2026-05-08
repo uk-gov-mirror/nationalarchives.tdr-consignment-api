@@ -6,8 +6,9 @@ import uk.gov.nationalarchives.tdr.api.db.repository.{ConsignmentStatusRepositor
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentStatusFields.{ConsignmentStatus, ConsignmentStatusInput}
 import uk.gov.nationalarchives.tdr.api.service.ConsignmentStatusService.{validStatusTypes, validStatusValues}
-import uk.gov.nationalarchives.tdr.api.utils.Statuses._
-import uk.gov.nationalarchives.tdr.api.utils.{Approval, Rejection, Submission}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusTypes._
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues._
+import uk.gov.nationalarchives.tdr.common.utils.statuses.MetadataReviewLogAction.{Approval, Rejection, Submission}
 import uk.gov.nationalarchives.tdr.api.utils.TimeUtils.TimestampUtils
 
 import java.sql.Timestamp
@@ -113,7 +114,9 @@ class ConsignmentStatusService(
         }
       }
       .flatten
-    action.map(a => MetadatareviewlogRow(uuidSource.uuid, consignmentStatusInput.consignmentId, userId, a, Timestamp.from(timeSource.now)))
+    action.map(a =>
+      MetadatareviewlogRow(uuidSource.uuid, consignmentStatusInput.consignmentId, userId, a, Timestamp.from(timeSource.now), consignmentStatusInput.metadataReviewNotes)
+    )
   }
 }
 
@@ -126,8 +129,6 @@ object ConsignmentStatusService {
       ClientChecksType.id,
       DraftMetadataType.id,
       DraftMetadataUploadType.id,
-      ClosureMetadataType.id,
-      DescriptiveMetadataType.id,
       ConfirmTransferType.id,
       ExportType.id,
       MetadataReviewType.id

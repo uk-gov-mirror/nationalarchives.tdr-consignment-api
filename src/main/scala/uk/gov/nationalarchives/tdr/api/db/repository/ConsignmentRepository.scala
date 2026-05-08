@@ -17,7 +17,8 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{
   UpdateMetadataSchemaLibraryVersionInput
 }
 import uk.gov.nationalarchives.tdr.api.service.TimeSource
-import uk.gov.nationalarchives.tdr.api.utils.Statuses.{InProgressValue, MetadataReviewType}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusTypes.MetadataReviewType
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.InProgressValue
 import uk.gov.nationalarchives.tdr.api.utils.TimeUtils.ZonedDateTimeUtils
 
 import java.sql.Timestamp
@@ -82,13 +83,21 @@ class ConsignmentRepository(db: JdbcBackend#Database, timeSource: TimeSource) {
     db.run(query.result)
   }
 
+  def getConsignmentsWithMetadataReviewStatus: Future[Seq[ConsignmentRow]] = {
+    val query = Consignment
+      .join(Consignmentstatus)
+      .on(_.consignmentid === _.consignmentid)
+      .filter(_._2.statustype === MetadataReviewType.id)
+      .map(_._1)
+    db.run(query.result)
+  }
+
   def getConsignmentForMetadataReview(consignmentId: UUID): Future[Seq[ConsignmentRow]] = {
     val query = Consignment
       .join(Consignmentstatus)
       .on(_.consignmentid === _.consignmentid)
       .filter(_._1.consignmentid === consignmentId)
       .filter(_._2.statustype === MetadataReviewType.id)
-      .filter(_._2.value === InProgressValue.value)
       .map(_._1)
     db.run(query.result)
   }

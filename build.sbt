@@ -63,7 +63,7 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-generic" % circeVersion,
   "io.circe" %% "circe-generic-extras" % "0.14.4",
   "com.softwaremill.sttp.client3" %% "core" % "3.11.0",
-  "uk.gov.nationalarchives" %% "consignment-api-db" % "0.1.56",
+  "uk.gov.nationalarchives" %% "consignment-api-db" % "0.1.57",
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.217",
   "org.postgresql" % "postgresql" % "42.7.10",
   "com.typesafe.slick" %% "slick" % "3.6.1",
@@ -84,6 +84,7 @@ libraryDependencies ++= Seq(
   "com.dimafeng" %% "testcontainers-scala-postgresql" % testContainersVersion % Test,
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
   "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.129"
+  "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.15"
 )
 
 dependencyOverrides ++= Seq(

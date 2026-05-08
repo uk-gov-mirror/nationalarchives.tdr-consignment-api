@@ -11,7 +11,9 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.SHA256S
 import uk.gov.nationalarchives.tdr.api.model.file.NodeType
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
 import uk.gov.nationalarchives.tdr.api.service.ReferenceGeneratorService.Reference
-import uk.gov.nationalarchives.tdr.api.utils.Statuses.{InProgressValue, MetadataReviewType}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.MetadataReviewLogAction.{Approval, Submission}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusTypes.{MetadataReviewType, UploadType}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.{CompletedValue, FailedValue, InProgressValue}
 import uk.gov.nationalarchives.tdr.api.utils.TestAuthUtils._
 import uk.gov.nationalarchives.tdr.api.utils.TestContainerUtils._
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
@@ -32,6 +34,7 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
   private val updateConsignmentMetadataSchemaLibraryVersionPrefix: String = "json/updateconsignmentmetadataschemalibraryversion_"
   private val updateClientSideDraftMetadataFileNamePrefix: String = "json/updateconsignment_draft_metadata_filename_"
   private val getConsignmentForMetadataReviewJsonFilePrefix: String = "json/getconsignmentsformetadatareview_"
+  private val getConsignmentReviewDetailsJsonFilePrefix: String = "json/getconsignmentreviewdetails_"
   private val updateParentFolderJsonFilePrefix: String = "json/updateparentfolder_"
 
   val defaultConsignmentId: UUID = UUID.fromString("b130e097-2edc-4e67-a7e9-5364a09ae9cb")
@@ -45,9 +48,31 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
 
   case class GraphqlQueryData(data: Option[GetConsignment], errors: List[GraphqlError] = Nil)
 
-  case class ConsignmentsForMetadataReview(getConsignmentsForMetadataReview: List[GetConsignment])
+  // TODO: Remove LegacyMetadataReviewDetailsResponse, ConsignmentsForMetadataReview and ConsignmentsForMetadataReviewData
+  //  when the deprecated getConsignmentsForMetadataReview query is removed from ConsignmentFields
+  case class LegacyMetadataReviewDetailsResponse(
+      consignmentReference: String,
+      reviewStatus: Option[String] = None,
+      transferringBodyName: Option[String] = None,
+      seriesName: Option[String] = None
+  )
+
+  case class MetadataReviewDetailsResponse(
+      consignmentId: UUID,
+      consignmentReference: String,
+      reviewStatus: Option[String] = None,
+      transferringBodyName: Option[String] = None,
+      seriesName: Option[String] = None,
+      lastUpdated: Option[ZonedDateTime] = None
+  )
+
+  case class ConsignmentsForMetadataReview(getConsignmentsForMetadataReview: List[LegacyMetadataReviewDetailsResponse])
 
   case class ConsignmentsForMetadataReviewData(data: Option[ConsignmentsForMetadataReview], errors: List[GraphqlError] = Nil)
+
+  case class MetadataReviewDetailsResult(getConsignmentReviewDetails: List[MetadataReviewDetailsResponse])
+
+  case class MetadataReviewDetailsResultData(data: Option[MetadataReviewDetailsResult], errors: List[GraphqlError] = Nil)
 
   case class GraphqlConsignmentsQueryData(data: Option[ConsignmentConnections], errors: List[GraphqlError] = Nil)
 
@@ -190,6 +215,7 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     runTestRequest[GraphqlMutationStartUpload](startUploadJsonFilePrefix)
   val runUpdateConsignmentSeriesIdMutation: (String, OAuth2BearerToken) => GraphqlMutationUpdateSeriesIdOfConsignment =
     runTestRequest[GraphqlMutationUpdateSeriesIdOfConsignment](updateConsignmentSeriesIdJsonFilePrefix)
+  // TODO: Remove when the deprecated getConsignmentsForMetadataReview query is removed from ConsignmentFields
   val runGetConsignmentsForMetadataReview: (String, OAuth2BearerToken) => ConsignmentsForMetadataReviewData =
     runTestRequest[ConsignmentsForMetadataReviewData](getConsignmentForMetadataReviewJsonFilePrefix)
   val runUpdateConsignmentMetadataSchemaLibraryVersionMutation: (String, OAuth2BearerToken) => GraphqlMutationUpdateMetadataSchemaLibraryVersion =
@@ -207,8 +233,13 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     getDataFromFile[GraphqlMutationUpdateMetadataSchemaLibraryVersion](updateConsignmentMetadataSchemaLibraryVersionPrefix)
   val expectedUpdateClientSideDraftMetadataFileNameResponse: String => GraphqlMutationUpdateDraftMetadataFileName =
     getDataFromFile[GraphqlMutationUpdateDraftMetadataFileName](updateClientSideDraftMetadataFileNamePrefix)
+  // TODO: Remove when the deprecated getConsignmentsForMetadataReview query is removed from ConsignmentFields
   val expectedGetConsignmentForMetadataResponse: String => ConsignmentsForMetadataReviewData =
     getDataFromFile[ConsignmentsForMetadataReviewData](getConsignmentForMetadataReviewJsonFilePrefix)
+  val runGetConsignmentReviewDetails: (String, OAuth2BearerToken) => MetadataReviewDetailsResultData =
+    runTestRequest[MetadataReviewDetailsResultData](getConsignmentReviewDetailsJsonFilePrefix)
+  val expectedGetConsignmentReviewDetailsResponse: String => MetadataReviewDetailsResultData =
+    getDataFromFile[MetadataReviewDetailsResultData](getConsignmentReviewDetailsJsonFilePrefix)
   val expectedUpdateParentFolderResponse: String => GraphqlMutationUpdateParentFolder =
     getDataFromFile[GraphqlMutationUpdateParentFolder](updateParentFolderJsonFilePrefix)
 
@@ -257,7 +288,7 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     utils.addConsignmentMetadata(UUID.randomUUID(), defaultConsignmentId, "JudgmentType", "press_summary")
     utils.addConsignmentMetadata(UUID.randomUUID(), defaultConsignmentId, "PublicRecordsConfirmed", "true")
 
-    List(SHA256ServerSideChecksum, ClosurePeriod, FoiExemptionAsserted, ClosureStartDate, FoiExemptionCode).foreach(utils.addFileProperty(_))
+    List(SHA256ServerSideChecksum, ClosurePeriod, FoiExemptionAsserted, ClosureStartDate, FoiExemptionCode).foreach(utils.addFileProperty)
 
     utils.createFile(UUID.fromString(fileOneId), defaultConsignmentId, fileName = "fileOneName", parentId = parentUUID, fileRef = Some("REF1"), uploadMatchId = Some("1"))
     utils.createFile(UUID.fromString(fileTwoId), defaultConsignmentId, fileName = "fileTwoName", parentId = parentUUID, fileRef = Some("REF2"), uploadMatchId = Some("2"))
@@ -275,10 +306,10 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     utils.createFileStatusValues(UUID.randomUUID(), UUID.fromString(fileTwoId), "FFID", "Success")
     utils.createFileStatusValues(UUID.randomUUID(), UUID.fromString(fileThreeId), "FFID", "Success")
 
-    utils.createFileStatusValues(UUID.randomUUID(), UUID.fromString(fileOneId), "ChecksumMatch", "Failed")
+    utils.createFileStatusValues(UUID.randomUUID(), UUID.fromString(fileOneId), "ChecksumMatch", FailedValue.value)
     utils.createFileStatusValues(UUID.randomUUID(), UUID.fromString(fileTwoId), "ChecksumMatch", "Success")
 
-    utils.createFileStatusValues(UUID.randomUUID(), UUID.fromString(fileTwoId), "Antivirus", "Failed")
+    utils.createFileStatusValues(UUID.randomUUID(), UUID.fromString(fileTwoId), "Antivirus", FailedValue.value)
 
     utils.addAntivirusMetadata(fileOneId)
 
@@ -316,7 +347,7 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     utils.addParentFolderName(defaultConsignmentId, "ALL CONSIGNMENT DATA PARENT FOLDER")
     utils.addTopLevelFolder(defaultConsignmentId, includeTopLevelFolder = true)
 
-    utils.createConsignmentStatus(defaultConsignmentId, "Upload", "Completed", statusId = UUID.fromString("21f3a11d-05f4-4565-b668-8586644fd441"))
+    utils.createConsignmentStatus(defaultConsignmentId, UploadType.id, CompletedValue.value, statusId = UUID.fromString("21f3a11d-05f4-4565-b668-8586644fd441"))
 
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_all")
     val response: GraphqlQueryData = runTestQuery("query_alldata", validUserToken(body = defaultBodyCode))
@@ -336,7 +367,7 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     utils.createConsignment(consignmentId, userId, fixedSeriesId)
     utils.createFile(fileId, consignmentId)
 
-    generateMetadataPropertiesForFile(fileId, utils, true)
+    generateMetadataPropertiesForFile(fileId, utils, addProperty = true)
 
     val fileOneFfidMetadataId = utils.addFFIDMetadata(fileId.toString)
     utils.addFFIDMetadataMatches(fileOneFfidMetadataId.toString, extensionMatch, identificationBasisMatch, puidMatch)
@@ -362,7 +393,7 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     utils.addConsignmentMetadata(UUID.randomUUID(), consignmentId, "JudgmentType", "press_summary")
     utils.addConsignmentMetadata(UUID.randomUUID(), consignmentId, "PublicRecordsConfirmed", "true")
 
-    generateMetadataPropertiesForFile(fileId, utils, true)
+    generateMetadataPropertiesForFile(fileId, utils, addProperty = true)
 
     val fileOneFfidMetadataId = utils.addFFIDMetadata(fileId.toString)
     utils.addFFIDMetadataMatches(fileOneFfidMetadataId.toString, extensionMatch, identificationBasisMatch, puidMatch)
@@ -377,7 +408,7 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     val consignmentId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
     val logId = UUID.fromString("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
     utils.createConsignment(consignmentId, userId)
-    utils.addMetadataReviewLog(logId, consignmentId, userId, "Approval")
+    utils.addMetadataReviewLog(logId, consignmentId, userId, Approval.value)
 
     val response: GraphqlQueryData = runTestQuery("query_metadata_review_logs", validUserToken())
     val expectedResponse: GraphqlQueryData = expectedQueryResponse("data_metadata_review_logs")
@@ -391,7 +422,7 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
 
     utils.createConsignment(consignmentId, userId, fixedSeriesId)
     utils.createFile(fileId, consignmentId)
-    generateMetadataPropertiesForFile(fileId, utils, true)
+    generateMetadataPropertiesForFile(fileId, utils, addProperty = true)
 
     val response: GraphqlQueryData = runTestQuery("query_filemetadata", validUserToken())
 
@@ -405,7 +436,7 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
 
     utils.createConsignment(consignmentId, userId, fixedSeriesId)
     utils.createFile(fileId, consignmentId)
-    generateMetadataPropertiesForFile(fileId, utils, true)
+    generateMetadataPropertiesForFile(fileId, utils, addProperty = true)
 
     val fileOneFfidMetadataId = utils.addFFIDMetadata(fileId.toString)
     utils.addFFIDMetadataMatches(fileOneFfidMetadataId.toString, "ext1", "identification1", "puid1")
@@ -454,8 +485,8 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     val utils = TestUtils(container.database)
     val consignmentId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
     val tnaUserId = UUID.fromString("c59cd886-6b12-4288-bf64-80c59f6a566a")
-    val statusType = "MetadataReview"
-    val statusValue = "InProgress"
+    val statusType = MetadataReviewType.id
+    val statusValue = InProgressValue.value
 
     utils.createConsignment(consignmentId, userId)
     utils.createConsignmentStatus(consignmentId, statusType, statusValue)
@@ -488,8 +519,8 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     val consignmentId = UUID.fromString("e72d94d5-ae79-4a05-bee9-86d9dea2bcc9")
     utils.createConsignment(consignmentId, userId)
     utils.addFileProperty(SHA256ServerSideChecksum)
-    defaultMetadataProperties.foreach(utils.addFileProperty(_))
-    clientSideProperties.foreach(utils.addFileProperty(_))
+    defaultMetadataProperties.foreach(utils.addFileProperty)
+    clientSideProperties.foreach(utils.addFileProperty)
     val topDirectory = UUID.fromString("ce0a51a5-a224-474f-b3a4-df75effd5b34")
     val subDirectory = UUID.fromString("2753ceca-4df3-436b-8891-78ad38e2e8c5")
     val fileId = UUID.fromString("6420152a-aaf2-4401-a309-f67ae35f5702")
@@ -497,10 +528,10 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     utils.createFile(topDirectory, consignmentId, NodeType.directoryTypeIdentifier, "directory", fileRef = Some("REF1"))
     utils.createFile(subDirectory, consignmentId, NodeType.directoryTypeIdentifier, "subDirectory", parentId = subDirectory.some, fileRef = Some("REF2"), parentRef = Some("REF1"))
 
-    addDefaultMetaData(utils, topDirectory, false)
+    addDefaultMetaData(utils, topDirectory, addProperty = false)
     utils.addFileMetadata(UUID.randomUUID.toString, topDirectory.toString, ClientSideOriginalFilepath, "directory")
 
-    addDefaultMetaData(utils, subDirectory, false)
+    addDefaultMetaData(utils, subDirectory, addProperty = false)
     utils.addFileMetadata(UUID.randomUUID.toString, subDirectory.toString, ClientSideOriginalFilepath, "directory")
 
     setUpFileAndStandardMetadata(consignmentId, fileId, utils, subDirectory.some, fileRef = Some("REF3"))
@@ -642,8 +673,8 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     val consignmentId = UUID.fromString("e72d94d5-ae79-4a05-bee9-86d9dea2bcc9")
     utils.createConsignment(consignmentId, userId)
     utils.addFileProperty(SHA256ServerSideChecksum)
-    defaultMetadataProperties.foreach(utils.addFileProperty(_))
-    clientSideProperties.foreach(utils.addFileProperty(_))
+    defaultMetadataProperties.foreach(utils.addFileProperty)
+    clientSideProperties.foreach(utils.addFileProperty)
     utils.addFileProperty(OriginalFilepath)
     val originalFilePath = "/an/original/file/path"
     val topDirectory = UUID.fromString("ce0a51a5-a224-474f-b3a4-df75effd5b34")
@@ -709,9 +740,9 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     val statusId3 = UUID.fromString("a6e82df6-af6d-4412-a8b9-69aa62bc52da")
 
     val consignmentParams: List[ConsignmentParams] = List(
-      ConsignmentParams(consignmentId1, "consignment-ref1", List(file1Id), statusParams = List(StatusParams(statusId1, "Upload", "Completed"))),
-      ConsignmentParams(consignmentId2, "consignment-ref2", List(file2Id), statusParams = List(StatusParams(statusId2, "Upload", "Completed"))),
-      ConsignmentParams(consignmentId3, "consignment-ref3", List(file3Id), statusParams = List(StatusParams(statusId3, "Upload", "Completed")))
+      ConsignmentParams(consignmentId1, "consignment-ref1", List(file1Id), statusParams = List(StatusParams(statusId1, UploadType.id, CompletedValue.value))),
+      ConsignmentParams(consignmentId2, "consignment-ref2", List(file2Id), statusParams = List(StatusParams(statusId2, UploadType.id, CompletedValue.value))),
+      ConsignmentParams(consignmentId3, "consignment-ref3", List(file3Id), statusParams = List(StatusParams(statusId3, UploadType.id, CompletedValue.value)))
     )
     utils.addFileProperty(SHA256ServerSideChecksum)
     utils.addFileProperty(FoiExemptionCode)
@@ -720,15 +751,15 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     utils.addFileMetadata(UUID.randomUUID().toString, file2Id.toString, FoiExemptionCode, "open")
     utils.addFileMetadata(UUID.randomUUID().toString, file3Id.toString, FoiExemptionCode, "open")
 
-    utils.createFileStatusValues(UUID.randomUUID(), file2Id, "Upload", "Success")
-    utils.createFileStatusValues(UUID.randomUUID(), file3Id, "Upload", "Success")
+    utils.createFileStatusValues(UUID.randomUUID(), file2Id, UploadType.id, "Success")
+    utils.createFileStatusValues(UUID.randomUUID(), file3Id, UploadType.id, "Success")
 
     utils.createFileStatusValues(UUID.randomUUID(), file1Id, "FFID", "Success")
     utils.createFileStatusValues(UUID.randomUUID(), file1Id, "ChecksumMatch", "Success")
-    utils.createFileStatusValues(UUID.randomUUID(), file1Id, "Antivirus", "Failed")
+    utils.createFileStatusValues(UUID.randomUUID(), file1Id, "Antivirus", FailedValue.value)
 
     utils.createFileStatusValues(UUID.randomUUID(), file2Id, "FFID", "Success")
-    utils.createFileStatusValues(UUID.randomUUID(), file2Id, "ChecksumMatch", "Failed")
+    utils.createFileStatusValues(UUID.randomUUID(), file2Id, "ChecksumMatch", FailedValue.value)
     utils.createFileStatusValues(UUID.randomUUID(), file2Id, "Antivirus", "Success")
 
     val reportingAccessToken = validReportingToken("reporting")
@@ -905,7 +936,8 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     response2.data.get.consignments.edges.map(_.node.consignmentid.get) should equal(List(consignment1, consignment2))
   }
 
-  "getConsignmentsForMetadataReview" should "return all consignments with `MetadataReview` status `inProgress`" in withContainers { case container: PostgreSQLContainer =>
+  // TODO: Remove these two tests when the deprecated getConsignmentsForMetadataReview query is removed from ConsignmentFields
+  "getConsignmentsForMetadataReview" should "return InProgress consignments as Consignment type for TNA user" in withContainers { case container: PostgreSQLContainer =>
     val utils = TestUtils(container.database)
     utils.createConsignment(defaultConsignmentId, userId, fixedSeriesId, "TEST-TDR-2024-AFK")
     val consignmentId2 = UUID.fromString("e169c625-ba5f-4d7c-bbdf-af71ff4cc179")
@@ -927,6 +959,49 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     response.errors.head.extensions.get.code should equal("NOT_AUTHORISED")
   }
 
+  "getConsignmentReviewDetails" should "return all consignments when statusFilter is omitted" in withContainers { case container: PostgreSQLContainer =>
+    val utils = TestUtils(container.database)
+    utils.createConsignment(defaultConsignmentId, userId, fixedSeriesId, "TEST-TDR-2024-AFK")
+    val consignmentId2 = UUID.fromString("e169c625-ba5f-4d7c-bbdf-af71ff4cc179")
+    utils.createConsignment(consignmentId2, userId, fixedSeriesId, "TEST-TDR-2024-BRB")
+
+    utils.createConsignmentStatus(defaultConsignmentId, MetadataReviewType.id, InProgressValue.value, statusId = UUID.fromString("21f3a11d-05f4-4565-b668-8586644fd441"))
+    utils.createConsignmentStatus(consignmentId2, MetadataReviewType.id, CompletedValue.value, statusId = UUID.fromString("f19b1fe5-5763-4f59-896a-6f16f55a4063"))
+
+    utils.addMetadataReviewLog(UUID.randomUUID(), defaultConsignmentId, userId, Submission.value)
+    utils.addMetadataReviewLog(UUID.randomUUID(), consignmentId2, userId, Approval.value)
+
+    val expectedResponse: MetadataReviewDetailsResultData = expectedGetConsignmentReviewDetailsResponse("data_all")
+    val response: MetadataReviewDetailsResultData = runGetConsignmentReviewDetails("query_alldata", validTNAUserToken(body = defaultBodyCode))
+
+    response should equal(expectedResponse)
+  }
+
+  "getConsignmentReviewDetails" should "return only Requested consignments when statusFilter is 'Requested'" in withContainers { case container: PostgreSQLContainer =>
+    val utils = TestUtils(container.database)
+    utils.createConsignment(defaultConsignmentId, userId, fixedSeriesId, "TEST-TDR-2024-AFK")
+    val consignmentId2 = UUID.fromString("e169c625-ba5f-4d7c-bbdf-af71ff4cc179")
+    utils.createConsignment(consignmentId2, userId, fixedSeriesId, "TEST-TDR-2024-BRB")
+
+    utils.createConsignmentStatus(defaultConsignmentId, MetadataReviewType.id, InProgressValue.value, statusId = UUID.fromString("21f3a11d-05f4-4565-b668-8586644fd441"))
+    utils.createConsignmentStatus(consignmentId2, MetadataReviewType.id, CompletedValue.value, statusId = UUID.fromString("f19b1fe5-5763-4f59-896a-6f16f55a4063"))
+
+    utils.addMetadataReviewLog(UUID.randomUUID(), defaultConsignmentId, userId, Submission.value)
+    utils.addMetadataReviewLog(UUID.randomUUID(), consignmentId2, userId, Approval.value)
+
+    val expectedResponse: MetadataReviewDetailsResultData = expectedGetConsignmentReviewDetailsResponse("data_default")
+    val response: MetadataReviewDetailsResultData = runGetConsignmentReviewDetails("query_default", validTNAUserToken(body = defaultBodyCode))
+
+    response should equal(expectedResponse)
+  }
+
+  "getConsignmentReviewDetails" should "throw an error if user is not a TNAUser" in withContainers { case _: PostgreSQLContainer =>
+    val response: MetadataReviewDetailsResultData = runGetConsignmentReviewDetails("query_alldata", validUserToken(body = defaultBodyCode))
+
+    response.errors should have size 1
+    response.errors.head.extensions.get.code should equal("NOT_AUTHORISED")
+  }
+
   "startUpload" should "add the upload status, update the parent folder and 'IncludeTopLevelFolder' fields" in withContainers { case container: PostgreSQLContainer =>
     val utils = TestUtils(container.database)
     val consignmentId = new FixedUUIDSource().uuid
@@ -936,7 +1011,7 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     val consignment = utils.getConsignment(consignmentId)
     consignment.getString("ParentFolder") should equal("parent")
     consignment.getBoolean("IncludeTopLevelFolder") should equal(true)
-    utils.getConsignmentStatus(consignmentId, "Upload").getString("Value") should equal("InProgress")
+    utils.getConsignmentStatus(consignmentId, UploadType.id).getString("Value") should equal(InProgressValue.value)
   }
 
   "startUpload" should "return an error if the upload is in progress" in withContainers { case container: PostgreSQLContainer =>
@@ -944,7 +1019,7 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
 
     val consignmentId = new FixedUUIDSource().uuid
     utils.createConsignment(consignmentId, userId)
-    utils.createConsignmentStatus(consignmentId, "Upload", "InProgress")
+    utils.createConsignmentStatus(consignmentId, UploadType.id, InProgressValue.value)
     val response = runTestStartUploadMutation("mutation_alldata", validUserToken())
 
     response.errors.size should equal(1)
@@ -956,7 +1031,7 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
 
     val consignmentId = new FixedUUIDSource().uuid
     utils.createConsignment(consignmentId, userId)
-    utils.createConsignmentStatus(consignmentId, "Upload", "Complete")
+    utils.createConsignmentStatus(consignmentId, UploadType.id, "Complete")
     val response = runTestStartUploadMutation("mutation_alldata", validUserToken())
 
     response.errors.size should equal(1)
@@ -1049,7 +1124,7 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
         setUpFileAndStandardMetadata(ps.consignmentId, fs, utils, fileRef = Some(s"$fileRef$index"))
       }
       if (ps.statusParams.isEmpty) {
-        utils.createConsignmentStatus(ps.consignmentId, "Upload", "Completed")
+        utils.createConsignmentStatus(ps.consignmentId, UploadType.id, CompletedValue.value)
       } else {
         ps.statusParams.foreach(sp => {
           utils.createConsignmentStatus(ps.consignmentId, sp.statusType, sp.value, createdDate = sp.createdDatetime, statusId = sp.statusId)
@@ -1067,7 +1142,7 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
       parentRef: Option[Reference] = None
   ): Unit = {
     utils.createFile(fileId, consignmentId, parentId = parentId, fileRef = fileRef, parentRef = parentRef)
-    generateMetadataPropertiesForFile(fileId, utils, false)
+    generateMetadataPropertiesForFile(fileId, utils, addProperty = false)
     utils.addAntivirusMetadata(fileId.toString)
     utils.addFileMetadata(UUID.randomUUID().toString, fileId.toString, SHA256ServerSideChecksum)
     setUpStandardFFIDMatchesForFile(fileId, utils)
@@ -1088,7 +1163,7 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
       parentRef: Option[Reference] = None
   ): UUID = {
     utils.createFile(fileId, consignmentId, NodeType.directoryTypeIdentifier, fileName, parentId = parentId, fileRef = fileRef, parentRef = parentRef)
-    addDefaultMetaData(utils, fileId, false)
+    addDefaultMetaData(utils, fileId, addProperty = false)
     utils.addFileMetadata(UUID.randomUUID.toString, fileId.toString, ClientSideOriginalFilepath, fileName)
     fileId
   }
@@ -1141,7 +1216,7 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     utils.createFile(UUID.fromString(fileTwoId), defaultConsignmentId, fileName = "fileTwoName", parentId = parentUUID, uploadMatchId = Some("2"))
     utils.createFile(UUID.fromString(fileThreeId), defaultConsignmentId, fileName = "fileThreeName", parentId = parentUUID, uploadMatchId = Some("3"))
     utils.addParentFolderName(defaultConsignmentId, "ALL CONSIGNMENT DATA PARENT FOLDER")
-    utils.createConsignmentStatus(defaultConsignmentId, "Upload", "Completed")
+    utils.createConsignmentStatus(defaultConsignmentId, UploadType.id, CompletedValue.value)
   }
 }
 

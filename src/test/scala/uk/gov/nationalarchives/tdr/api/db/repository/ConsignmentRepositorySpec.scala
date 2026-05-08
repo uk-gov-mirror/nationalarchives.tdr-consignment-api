@@ -20,10 +20,11 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{
 }
 import uk.gov.nationalarchives.tdr.api.service.CurrentTimeSource
 import uk.gov.nationalarchives.tdr.api.service.FileStatusService.{InProgress, Upload}
-import uk.gov.nationalarchives.tdr.api.utils.Statuses.{CompletedValue, InProgressValue, MetadataReviewType}
 import uk.gov.nationalarchives.tdr.api.utils.TestAuthUtils._
 import uk.gov.nationalarchives.tdr.api.utils.TestContainerUtils._
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, TestContainerUtils, TestUtils}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusTypes.MetadataReviewType
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.{CompletedValue, CompletedWithIssuesValue, InProgressValue}
 
 import java.sql.Timestamp
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
@@ -314,21 +315,42 @@ class ConsignmentRepositorySpec extends TestContainerUtils with ScalaFutures wit
     consignmentReferences should equal(List("TDR-2021-B", "TDR-2021-A"))
   }
 
-  "getConsignmentsForMetadataReview" should "return the consignments with `MetadataReview` status set to `InProgress`" in withContainers { case container: PostgreSQLContainer =>
+  "getConsignmentsForMetadataReview" should "return only InProgress MetadataReview consignments" in withContainers { case container: PostgreSQLContainer =>
     val consignmentId = UUID.fromString("a3088f8a-59a3-4ab3-9e50-1677648e8186")
     val consignmentId2 = UUID.fromString("dc6ca08d-6dd6-4906-8f07-97f4f6492dfc")
+    val consignmentId3 = UUID.fromString("e169c625-ba5f-4d7c-bbdf-af71ff4cc179")
     val db = container.database
     val consignmentRepository = new ConsignmentRepository(db, new CurrentTimeSource)
     val utils = TestUtils(db)
     utils.createConsignment(consignmentId, userId)
     utils.createConsignment(consignmentId2, userId)
+    utils.createConsignment(consignmentId3, userId) // no MetadataReview status
     utils.createConsignmentStatus(consignmentId, MetadataReviewType.id, InProgressValue.value)
     utils.createConsignmentStatus(consignmentId2, MetadataReviewType.id, CompletedValue.value)
 
     val response = consignmentRepository.getConsignmentsForMetadataReview.futureValue
 
     response should have size 1
-    response.headOption.get.consignmentid should equal(consignmentId)
+    response.head.consignmentid should equal(consignmentId)
+  }
+
+  "getConsignmentsWithMetadataReviewStatus" should "return all consignments with any MetadataReview status" in withContainers { case container: PostgreSQLContainer =>
+    val consignmentId = UUID.fromString("a3088f8a-59a3-4ab3-9e50-1677648e8186")
+    val consignmentId2 = UUID.fromString("dc6ca08d-6dd6-4906-8f07-97f4f6492dfc")
+    val consignmentId3 = UUID.fromString("e169c625-ba5f-4d7c-bbdf-af71ff4cc179")
+    val db = container.database
+    val consignmentRepository = new ConsignmentRepository(db, new CurrentTimeSource)
+    val utils = TestUtils(db)
+    utils.createConsignment(consignmentId, userId)
+    utils.createConsignment(consignmentId2, userId)
+    utils.createConsignment(consignmentId3, userId) // no MetadataReview status
+    utils.createConsignmentStatus(consignmentId, MetadataReviewType.id, InProgressValue.value)
+    utils.createConsignmentStatus(consignmentId2, MetadataReviewType.id, CompletedValue.value)
+
+    val response = consignmentRepository.getConsignmentsWithMetadataReviewStatus.futureValue
+
+    response should have size 2
+    response.map(_.consignmentid).toSet should equal(Set(consignmentId, consignmentId2))
   }
 
   "getConsignmentForMetadataReview" should "return the matching consignment when the `MetadataReview` status set to `InProgress`" in withContainers {
@@ -346,7 +368,22 @@ class ConsignmentRepositorySpec extends TestContainerUtils with ScalaFutures wit
       response.headOption.get.consignmentid should equal(consignmentId)
   }
 
-  "getConsignmentForMetadataReview" should "not return the matching consignment when the 'MetadataReview' status is not `InProgress`" in withContainers {
+  "getConsignmentForMetadataReview" should "return the matching consignment when the 'MetadataReview' status set to `CompletedWithIssues`" in withContainers {
+    case container: PostgreSQLContainer =>
+      val consignmentId = UUID.fromString("a3088f8a-59a3-4ab3-9e50-1677648e8186")
+      val db = container.database
+      val consignmentRepository = new ConsignmentRepository(db, new CurrentTimeSource)
+      val utils = TestUtils(db)
+      utils.createConsignment(consignmentId, userId)
+      utils.createConsignmentStatus(consignmentId, MetadataReviewType.id, CompletedWithIssuesValue.value)
+
+      val response = consignmentRepository.getConsignmentForMetadataReview(consignmentId).futureValue
+
+      response should have size 1
+      response.headOption.get.consignmentid should equal(consignmentId)
+  }
+
+  "getConsignmentForMetadataReview" should "return the matching consignment when the 'MetadataReview' status set to `Completed`" in withContainers {
     case container: PostgreSQLContainer =>
       val consignmentId = UUID.fromString("a3088f8a-59a3-4ab3-9e50-1677648e8186")
       val db = container.database
@@ -357,7 +394,8 @@ class ConsignmentRepositorySpec extends TestContainerUtils with ScalaFutures wit
 
       val response = consignmentRepository.getConsignmentForMetadataReview(consignmentId).futureValue
 
-      response.isEmpty should be(true)
+      response should have size 1
+      response.headOption.get.consignmentid should equal(consignmentId)
   }
 
   "updateSeriesOfConsignment" should "update id and name of the consignment" in withContainers { case container: PostgreSQLContainer =>

@@ -7,7 +7,7 @@ import io.circe.parser.decode
 import slick.jdbc.JdbcBackend
 import uk.gov.nationalarchives.tdr.api.model.file.NodeType
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
-import uk.gov.nationalarchives.tdr.api.service.FileStatusService.{PasswordProtected, Zip}
+
 import uk.gov.nationalarchives.tdr.api.service.FinalTransferConfirmationService._
 import uk.gov.nationalarchives.tdr.api.service.TransferAgreementService._
 import uk.gov.nationalarchives.tdr.api.utils.TestAuthUtils.userId
@@ -34,8 +34,6 @@ class TestUtils(db: JdbcBackend#Database) {
     connection.prepareStatement("""DELETE FROM "ConsignmentProperty";""").execute()
     connection.prepareStatement("""DELETE FROM "ConsignmentStatus";""").execute()
     connection.prepareStatement("""DELETE FROM "Consignment";""").execute()
-    connection.prepareStatement("""DELETE FROM "DisallowedPuids";""").execute()
-    connection.prepareStatement("""DELETE FROM "AllowedPuids";""").execute()
     connection.prepareStatement("""ALTER SEQUENCE consignment_sequence_id RESTART WITH 1;""").execute()
   }
 
@@ -117,29 +115,6 @@ class TestUtils(db: JdbcBackend#Database) {
     }.to(LazyList).toList
   }
 
-  def createAllowedPuids(puid: String, description: String, consignmentType: String): Unit = {
-    val sql = s"""INSERT INTO "AllowedPuids" ("PUID", "PUID Description", "Created Date", "Modified Date", "ConsignmentType") VALUES (?, ?, ?, ?, ?)"""
-    val ps: PreparedStatement = connection.prepareStatement(sql)
-    ps.setString(1, puid)
-    ps.setString(2, description)
-    ps.setTimestamp(3, Timestamp.from(Instant.now()))
-    ps.setTimestamp(4, Timestamp.from(Instant.now()))
-    ps.setString(5, consignmentType)
-    ps.executeUpdate()
-  }
-
-  def createDisallowedPuids(puid: String, description: String, reason: String, active: Boolean = true): Unit = {
-    val sql = s"""INSERT INTO "DisallowedPuids" ("PUID", "PUID Description", "Created Date", "Modified Date", "Reason", "Active") VALUES (?, ?, ?, ?, ?, ?)"""
-    val ps: PreparedStatement = connection.prepareStatement(sql)
-    ps.setString(1, puid)
-    ps.setString(2, description)
-    ps.setTimestamp(3, Timestamp.from(Instant.now()))
-    ps.setTimestamp(4, Timestamp.from(Instant.now()))
-    ps.setString(5, reason)
-    ps.setBoolean(6, active)
-    ps.executeUpdate()
-  }
-
   def createFileProperty(
       name: String,
       description: String,
@@ -165,13 +140,6 @@ class TestUtils(db: JdbcBackend#Database) {
     createFile(defaultFileId, consignmentId)
 
     createClientFileMetadata(defaultFileId)
-
-    createDisallowedPuids("fmt/289", "WARC", Zip)
-    createDisallowedPuids("fmt/329", "Shell Archive Format", Zip)
-    createDisallowedPuids("fmt/754", "Microsoft Word Document", PasswordProtected)
-    createDisallowedPuids("fmt/494", "Microsoft Office Encrypted Document", PasswordProtected)
-
-    createAllowedPuids("fmt/412", "Microsoft Word for Windows", "judgment")
 
     (consignmentId, defaultFileId)
   }
@@ -463,14 +431,26 @@ class TestUtils(db: JdbcBackend#Database) {
     rs.next()
   }
 
-  def addMetadataReviewLog(logId: UUID, consignmentId: UUID, userId: UUID, action: String, eventTime: Timestamp = Timestamp.from(FixedTimeSource.now)): Unit = {
-    val sql = s"""INSERT INTO "MetadataReviewLog" ("MetadataReviewLogId", "ConsignmentId", "UserId", "Action", "EventTime") VALUES (?, ?, ?, ?, ?)"""
+  def addMetadataReviewLog(
+      logId: UUID,
+      consignmentId: UUID,
+      userId: UUID,
+      action: String,
+      eventTime: Timestamp = Timestamp.from(FixedTimeSource.now),
+      metadataReviewNotes: Option[String] = None
+  ): Unit = {
+    val sql =
+      s"""INSERT INTO "MetadataReviewLog" ("MetadataReviewLogId", "ConsignmentId", "UserId", "Action", "EventTime", "MetadataReviewNotes") VALUES (?, ?, ?, ?, ?, ?)"""
     val ps: PreparedStatement = connection.prepareStatement(sql)
     ps.setObject(1, logId, Types.OTHER)
     ps.setObject(2, consignmentId, Types.OTHER)
     ps.setObject(3, userId, Types.OTHER)
     ps.setString(4, action)
     ps.setTimestamp(5, eventTime)
+    metadataReviewNotes match {
+      case Some(notes) => ps.setString(6, notes)
+      case None        => ps.setNull(6, Types.VARCHAR)
+    }
     ps.executeUpdate()
   }
 
