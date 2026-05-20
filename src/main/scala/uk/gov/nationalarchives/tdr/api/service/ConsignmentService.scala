@@ -12,7 +12,6 @@ import uk.gov.nationalarchives.tdr.api.model.consignment.ConsignmentType.Consign
 import uk.gov.nationalarchives.tdr.api.service.FileStatusService._
 import uk.gov.nationalarchives.tdr.api.utils.TimeUtils.TimestampUtils
 import uk.gov.nationalarchives.tdr.common.utils.statuses.MetadataReviewLogAction.MetadataReviewLogAction
-import uk.gov.nationalarchives.tdr.common.utils.statuses.MetadataReviewStatus
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
 import java.sql.Timestamp
@@ -34,14 +33,6 @@ class ConsignmentService(
 )(implicit val executionContext: ExecutionContext) {
 
   val maxLimit: Int = config.getInt("pagination.consignmentsMaxLimit")
-
-  // Review status sort ordering: Requested > Rejected > Approved > Transferred
-  private val reviewStatusOrder: Map[String, Int] = Map(
-    MetadataReviewStatus.Requested.value -> 0,
-    MetadataReviewStatus.Rejected.value -> 1,
-    MetadataReviewStatus.Approved.value -> 2,
-    MetadataReviewStatus.Transferred.value -> 3
-  )
 
   def startUpload(startUploadInput: StartUploadInput): Future[String] = {
     consignmentStatusRepository
@@ -144,7 +135,7 @@ class ConsignmentService(
       val latestLogByConsignment = latestLogPerConsignment(logEntries)
       val details = buildReviewDetails(consignmentRows, latestLogByConsignment)
       val filtered = filterByStatus(details, statusFilter)
-      sortByReviewStatus(filtered)
+      sortByDateDescending(filtered)
     }
   }
 
@@ -217,8 +208,8 @@ class ConsignmentService(
     }
   }
 
-  private def sortByReviewStatus(details: Seq[ConsignmentReviewDetails]): Seq[ConsignmentReviewDetails] = {
-    details.sortBy(d => (reviewStatusOrder.getOrElse(d.reviewStatus, Int.MaxValue), -d.lastUpdated.toInstant.toEpochMilli))
+  private def sortByDateDescending(details: Seq[ConsignmentReviewDetails]): Seq[ConsignmentReviewDetails] = {
+    details.sortBy(d => -d.lastUpdated.toInstant.toEpochMilli)
   }
 
   private def convertRowToConsignment(row: ConsignmentRow): Consignment = {
