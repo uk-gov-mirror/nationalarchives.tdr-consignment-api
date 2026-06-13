@@ -70,7 +70,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.slick" %% "slick-hikaricp" % "3.6.1",
   "ch.qos.logback" % "logback-classic" % "1.5.34",
   "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
-  "software.amazon.awssdk" % "rds" % "2.45.1",
+  "software.amazon.awssdk" % "rds" % "2.46.10",
   "software.amazon.awssdk" % "sts" % "2.45.1",
   "com.github.cb372" %% "scalacache-caffeine" % "0.28.0",
   "uk.gov.nationalarchives.oci" % "oci-tools-scala_2.13" % "0.4.0",
