@@ -579,7 +579,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
     consignment.transferringBodyTdrCode should equal(consignmentRow.transferringbodytdrcode)
   }
 
-  "getConsignmentReviewDetails" should "return a sorted list of all ConsignmentReviewDetails when statusFilter is None" in {
+  "getConsignmentReviewDetails" should "return a list sorted by date descending when statusFilter is None" in {
     val consignmentId1 = UUID.randomUUID()
     val consignmentId2 = UUID.randomUUID()
 
@@ -587,8 +587,11 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
     val consignmentRow2 =
       createReviewConsignmentRow(consignmentId2, sequence = 401L, reference = "TDR-2020-B", seriesName = "seriesName2", bodyName = "department2", bodyCode = "code2")
 
-    val logEntry1 = MetadatareviewlogRow(UUID.randomUUID(), consignmentId1, userId, Approval.value, Timestamp.from(FixedTimeSource.now))
-    val logEntry2 = MetadatareviewlogRow(UUID.randomUUID(), consignmentId2, userId, Submission.value, Timestamp.from(FixedTimeSource.now))
+    val olderTimestamp = Timestamp.from(FixedTimeSource.now.minusSeconds(3600))
+    val newerTimestamp = Timestamp.from(FixedTimeSource.now)
+
+    val logEntry1 = MetadatareviewlogRow(UUID.randomUUID(), consignmentId1, userId, Approval.value, olderTimestamp)
+    val logEntry2 = MetadatareviewlogRow(UUID.randomUUID(), consignmentId2, userId, Submission.value, newerTimestamp)
 
     when(consignmentRepoMock.getConsignmentsWithMetadataReviewStatus)
       .thenReturn(Future.successful(Seq(consignmentRow1, consignmentRow2)))
@@ -599,7 +602,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
 
     verify(consignmentRepoMock, times(1)).getConsignmentsWithMetadataReviewStatus
     response should have size 2
-    // Requested sorts before Approved
+    // Most recent date first, regardless of status
     response.head.consignmentId should equal(consignmentId2)
     response.head.reviewStatus should equal(MetadataReviewStatus.Requested.value)
     response.head.consignmentReference should equal("TDR-2020-B")
