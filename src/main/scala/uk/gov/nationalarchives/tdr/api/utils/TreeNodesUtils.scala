@@ -9,6 +9,7 @@ import uk.gov.nationalarchives.tdr.api.utils.TreeNodesUtils.{TreeNode, TreeNodeI
 import java.io.{File => JIOFile}
 import java.util.UUID
 import scala.annotation.tailrec
+import scala.collection.immutable
 
 class TreeNodesUtils(uuidSource: UUIDSource, referenceGeneratorService: ReferenceGeneratorService, config: Config) {
 
@@ -26,19 +27,25 @@ class TreeNodesUtils(uuidSource: UUIDSource, referenceGeneratorService: Referenc
     }
   }
 
-  def generateNodes(inputs: Set[TreeNodeInput], typeIdentifier: String): Map[String, TreeNode] = {
+  def assignReferences(nodes: Map[String, TreeNode]): Map[String, TreeNode] = {
+    val generatedReferences = referenceGeneratorService.getReferences(nodes.size)
+    generatedReferences
+      .zip(nodes.view)
+      .map { case (reference, (key, treenode)) =>
+        key -> treenode.copy(reference = Some(reference))
+      }
+      .toMap
+  }
+
+  def generateNodes(inputs: Set[TreeNodeInput], typeIdentifier: String, assignReferencesToNodes: Boolean = true): Map[String, TreeNode] = {
     val generatedNodes = inputs.flatMap { i =>
       val path = i.filePath
       val pathWithoutInitialSlash: String = if (path.startsWith("/")) path.tail else path
       innerFunction(pathWithoutInitialSlash, typeIdentifier, Map(), i.matchId)
     }.toMap
-    val generatedReferences = referenceGeneratorService.getReferences(generatedNodes.size)
-    generatedReferences
-      .zip(generatedNodes.view)
-      .map { case (reference, (key, treenode)) =>
-        key -> treenode.copy(reference = Some(reference))
-      }
-      .toMap
+    if (assignReferencesToNodes) {
+      assignReferences(generatedNodes)
+    } else generatedNodes
   }
 }
 

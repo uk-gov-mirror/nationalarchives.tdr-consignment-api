@@ -6,6 +6,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Seconds, Span}
 import uk.gov.nationalarchives.Tables.FilemetadataRow
+import uk.gov.nationalarchives.tdr.api.model.file.NodeType
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.{AddFileMetadataInput, ClientSideFileSize}
 import uk.gov.nationalarchives.tdr.api.utils.TestAuthUtils.userId
 import uk.gov.nationalarchives.tdr.api.utils.TestContainerUtils._
@@ -79,6 +80,41 @@ class FileMetadataRepositorySpec extends TestContainerUtils with ScalaFutures wi
     response.value should equal("Result of FileMetadata processing")
     response.propertyname should equal("FileProperty")
     response.fileid should equal(fileId)
+  }
+
+  "getFileIdentifiersByFilePath" should "return the correct identifier information for the given file paths" in withContainers { case container: PostgreSQLContainer =>
+    val db = container.database
+    val utils = TestUtils(db)
+    val fileMetadataRepository = new FileMetadataRepository(db)
+    val consignmentId = UUID.fromString("4c935c42-502c-4b89-abce-2272584655e1")
+    val fileIdOne = UUID.fromString("4d5a5a00-77b4-4a97-aa3f-a75f7b13f284")
+    val fileIdTwo = UUID.fromString("664f07a5-ab1d-4d66-abea-d97d81cd7bec")
+    val fileIdThree = UUID.randomUUID()
+    utils.createConsignment(consignmentId, userId)
+    utils.createFile(fileIdOne, consignmentId, NodeType.directoryTypeIdentifier)
+    utils.createFile(fileIdTwo, consignmentId, NodeType.directoryTypeIdentifier, parentId = Some(fileIdOne), parentRef = Some("Ref-1"), fileRef = Some("Ref-2"))
+    utils.createFile(fileIdThree, consignmentId, NodeType.fileTypeIdentifier, parentId = Some(fileIdOne), parentRef = Some("Ref-1"), fileRef = Some("Ref-3"))
+    utils.addFileProperty("ClientSideOriginalFilepath")
+    utils.addFileProperty("Language")
+    utils.addFileMetadata(UUID.randomUUID().toString, fileIdOne.toString, "ClientSideOriginalFilepath", "folderA")
+    utils.addFileMetadata(UUID.randomUUID().toString, fileIdTwo.toString, "ClientSideOriginalFilepath", "folderA/folderB")
+    utils.addFileMetadata(UUID.randomUUID().toString, fileIdTwo.toString, "Language", "English")
+    utils.addFileMetadata(UUID.randomUUID().toString, fileIdThree.toString, "ClientSideOriginalFilepath", "folderA/file1.txt")
+
+    val response = fileMetadataRepository.getFileIdentifiersByFilePath(consignmentId, Set("folderA", "folderA/folderB")).futureValue
+    response.size shouldBe 2
+    val responseByFileId = response.groupBy(_._1)
+    val fileOne = responseByFileId(fileIdOne)
+    fileOne.map(_._1).head shouldEqual fileIdOne
+    fileOne.map(_._2).head.get shouldEqual "Folder"
+    fileOne.map(_._3).head shouldEqual None
+    fileOne.map(_._4).head shouldEqual "folderA"
+
+    val fileTwo = responseByFileId(fileIdTwo)
+    fileTwo.map(_._1).head shouldEqual fileIdTwo
+    fileTwo.map(_._2).head.get shouldEqual "Folder"
+    fileTwo.map(_._3).head shouldEqual Some("Ref-2")
+    fileTwo.map(_._4).head shouldEqual "folderA/folderB"
   }
 
   "getFileMetadata" should "return the correct metadata for the consignment" in withContainers { case container: PostgreSQLContainer =>

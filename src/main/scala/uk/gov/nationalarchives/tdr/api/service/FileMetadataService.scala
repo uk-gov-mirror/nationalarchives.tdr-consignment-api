@@ -80,6 +80,13 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository)(implic
       }
     }
 
+  def getFileIdentificationDetails(consignmentId: UUID, filePaths: Set[String]): Future[Map[String, FileIdentificationDetails]] = {
+    fileMetadataRepository.getFileIdentifiersByFilePath(consignmentId, filePaths).map { rows =>
+      rows.groupBy(_._4).map { case (path, metadata) =>
+        path -> FileIdentificationDetails(metadata.map(_._1).headOption, metadata.map(_._2).head, metadata.map(_._3).head, path)
+      }
+    }
+  }
 }
 
 object FileMetadataService {
@@ -131,6 +138,8 @@ object FileMetadataService {
       propertyNameMap.get(DescriptionClosed).map(_.toBoolean)
     )
   }
+
+  case class FileIdentificationDetails(id: Option[UUID], fileType: Option[String], reference: Option[String], path: String)
 
   case class FileMetadataValue(name: String, value: String)
 

@@ -5,9 +5,11 @@ import org.slf4j.LoggerFactory
 import slick.jdbc.H2Profile.ProfileAction
 import slick.jdbc.JdbcBackend
 import slick.jdbc.PostgresProfile.api._
-import uk.gov.nationalarchives.Tables.{Filemetadata, _}
+import uk.gov.nationalarchives.Tables._
+import uk.gov.nationalarchives.tdr.api.db.repository.FileMetadataRepository.FileIdentificationFields
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.{AddFileMetadataInput, ClientSideFileSize, ClosureType}
 import uk.gov.nationalarchives.tdr.api.utils.RetryUtils._
+import uk.gov.nationalarchives.tdr.api.utils.TreeNodesUtils.TreeNodeInput
 
 import java.sql.Timestamp
 import java.util.UUID
@@ -240,6 +242,17 @@ class FileMetadataRepository(db: JdbcBackend#Database)(implicit val executionCon
     db.run(query.result)
   }
 
+  def getFileIdentifiersByFilePath(consignmentId: UUID, filePaths: Set[String]): Future[Seq[FileIdentificationFields]] = {
+    val query = Filemetadata
+      .join(File)
+      .on(_.fileid === _.fileid)
+      .filter(_._2.consignmentid === consignmentId)
+      .filter(fm => fm._1.propertyname === "ClientSideOriginalFilepath")
+      .filter(fm => fm._1.value inSetBind filePaths)
+      .map(r => (r._2.fileid, r._2.filetype, r._2.filereference, r._1.value))
+    db.run(query.result)
+  }
+
   def getFileMetadata(consignmentId: Option[UUID], selectedFileIds: Option[Set[UUID]] = None, propertyNames: Option[Set[String]] = None): Future[Seq[FilemetadataRow]] = {
     val query = Filemetadata
       .join(File)
@@ -283,6 +296,9 @@ class FileMetadataRepository(db: JdbcBackend#Database)(implicit val executionCon
     db.run(query)
   }
 
+}
+object FileMetadataRepository {
+  type FileIdentificationFields = (UUID, Option[String], Option[String], String)
 }
 
 case class FileMetadataUpdate(metadataIds: Seq[UUID], filePropertyName: String, value: String, dateTime: Timestamp, userId: UUID)

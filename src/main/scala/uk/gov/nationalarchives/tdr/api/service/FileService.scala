@@ -12,6 +12,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{Consign
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FFIDMetadataFields.FFIDMetadata
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields.{AddFileAndMetadataInput, FileCheckFailure, FileMatches, GetFileCheckFailuresInput}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.FileMetadata
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileStatusFields.FileStatus
 import uk.gov.nationalarchives.tdr.api.model.file.NodeType.{FileTypeHelper, directoryTypeIdentifier, fileTypeIdentifier}
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
@@ -48,11 +49,15 @@ class FileService(
   private val fileUploadBatchSize: Int = config.getInt("fileUpload.batchSize")
   private val filePageMaxLimit: Int = config.getInt("pagination.filesMaxLimit")
 
-  def addFile(addFileAndMetadataInput: AddFileAndMetadataInput, tokenUserId: UUID): Future[List[FileMatches]] = {
-    val userId = addFileAndMetadataInput.userIdOverride match {
+  private def getUserId(input: AddFileAndMetadataInput, tokenUserId: UUID): UUID = input.userIdOverride match {
       case Some(id) => id
       case _        => tokenUserId
-    }
+  }
+
+  private val defaultPropertyValues = metadataConfig.getPropertiesWithDefaultValue
+
+  def addFile(addFileAndMetadataInput: AddFileAndMetadataInput, tokenUserId: UUID): Future[List[FileMatches]] = {
+    val userId = getUserId(addFileAndMetadataInput, tokenUserId)
     val now = Timestamp.from(timeSource.now)
     val consignmentId = addFileAndMetadataInput.consignmentId
     val filePathInputs = addFileAndMetadataInput.metadataInput.map(i => TreeNodeInput(i.originalPath, Some(i.matchId))).toSet
@@ -61,7 +66,6 @@ class FileService(
     val allEmptyDirectoryNodes: Map[String, TreeNode] = treeNodesUtils.generateNodes(emptyDirectoriesInputs, directoryTypeIdentifier)
 
     val row: (UUID, String, String) => FilemetadataRow = FilemetadataRow(uuidSource.uuid, _, _, now, userId, _)
-    val defaultPropertyValues = metadataConfig.getPropertiesWithDefaultValue
 
     for {
       metadata <- consignmentMetadataRepository.getConsignmentMetadata(consignmentId, Some(ConsignmentMetadataFilter(List(LegalStatus))))
@@ -76,6 +80,52 @@ class FileService(
         createFileRows(addFileAndMetadataInput, row, defaultPropertyValues, path, treeNode, parentFileReference, fileId, fileRow, legalStatusMetadata)
       }).toList)
       matchedFileRows <- generateMatchedRows(rows)
+    } yield matchedFileRows
+  }
+
+  private def getParentInfo(parentPath: String, existing: Map[String, FileIdentificationDetails],
+                         newParents: Map[String, TreeNode]): FileIdentificationDetails = {
+    if (existing.keySet.contains(parentPath)) {
+      existing(parentPath)
+    } else {
+      val parent = newParents(parentPath)
+      FileIdentificationDetails(Some(parent.id), Some(parent.treeNodeType), parent.reference, parentPath)
+    }
+  }
+
+  def existingAddFile(input: AddFileAndMetadataInput, tokenUserId: UUID): Future[List[FileMatches]] = {
+    val userId = getUserId(input, tokenUserId)
+    val consignmentId = input.consignmentId
+    val now = Timestamp.from(timeSource.now)
+    val newFilePaths = input.metadataInput.map(_.originalPath)
+    val treeNodesInput = newFilePaths.map(TreeNodeInput(_, None)).toSet
+    val potentialNewNodes: Map[String, TreeNode] = treeNodesUtils.generateNodes(treeNodesInput, fileTypeIdentifier, assignReferencesToNodes = false)
+    val row: (UUID, String, String) => FilemetadataRow = FilemetadataRow(uuidSource.uuid, _, _, now, userId, _)
+
+    for {
+      metadata <- consignmentMetadataRepository.getConsignmentMetadata(consignmentId, Some(ConsignmentMetadataFilter(List(LegalStatus))))
+      existing <- fileMetadataService.getFileIdentificationDetails(input.consignmentId, potentialNewNodes.keySet)
+      existingFilePaths: Set[String] = existing.keySet
+      _ = if (newFilePaths.exists(existingFilePaths.contains)) {
+        throw new RuntimeException(s"New input contained duplicate file path for consignment: $consignmentId") }
+      concreteNewNodes = potentialNewNodes.filter(pnn => !existingFilePaths.contains(pnn._1))
+      //Add references for concrete new nodes
+      newNodes: Map[String, TreeNode] = treeNodesUtils.assignReferences(concreteNewNodes)
+      //Create new files
+      rows <- Future.successful(newNodes map { case (filePath, treeNode) =>
+        val parentPath = treeNode.parentPath
+        val parent: FileIdentificationDetails =
+          if (parentPath.isEmpty) {
+            FileIdentificationDetails(None, None, None, "")
+          } else {
+            getParentInfo(parentPath.get, existing, newNodes)
+          }
+        val fileRow =
+          createFileRow(userId, now, consignmentId, treeNode, parent.id, parent.reference, treeNode.id)
+        val legalStatusMetadata = metadata.find(_.propertyname == LegalStatus).map(metadata => LegalStatus -> metadata.value).toMap
+        createFileRows(input, row, defaultPropertyValues, filePath, treeNode, parent.reference, treeNode.id, fileRow, legalStatusMetadata)
+      })
+      matchedFileRows <- generateMatchedRows(rows.toList)
     } yield matchedFileRows
   }
 
@@ -216,6 +266,11 @@ class FileService(
     }
   }
 
+  private def userDefinedMetadata(userDefinedMetadata: List[FileMetadata], defaultPropertyValues: Map[String, String]): List[FilemetadataRow] = {
+    //Need to either add the user defined value, or add the default property/value if not defined in user metadata
+    Nil
+  }
+
   private def createFileRows(
       addFileAndMetadataInput: AddFileAndMetadataInput,
       row: (UUID, Reference, Reference) => FilemetadataRow,
@@ -260,7 +315,12 @@ class FileService(
         row(fileId, input.fileSize.toString, ClientSideFileSize),
         row(fileId, input.checksum, SHA256ClientSideChecksum)
       )
-      MatchedFileRows(fileRow, fileMetadataRows ++ commonMetadataRows, input.matchId)
+
+      val userDefinedMetadata = input.fileMetadata.map(md => {
+        row(fileId, md.value, md.filePropertyName)
+      })
+
+      MatchedFileRows(fileRow, fileMetadataRows ++ commonMetadataRows ++ userDefinedMetadata, input.matchId)
     } else {
       DirectoryRows(fileRow, commonMetadataRows)
     }

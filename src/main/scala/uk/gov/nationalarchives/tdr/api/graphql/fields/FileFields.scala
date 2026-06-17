@@ -6,6 +6,7 @@ import sangria.marshalling.circe._
 import sangria.schema.{Argument, Field, InputObjectType, ListType, ObjectType, OptionInputType, OptionType, fields}
 import uk.gov.nationalarchives.tdr.api.auth.{ValidateHasConsignmentsAccess, ValidateUserHasAccessToConsignment}
 import uk.gov.nationalarchives.tdr.api.graphql.ConsignmentApiContext
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.FileMetadata
 import uk.gov.nationalarchives.tdr.api.graphql.validation.{ServiceTransfer, UserOwnsConsignment}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FieldTypes.{UuidType, ZonedDateTimeType}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.FileType
@@ -36,7 +37,7 @@ object FileFields {
       createdDateTime: ZonedDateTime
   )
 
-  case class ClientSideMetadataInput(originalPath: String, checksum: String, lastModified: Long, fileSize: Long, matchId: String)
+  case class ClientSideMetadataInput(originalPath: String, checksum: String, lastModified: Long, fileSize: Long, matchId: String, fileMetadata: List[FileMetadata] = Nil)
   case class AddFileAndMetadataInput(consignmentId: UUID, metadataInput: List[ClientSideMetadataInput], emptyDirectories: List[String] = Nil, userIdOverride: Option[UUID] = None)
       extends UserOwnsConsignment
       with ServiceTransfer
@@ -46,6 +47,7 @@ object FileFields {
       endDateTime: Option[ZonedDateTime] = None
   )
 
+  implicit val FileMetadataInputType: InputObjectType[FileMetadata] = deriveInputObjectType[FileMetadata]()
   implicit val MetadataInputType: InputObjectType[ClientSideMetadataInput] = deriveInputObjectType[ClientSideMetadataInput]()
   implicit val AddFileAndMetadataInputType: InputObjectType[AddFileAndMetadataInput] = deriveInputObjectType[AddFileAndMetadataInput]()
   implicit val FileSequenceType: ObjectType[Unit, FileMatches] = deriveObjectType[Unit, FileMatches]()

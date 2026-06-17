@@ -11,6 +11,8 @@ import uk.gov.nationalarchives.tdr.api.model.file.NodeType.fileTypeIdentifier
 import uk.gov.nationalarchives.tdr.api.service.ReferenceGeneratorService
 import uk.gov.nationalarchives.tdr.api.utils.TreeNodesUtils.TreeNodeInput
 
+import java.util.UUID
+
 class TreeNodeUtilsSpec extends AnyFlatSpec with MockitoSugar with Matchers with ScalaFutures {
   val referenceGeneratorServiceMock: ReferenceGeneratorService = mock[ReferenceGeneratorService]
 
@@ -117,6 +119,22 @@ class TreeNodeUtilsSpec extends AnyFlatSpec with MockitoSugar with Matchers with
     treeNode.get.parentPath.isEmpty should be(true)
     treeNode.get.name should be(fileName)
     treeNode.get.reference should be(Some("ref1"))
+    treeNode.get.matchId.get should be(matchId)
+  }
+
+  "generateNodes" should "not add reference when 'assign references' is false" in {
+    val fileName = "file"
+    val matchId = "1"
+    val inputs = Set(TreeNodeInput(fileName, Some(matchId)))
+    val result = TreeNodesUtils(
+      new FixedUUIDSource, referenceGeneratorServiceMock, ConfigFactory.load()).generateNodes(inputs, fileTypeIdentifier, assignReferencesToNodes = false)
+    result.size should equal(1)
+    val treeNode = result.get(fileName)
+    treeNode.isDefined should be(true)
+    treeNode.get.treeNodeType should be(NodeType.fileTypeIdentifier)
+    treeNode.get.parentPath.isEmpty should be(true)
+    treeNode.get.name should be(fileName)
+    treeNode.get.reference should be(None)
     treeNode.get.matchId.get should be(matchId)
   }
 
