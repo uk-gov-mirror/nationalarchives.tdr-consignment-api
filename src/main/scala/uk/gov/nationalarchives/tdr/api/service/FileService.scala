@@ -50,8 +50,8 @@ class FileService(
   private val filePageMaxLimit: Int = config.getInt("pagination.filesMaxLimit")
 
   private def getUserId(input: AddFileAndMetadataInput, tokenUserId: UUID): UUID = input.userIdOverride match {
-      case Some(id) => id
-      case _        => tokenUserId
+    case Some(id) => id
+    case _        => tokenUserId
   }
 
   private val defaultPropertyValues = metadataConfig.getPropertiesWithDefaultValue
@@ -83,8 +83,7 @@ class FileService(
     } yield matchedFileRows
   }
 
-  private def getParentInfo(parentPath: String, existing: Map[String, FileIdentificationDetails],
-                         newParents: Map[String, TreeNode]): FileIdentificationDetails = {
+  private def getParentInfo(parentPath: String, existing: Map[String, FileIdentificationDetails], newParents: Map[String, TreeNode]): FileIdentificationDetails = {
     if (existing.keySet.contains(parentPath)) {
       existing(parentPath)
     } else {
@@ -107,11 +106,12 @@ class FileService(
       existing <- fileMetadataService.getFileIdentificationDetails(input.consignmentId, potentialNewNodes.keySet)
       existingFilePaths: Set[String] = existing.keySet
       _ = if (newFilePaths.exists(existingFilePaths.contains)) {
-        throw new RuntimeException(s"New input contained duplicate file path for consignment: $consignmentId") }
+        throw new RuntimeException(s"New input contained duplicate file path for consignment: $consignmentId")
+      }
       concreteNewNodes = potentialNewNodes.filter(pnn => !existingFilePaths.contains(pnn._1))
-      //Add references for concrete new nodes
+      // Add references for concrete new nodes
       newNodes: Map[String, TreeNode] = treeNodesUtils.assignReferences(concreteNewNodes)
-      //Create new files
+      // Create new files
       rows <- Future.successful(newNodes map { case (filePath, treeNode) =>
         val parentPath = treeNode.parentPath
         val parent: FileIdentificationDetails =
@@ -267,7 +267,7 @@ class FileService(
   }
 
   private def userDefinedMetadata(userDefinedMetadata: List[FileMetadata], defaultPropertyValues: Map[String, String]): List[FilemetadataRow] = {
-    //Need to either add the user defined value, or add the default property/value if not defined in user metadata
+    // Need to either add the user defined value, or add the default property/value if not defined in user metadata
     Nil
   }
 

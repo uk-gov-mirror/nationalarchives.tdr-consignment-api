@@ -126,8 +126,7 @@ class TreeNodeUtilsSpec extends AnyFlatSpec with MockitoSugar with Matchers with
     val fileName = "file"
     val matchId = "1"
     val inputs = Set(TreeNodeInput(fileName, Some(matchId)))
-    val result = TreeNodesUtils(
-      new FixedUUIDSource, referenceGeneratorServiceMock, ConfigFactory.load()).generateNodes(inputs, fileTypeIdentifier, assignReferencesToNodes = false)
+    val result = TreeNodesUtils(new FixedUUIDSource, referenceGeneratorServiceMock, ConfigFactory.load()).generateNodes(inputs, fileTypeIdentifier, assignReferencesToNodes = false)
     result.size should equal(1)
     val treeNode = result.get(fileName)
     treeNode.isDefined should be(true)

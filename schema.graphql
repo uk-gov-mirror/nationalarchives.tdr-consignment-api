@@ -108,6 +108,7 @@ input ClientSideMetadataInput {
   lastModified: Long!
   fileSize: Long!
   matchId: String!
+  fileMetadata: [FileMetadata!] = []
 }
 
 type Consignment {
@@ -338,6 +339,11 @@ input FileFilters {
 type FileMatches {
   fileId: UUID!
   matchId: String!
+}
+
+input FileMetadata {
+  filePropertyName: String!
+  value: String!
 }
 
 input FileMetadataFilters {
