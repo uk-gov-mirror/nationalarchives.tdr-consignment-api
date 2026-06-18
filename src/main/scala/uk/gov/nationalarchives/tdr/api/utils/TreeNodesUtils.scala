@@ -37,6 +37,20 @@ class TreeNodesUtils(uuidSource: UUIDSource, referenceGeneratorService: Referenc
       .toMap
   }
 
+  def generateFlatNodes(inputs: Set[TreeNodeInput], typeIdentifier: String, assignReferencesToNodes: Boolean = true): Map[String, TreeNode] = {
+    val flatNodes = inputs.map { i =>
+      val path = i.filePath
+      val pathWithoutInitialSlash: String = if (path.startsWith("/")) path.tail else path
+      val jioFile = new JIOFile(pathWithoutInitialSlash)
+      val parentPath = Option(jioFile.getParent)
+      val name = jioFile.getName
+      pathWithoutInitialSlash -> TreeNode(uuidSource.uuid, name, parentPath, typeIdentifier, None, i.matchId)
+    }.toMap
+    if (assignReferencesToNodes) {
+      assignReferences(flatNodes)
+    } else flatNodes
+  }
+
   def generateNodes(inputs: Set[TreeNodeInput], typeIdentifier: String, assignReferencesToNodes: Boolean = true): Map[String, TreeNode] = {
     val generatedNodes = inputs.flatMap { i =>
       val path = i.filePath

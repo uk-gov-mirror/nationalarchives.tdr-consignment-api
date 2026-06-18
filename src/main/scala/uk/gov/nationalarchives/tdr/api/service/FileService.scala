@@ -82,15 +82,15 @@ class FileService(
       matchedFileRows <- generateMatchedRows(rows)
     } yield matchedFileRows
   }
-
-  private def getParentInfo(parentPath: String, existing: Map[String, FileIdentificationDetails], newParents: Map[String, TreeNode]): FileIdentificationDetails = {
-    if (existing.keySet.contains(parentPath)) {
-      existing(parentPath)
-    } else {
-      val parent = newParents(parentPath)
-      FileIdentificationDetails(Some(parent.id), Some(parent.treeNodeType), parent.reference, parentPath)
-    }
-  }
+//  NOTE: Only need to provide parent information if going to create folder structure for retained records
+//  private def getParentInfo(parentPath: String, existing: Map[String, FileIdentificationDetails], newParents: Map[String, TreeNode]): FileIdentificationDetails = {
+//    if (existing.keySet.contains(parentPath)) {
+//      existing(parentPath)
+//    } else {
+//      val parent = newParents(parentPath)
+//      FileIdentificationDetails(Some(parent.id), Some(parent.treeNodeType), parent.reference, parentPath)
+//    }
+//  }
 
   def existingAddFile(input: AddFileAndMetadataInput, tokenUserId: UUID): Future[List[FileMatches]] = {
     val userId = getUserId(input, tokenUserId)
@@ -98,7 +98,9 @@ class FileService(
     val now = Timestamp.from(timeSource.now)
     val newFilePaths = input.metadataInput.map(_.originalPath)
     val treeNodesInput = newFilePaths.map(TreeNodeInput(_, None)).toSet
-    val potentialNewNodes: Map[String, TreeNode] = treeNodesUtils.generateNodes(treeNodesInput, fileTypeIdentifier, assignReferencesToNodes = false)
+    val potentialNewNodes = treeNodesUtils.generateFlatNodes(treeNodesInput, fileTypeIdentifier, assignReferencesToNodes = false)
+    // NOTE: Only need to create full tree nodes if going to create folder structure for retained records
+    // val potentialNewNodes: Map[String, TreeNode] = treeNodesUtils.generateNodes(treeNodesInput, fileTypeIdentifier, assignReferencesToNodes = false)
     val row: (UUID, String, String) => FilemetadataRow = FilemetadataRow(uuidSource.uuid, _, _, now, userId, _)
 
     for {
@@ -113,17 +115,18 @@ class FileService(
       newNodes: Map[String, TreeNode] = treeNodesUtils.assignReferences(concreteNewNodes)
       // Create new files
       rows <- Future.successful(newNodes map { case (filePath, treeNode) =>
-        val parentPath = treeNode.parentPath
-        val parent: FileIdentificationDetails =
-          if (parentPath.isEmpty) {
-            FileIdentificationDetails(None, None, None, "")
-          } else {
-            getParentInfo(parentPath.get, existing, newNodes)
-          }
+// NOTE: Only need to provide parent information if going to create folder structure for retained records
+//        val parentPath = treeNode.parentPath
+//        val parent: FileIdentificationDetails =
+//          if (parentPath.isEmpty) {
+//            FileIdentificationDetails(None, None, None, "")
+//          } else {
+//            getParentInfo(parentPath.get, existing, newNodes)
+//          }
         val fileRow =
-          createFileRow(userId, now, consignmentId, treeNode, parent.id, parent.reference, treeNode.id)
+          createFileRow(userId, now, consignmentId, treeNode, None, None, treeNode.id)
         val legalStatusMetadata = metadata.find(_.propertyname == LegalStatus).map(metadata => LegalStatus -> metadata.value).toMap
-        createFileRows(input, row, defaultPropertyValues, filePath, treeNode, parent.reference, treeNode.id, fileRow, legalStatusMetadata)
+        createFileRows(input, row, defaultPropertyValues, filePath, treeNode, None, treeNode.id, fileRow, legalStatusMetadata)
       })
       matchedFileRows <- generateMatchedRows(rows.toList)
     } yield matchedFileRows
