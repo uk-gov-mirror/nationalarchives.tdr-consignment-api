@@ -40,7 +40,7 @@ graphqlSchemaSnippet := "uk.gov.nationalarchives.tdr.api.graphql.GraphQlTypes.sc
 
 lazy val pekkoVersion = "1.6.0"
 lazy val pekkoHttpVersion = "1.3.0"
-lazy val circeVersion = "0.14.15"
+lazy val circeVersion = "0.14.16"
 lazy val testContainersVersion = "0.44.1"
 
 libraryDependencies ++= Seq(
