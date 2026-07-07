@@ -30,8 +30,6 @@ class FileRouteSpec extends TestContainerUtils with Matchers with TestRequest {
 
   case class FileMatches(fileId: UUID, matchId: String)
 
-//  case class File(fileId: UUID, fileType: Option[String], fileName: Option[String], parentId: Option[UUID], assetId: Option[UUID])
-
   case class AddFilesAndMetadata(addFilesAndMetadata: List[FileMatches])
 
   val runTestMutationFileMetadata: (String, OAuth2BearerToken) => GraphqlMutationDataFilesMetadata =
