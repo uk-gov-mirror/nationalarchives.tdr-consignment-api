@@ -47,6 +47,7 @@ class FileService(
 
   private val fileUploadBatchSize: Int = config.getInt("fileUpload.batchSize")
   private val filePageMaxLimit: Int = config.getInt("pagination.filesMaxLimit")
+  private val blockAssignAssetId: Boolean = config.getBoolean("featureAccessBlock.assignAssetId")
 
   def addFile(addFileAndMetadataInput: AddFileAndMetadataInput, tokenUserId: UUID): Future[List[FileMatches]] = {
     val userId = addFileAndMetadataInput.userIdOverride match {
@@ -70,7 +71,7 @@ class FileService(
         val parentId = parentNode.map(_.id)
         val parentFileReference = parentNode.flatMap(_.reference)
         val fileId = treeNode.id
-        val assetId = uuidSource.uuid
+        val assetId = if (blockAssignAssetId) None else Some(uuidSource.uuid)
         val fileRow = createFileRow(userId, now, consignmentId, treeNode, parentId, parentFileReference, fileId, assetId)
         val legalStatusMetadata = metadata.find(_.propertyname == LegalStatus).map(metadata => LegalStatus -> metadata.value).toMap
 
@@ -227,7 +228,7 @@ class FileService(
       fileId: UUID,
       fileRow: FileRow,
       legalStatusMetadata: Map[String, String],
-      assetId: UUID
+      assetId: Option[UUID]
   ): Rows = {
 
     // Replace the default LegalStatus property value with the value from consignment metadata if it exists, otherwise keep the default values
@@ -242,13 +243,16 @@ class FileService(
       row(fileId, treeNode.treeNodeType, FileType),
       row(fileId, treeNode.name, Filename),
       row(fileId, treeNode.reference.getOrElse(""), FileReference),
-      row(fileId, parentFileReference.getOrElse(""), ParentReference),
-      row(fileId, assetId.toString, AssetId)
+      row(fileId, parentFileReference.getOrElse(""), ParentReference)
     ) ++ updatedDefaultPropertyValues
       .map(fileProperty => {
         row(fileId, fileProperty._2, tdrDataLoadHeaderToPropertyMapper(fileProperty._1))
       })
       .toList
+
+    val optionalValues = if (assetId.isDefined) {
+      List(row(fileId, assetId.get.toString, AssetId))
+    } else Nil
 
     if (treeNode.treeNodeType.isFileType) {
       val input = addFileAndMetadataInput.metadataInput
@@ -263,9 +267,9 @@ class FileService(
         row(fileId, input.fileSize.toString, ClientSideFileSize),
         row(fileId, input.checksum, SHA256ClientSideChecksum)
       )
-      MatchedFileRows(fileRow, fileMetadataRows ++ commonMetadataRows, input.matchId)
+      MatchedFileRows(fileRow, fileMetadataRows ++ commonMetadataRows ++ optionalValues, input.matchId)
     } else {
-      DirectoryRows(fileRow, commonMetadataRows)
+      DirectoryRows(fileRow, commonMetadataRows ++ optionalValues)
     }
   }
 
@@ -277,7 +281,7 @@ class FileService(
       parentId: Option[UUID],
       parentFileReference: Option[Reference],
       fileId: UUID,
-      assetId: UUID
+      assetId: Option[UUID]
   ) = {
     FileRow(
       fileId,
@@ -290,7 +294,7 @@ class FileService(
       filereference = treeNode.reference,
       parentreference = parentFileReference,
       uploadmatchid = treeNode.matchId,
-      assetid = Some(assetId)
+      assetid = assetId
     )
   }
 }
