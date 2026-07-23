@@ -42,7 +42,7 @@ lazy val pekkoVersion = "1.6.0"
 lazy val pekkoHttpVersion = "1.3.0"
 lazy val circeVersion = "0.14.16"
 lazy val testContainersVersion = "0.44.1"
-lazy val awsSdkVersion = "2.48.0"
+lazy val awsSdkVersion = "2.49.1"
 
 libraryDependencies ++= Seq(
   "org.sangria-graphql" %% "sangria" % "4.2.19",
@@ -76,16 +76,16 @@ libraryDependencies ++= Seq(
   "com.github.cb372" %% "scalacache-caffeine" % "0.28.0",
   "uk.gov.nationalarchives.oci" % "oci-tools-scala_2.13" % "0.4.0",
   "org.scalatest" %% "scalatest" % "3.2.20" % Test,
-  "org.mockito" %% "mockito-scala" % "2.2.1" % Test,
-  "org.mockito" %% "mockito-scala-scalatest" % "2.2.1" % Test,
+  "org.mockito" %% "mockito-scala" % "2.2.3" % Test,
+  "org.mockito" %% "mockito-scala-scalatest" % "2.2.3" % Test,
   "com.tngtech.keycloakmock" % "mock" % "0.20.0" % Test,
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.295",
   "io.github.hakky54" % "logcaptor" % "2.12.6" % Test,
   "com.dimafeng" %% "testcontainers-scala-scalatest" % testContainersVersion % Test,
   "com.dimafeng" %% "testcontainers-scala-postgresql" % testContainersVersion % Test,
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
-  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.137",
-  "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.39"
+  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.138",
+  "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.40"
 )
 
 dependencyOverrides ++= Seq(

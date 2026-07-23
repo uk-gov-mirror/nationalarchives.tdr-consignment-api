@@ -47,7 +47,6 @@ class FileService(
 
   private val fileUploadBatchSize: Int = config.getInt("fileUpload.batchSize")
   private val filePageMaxLimit: Int = config.getInt("pagination.filesMaxLimit")
-  private val blockAssignAssetId: Boolean = config.getBoolean("featureAccessBlock.assignAssetId")
 
   def addFile(addFileAndMetadataInput: AddFileAndMetadataInput, tokenUserId: UUID): Future[List[FileMatches]] = {
     val userId = addFileAndMetadataInput.userIdOverride match {
@@ -71,7 +70,7 @@ class FileService(
         val parentId = parentNode.map(_.id)
         val parentFileReference = parentNode.flatMap(_.reference)
         val fileId = treeNode.id
-        val assetId = if (blockAssignAssetId) None else Some(uuidSource.uuid)
+        val assetId = Some(uuidSource.uuid)
         val fileRow = createFileRow(userId, now, consignmentId, treeNode, parentId, parentFileReference, fileId, assetId)
         val legalStatusMetadata = metadata.find(_.propertyname == LegalStatus).map(metadata => LegalStatus -> metadata.value).toMap
 
