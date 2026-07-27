@@ -42,10 +42,10 @@ lazy val pekkoVersion = "1.6.0"
 lazy val pekkoHttpVersion = "1.3.0"
 lazy val circeVersion = "0.14.16"
 lazy val testContainersVersion = "0.44.1"
-lazy val awsSdkVersion = "2.47.0"
+lazy val awsSdkVersion = "2.48.0"
 
 libraryDependencies ++= Seq(
-  "org.sangria-graphql" %% "sangria" % "4.2.18",
+  "org.sangria-graphql" %% "sangria" % "4.2.19",
   "org.sangria-graphql" %% "sangria-slowlog" % "3.0.0",
   "org.sangria-graphql" %% "sangria-circe" % "1.3.2",
   "org.sangria-graphql" %% "sangria-spray-json" % "1.0.3",
@@ -69,7 +69,7 @@ libraryDependencies ++= Seq(
   "org.postgresql" % "postgresql" % "42.7.13",
   "com.typesafe.slick" %% "slick" % "3.6.1",
   "com.typesafe.slick" %% "slick-hikaricp" % "3.6.1",
-  "ch.qos.logback" % "logback-classic" % "1.5.37",
+  "ch.qos.logback" % "logback-classic" % "1.5.38",
   "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
   "software.amazon.awssdk" % "rds" % awsSdkVersion,
   "software.amazon.awssdk" % "sts" % awsSdkVersion,
@@ -79,13 +79,13 @@ libraryDependencies ++= Seq(
   "org.mockito" %% "mockito-scala" % "2.2.1" % Test,
   "org.mockito" %% "mockito-scala-scalatest" % "2.2.1" % Test,
   "com.tngtech.keycloakmock" % "mock" % "0.20.0" % Test,
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.292",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.295",
   "io.github.hakky54" % "logcaptor" % "2.12.6" % Test,
   "com.dimafeng" %% "testcontainers-scala-scalatest" % testContainersVersion % Test,
   "com.dimafeng" %% "testcontainers-scala-postgresql" % testContainersVersion % Test,
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
-  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.136",
-  "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.36"
+  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.138",
+  "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.39"
 )
 
 dependencyOverrides ++= Seq(

@@ -1,7 +1,7 @@
 package uk.gov.nationalarchives.tdr.api.service
 
 import cats.implicits.catsSyntaxOptionId
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
 import org.mockito.ArgumentMatchers._
 import org.mockito.{ArgumentCaptor, ArgumentMatchers, MockitoSugar}
 import org.scalatest.concurrent.ScalaFutures
@@ -497,6 +497,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     fileRows.foreach(row => {
       row.consignmentid should equal(consignmentId1)
       row.userid should equal(userId)
+      row.assetid should be(defined)
     })
 
     val expectedSize = 76
@@ -573,6 +574,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
       row.consignmentid should equal(consignmentId)
       row.userid should equal(userId)
       row.filereference should be(defined)
+      row.assetid should be(defined)
     })
     val file = fileRows.find(_.filereference.contains("ref4"))
     file.get.parentreference should equal(Some("ref2"))
@@ -652,6 +654,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     fileRows.foreach(row => {
       row.consignmentid should equal(consignmentId)
       row.userid should equal(userId)
+      row.assetid should be(defined)
     })
     val expectedSize = 48
     metadataRows.size should equal(expectedSize)
@@ -723,9 +726,60 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     fileRows.foreach(row => {
       row.consignmentid should equal(consignmentId)
       row.userid should equal(overrideUserId)
+      row.assetid should be(defined)
     })
     val expectedSize = 76
     metadataRows.size should equal(expectedSize)
+    defaultMetadataProperties.foreach(prop => {
+      metadataRows.count(_.propertyname == prop) should equal(5)
+    })
+
+    clientSideProperties.foreach(prop => {
+      val count = metadataRows.count(r => r.propertyname == prop)
+      prop match {
+        case ClientSideOriginalFilepath | Filename | FileType | FileReference | ParentReference => count should equal(5) // Directories have this set
+        case _                                                                                  => count should equal(2)
+      }
+    })
+    verify(consignmentStatusRepositoryMock, times(0)).updateConsignmentStatus(any[UUID], any[String], any[String], any[Timestamp])
+  }
+
+  "addFile" should "not assign asset ids when feature access block is set to true" in {
+    reset(fileStatusServiceMock)
+    val configMock = mock[Config]
+
+    val userId = UUID.randomUUID()
+
+    val fileRowCaptor: ArgumentCaptor[List[FileRow]] = ArgumentCaptor.forClass(classOf[List[FileRow]])
+    val metadataRowCaptor: ArgumentCaptor[List[FilemetadataRow]] = ArgumentCaptor.forClass(classOf[List[FilemetadataRow]])
+
+    when(fileRepositoryMock.addFiles(fileRowCaptor.capture(), metadataRowCaptor.capture())).thenReturn(Future(()))
+    when(fileStatusServiceMock.addFileStatuses(any[AddMultipleFileStatusesInput])).thenReturn(Future(Nil))
+    when(referenceGeneratorServiceMock.getReferences(any[Int])).thenReturn(List("ref1", "ref2", "ref3", "ref4", "ref5"))
+
+    when(configMock.getInt("fileUpload.batchSize")).thenReturn(3)
+    when(configMock.getInt("pagination.filesMaxLimit")).thenReturn(2)
+    when(configMock.getBoolean("featureAccessBlock.assignAssetId")).thenReturn(true)
+
+    val service = setupFileService(fileStatusServiceMock.some, config = configMock)
+
+    val input = setupMetadataInput(consignmentId1)
+    service.addFile(input, userId).futureValue
+
+    val fileRows: List[FileRow] = fileRowCaptor.getAllValues.asScala.flatten.toList
+    val metadataRows: List[FilemetadataRow] = metadataRowCaptor.getAllValues.asScala.flatten.toList
+
+    val expectedFileRows = 5
+    fileRows.size should equal(expectedFileRows)
+    fileRows.foreach(row => {
+      row.consignmentid should equal(consignmentId1)
+      row.userid should equal(userId)
+      row.assetid shouldBe None
+    })
+
+    val expectedSize = 71
+    metadataRows.size should equal(expectedSize)
+
     defaultMetadataProperties.foreach(prop => {
       metadataRows.count(_.propertyname == prop) should equal(5)
     })
@@ -1101,7 +1155,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     file1Result.rankOverFilePath should not equal file3Result.rankOverFilePath
   }
 
-  private def setupFileService(fileStatusServiceMock: Option[FileStatusService] = None): FileService = {
+  private def setupFileService(fileStatusServiceMock: Option[FileStatusService] = None, config: Config = ConfigFactory.load()): FileService = {
     val antivirusMetadataService = new AntivirusMetadataService(antivirusMetadataRepositoryMock, uuidSource, FixedTimeSource)
     val fileMetadataService = new FileMetadataService(fileMetadataRepositoryMock)
     val fileStatusService = fileStatusServiceMock.getOrElse(new FileStatusService(fileStatusRepositoryMock))
@@ -1120,7 +1174,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
       consignmentMetadataRepositoryMock,
       FixedTimeSource,
       uuidSource,
-      ConfigFactory.load()
+      config
     )
   }
 
