@@ -4,18 +4,15 @@ queue_rules:
     queue_conditions:
       - "check-success=validate"
       - "check-success~=test"
-      - "check-success=security/snyk (nationalarchives)"
     merge_conditions:
       - "check-success=validate"
       - "check-success~=test"
-      - "check-success=security/snyk (nationalarchives)"
 pull_request_rules:
   - name: automatic merge for Scala Steward
     conditions:
       - author=tna-da-bot
       - "check-success=validate"
       - "check-success~=test"
-      - "check-success=security/snyk (nationalarchives)"
       - or:
           - files=build.sbt
           - files~=^(!?project/)
