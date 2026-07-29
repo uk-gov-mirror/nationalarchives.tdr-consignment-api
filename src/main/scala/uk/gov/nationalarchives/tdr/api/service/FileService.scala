@@ -47,6 +47,7 @@ class FileService(
 
   private val fileUploadBatchSize: Int = config.getInt("fileUpload.batchSize")
   private val filePageMaxLimit: Int = config.getInt("pagination.filesMaxLimit")
+  private val blockAssignAssetId: Boolean = config.getBoolean("featureAccessBlock.assignAssetId")
 
   def addFile(addFileAndMetadataInput: AddFileAndMetadataInput, tokenUserId: UUID): Future[List[FileMatches]] = {
     val userId = addFileAndMetadataInput.userIdOverride match {
@@ -70,10 +71,11 @@ class FileService(
         val parentId = parentNode.map(_.id)
         val parentFileReference = parentNode.flatMap(_.reference)
         val fileId = treeNode.id
-        val fileRow = createFileRow(userId, now, consignmentId, treeNode, parentId, parentFileReference, fileId)
+        val assetId = if (blockAssignAssetId) None else Some(uuidSource.uuid)
+        val fileRow = createFileRow(userId, now, consignmentId, treeNode, parentId, parentFileReference, fileId, assetId)
         val legalStatusMetadata = metadata.find(_.propertyname == LegalStatus).map(metadata => LegalStatus -> metadata.value).toMap
 
-        createFileRows(addFileAndMetadataInput, row, defaultPropertyValues, path, treeNode, parentFileReference, fileId, fileRow, legalStatusMetadata)
+        createFileRows(addFileAndMetadataInput, row, defaultPropertyValues, path, treeNode, parentFileReference, fileId, fileRow, legalStatusMetadata, assetId)
       }).toList)
       matchedFileRows <- generateMatchedRows(rows)
     } yield matchedFileRows
@@ -225,7 +227,8 @@ class FileService(
       parentFileReference: Option[Reference],
       fileId: UUID,
       fileRow: FileRow,
-      legalStatusMetadata: Map[String, String]
+      legalStatusMetadata: Map[String, String],
+      assetId: Option[UUID]
   ): Rows = {
 
     // Replace the default LegalStatus property value with the value from consignment metadata if it exists, otherwise keep the default values
@@ -247,6 +250,10 @@ class FileService(
       })
       .toList
 
+    val optionalValues = if (assetId.isDefined) {
+      List(row(fileId, assetId.get.toString, AssetId))
+    } else Nil
+
     if (treeNode.treeNodeType.isFileType) {
       val input = addFileAndMetadataInput.metadataInput
         .filter(m => {
@@ -260,13 +267,22 @@ class FileService(
         row(fileId, input.fileSize.toString, ClientSideFileSize),
         row(fileId, input.checksum, SHA256ClientSideChecksum)
       )
-      MatchedFileRows(fileRow, fileMetadataRows ++ commonMetadataRows, input.matchId)
+      MatchedFileRows(fileRow, fileMetadataRows ++ commonMetadataRows ++ optionalValues, input.matchId)
     } else {
-      DirectoryRows(fileRow, commonMetadataRows)
+      DirectoryRows(fileRow, commonMetadataRows ++ optionalValues)
     }
   }
 
-  private def createFileRow(userId: UUID, now: Timestamp, consignmentId: UUID, treeNode: TreeNode, parentId: Option[UUID], parentFileReference: Option[Reference], fileId: UUID) = {
+  private def createFileRow(
+      userId: UUID,
+      now: Timestamp,
+      consignmentId: UUID,
+      treeNode: TreeNode,
+      parentId: Option[UUID],
+      parentFileReference: Option[Reference],
+      fileId: UUID,
+      assetId: Option[UUID]
+  ) = {
     FileRow(
       fileId,
       consignmentId,
@@ -277,7 +293,8 @@ class FileService(
       parentid = parentId,
       filereference = treeNode.reference,
       parentreference = parentFileReference,
-      uploadmatchid = treeNode.matchId
+      uploadmatchid = treeNode.matchId,
+      assetid = assetId
     )
   }
 }
@@ -336,7 +353,8 @@ object FileService {
             avMetadata.find(_.fileId == fileId),
             fmr.find(_._2.exists(_.propertyname == "OriginalFilepath")).flatMap(_._2.map(_.value)),
             filterMetadataRows(metadataRows, metadataPropertyNames).toList,
-            statuses
+            statuses,
+            fr.assetid
           )
         }
         .toSeq
@@ -359,7 +377,11 @@ object FileService {
     ): Seq[File] = {
       fileRows.map(fr => {
         val id = fr.fileid
-        val metadata = fileMetadata.getOrElse(id, FileMetadataValues(None, None, None, None, None, None, None, None, None, None, None, None, None, None))
+        val assetId = fr.assetid
+        val metadata = fileMetadata.getOrElse(
+          id,
+          FileMetadataValues(None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+        )
         val statuses = fileStatuses.filter(_.fileId == id)
         File(
           id,
@@ -373,7 +395,8 @@ object FileService {
           ffidStatus.get(id),
           ffidMetadata.find(_.fileId == id),
           avMetadata.find(_.fileId == id),
-          fileStatuses = statuses
+          fileStatuses = statuses,
+          assetId = assetId
         )
       })
     }
