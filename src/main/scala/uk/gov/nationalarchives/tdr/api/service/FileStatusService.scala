@@ -46,7 +46,7 @@ class FileStatusService(fileStatusRepository: FileStatusRepository)(implicit
       .getFileStatus(consignmentId, statusTypes)
       .map(fileChecks => {
         !fileChecks.map(_.value).exists(_ != Success) &&
-        Set(ChecksumMatch, Antivirus, FFID).forall(fileChecks.map(_.statustype).toSet.contains)
+        statusTypes.forall(fileChecks.map(_.statustype).toSet.contains)
       })
   }
 }
