@@ -8,18 +8,17 @@ queue_rules:
       - "check-success=validate"
       - "check-success~=test"
 pull_request_rules:
-  - name: automatic merge for Scala Steward
+  - name: automatic merge for dependency bots
     conditions:
-      - author=tna-da-bot
+      - or:
+          - author=tna-da-bot
+          - author=dependabot[bot]
       - "check-success=validate"
       - "check-success~=test"
-      - or:
-          - files=build.sbt
-          - files~=^(!?project/)
     actions:
       review:
         type: APPROVE
-        message: Automatically approving Scala Steward
+        message: Automatically approving dependency bot updates
       queue:
         name: default
 merge_queue:
