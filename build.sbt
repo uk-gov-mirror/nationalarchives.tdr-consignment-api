@@ -77,7 +77,7 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives.oci" % "oci-tools-scala_2.13" % "0.4.0",
   "org.scalatest" %% "scalatest" % "3.2.20" % Test,
   "org.mockito" %% "mockito-scala" % "2.2.3" % Test,
-  "org.mockito" %% "mockito-scala-scalatest" % "2.2.1" % Test,
+  "org.mockito" %% "mockito-scala-scalatest" % "2.2.3" % Test,
   "com.tngtech.keycloakmock" % "mock" % "0.21.0" % Test,
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.295",
   "io.github.hakky54" % "logcaptor" % "2.12.6" % Test,
