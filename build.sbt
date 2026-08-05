@@ -39,7 +39,7 @@ enablePlugins(GraphQLSchemaPlugin)
 graphqlSchemaSnippet := "uk.gov.nationalarchives.tdr.api.graphql.GraphQlTypes.schema"
 
 lazy val pekkoVersion = "1.6.0"
-lazy val pekkoHttpVersion = "1.3.0"
+lazy val pekkoHttpVersion = "1.4.0"
 lazy val circeVersion = "0.14.16"
 lazy val testContainersVersion = "0.44.1"
 lazy val awsSdkVersion = "2.48.0"
