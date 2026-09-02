@@ -66,7 +66,7 @@ object ValidateUpdateConsignmentSeriesId extends AuthorisationTag {
     bodyResult.map(body => {
       body.tdrCode match {
         case code if userBodies.contains(code) => continue
-        case code                     =>
+        case code                              =>
           val message = s"User '$userId' is from transferring bodies '${userBodies.mkString(", ")}' and does not have permission " +
             s"to update a consignment '$consignmentId' under series '$seriesId' owned by body '$code'"
           throw AuthorisationException(message)

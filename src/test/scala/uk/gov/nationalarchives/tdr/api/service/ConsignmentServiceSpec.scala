@@ -95,12 +95,10 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
     when(mockToken.transferringBodies).thenReturn(Some(List(bodyCode)))
     when(transferringBodyServiceMock.getBody(seriesId)).thenReturn(Future.successful(mockBody))
 
-
     val result = consignmentService.addConsignment(AddConsignmentInput(Some(seriesId), "standard"), mockToken).futureValue
 
     verify(seriesRepositoryMock).getSeries(seriesId)
     verify(transferringBodyServiceMock, times(1)).getBody(seriesId)
-
 
     result.consignmentid shouldBe consignmentId
     result.seriesid shouldBe Some(seriesId)
@@ -119,7 +117,6 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
     val consignmentRowCaptor: ArgumentCaptor[ConsignmentRow] = ArgumentCaptor.forClass(classOf[ConsignmentRow])
     when(consignmentRepoMock.addConsignment(consignmentRowCaptor.capture())).thenReturn(mockResponse)
     when(mockToken.transferringBodies).thenReturn(Some(List(bodyCode)))
-
 
     consignmentService.addConsignment(AddConsignmentInput(None, "standard"), mockToken).futureValue
 
@@ -145,7 +142,6 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
     when(mockToken.transferringBodies).thenReturn(Some(List(bodyCode)))
     when(transferringBodyServiceMock.getBodyByCode(bodyCode)).thenReturn(Future.successful(mockBody))
 
-
     val result = consignmentService.addConsignment(AddConsignmentInput(Some(seriesId), "judgment"), mockToken).futureValue
 
     verify(seriesRepositoryMock).getSeries(seriesId)
@@ -168,7 +164,6 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
     when(consignmentRepoMock.addConsignment(consignmentRowCaptor.capture())).thenReturn(mockResponse)
     when(mockToken.transferringBodies).thenReturn(Some(List(bodyCode)))
     when(transferringBodyServiceMock.getBodyByCode(bodyCode)).thenReturn(Future.successful(mockBody))
-
 
     consignmentService.addConsignment(AddConsignmentInput(None, "judgment"), mockToken).futureValue
 
