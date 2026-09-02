@@ -50,7 +50,7 @@ object ConsignmentFields {
       exportLocation: Option[String],
       consignmentReference: String,
       consignmentType: String,
-      bodyId: UUID,
+      bodyId: Option[UUID],
       includeTopLevelFolder: Option[Boolean],
       seriesName: Option[String],
       transferringBodyName: Option[String],

@@ -14,6 +14,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{
   Descending,
   StartUploadInput,
   UpdateClientSideDraftMetadataFileNameInput,
+  UpdateConsignmentSeriesIdInput,
   UpdateMetadataSchemaLibraryVersionInput
 }
 import uk.gov.nationalarchives.tdr.api.service.TimeSource
@@ -151,11 +152,17 @@ class ConsignmentRepository(db: JdbcBackend#Database, timeSource: TimeSource) {
     db.run(query.result)
   }
 
-  def updateSeriesOfConsignment(updateConsignmentSeriesIdInput: ConsignmentFields.UpdateConsignmentSeriesIdInput, seriesName: Option[String]): Future[Int] = {
+  def updateSeriesAndBodyOfConsignment(
+      updateConsignmentSeriesIdInput: UpdateConsignmentSeriesIdInput,
+      seriesName: Option[String],
+      bodyId: UUID,
+      bodyName: String,
+      bodyTdrCode: String
+  ): Future[Int] = {
     val update = Consignment
       .filter(_.consignmentid === updateConsignmentSeriesIdInput.consignmentId)
-      .map(t => (t.seriesid, t.seriesname))
-      .update(Some(updateConsignmentSeriesIdInput.seriesId), seriesName)
+      .map(t => (t.seriesid, t.seriesname, t.bodyid, t.transferringbodyname, t.transferringbodytdrcode))
+      .update(Some(updateConsignmentSeriesIdInput.seriesId), seriesName, Some(bodyId), Some(bodyName), Some(bodyTdrCode))
     db.run(update)
   }
 

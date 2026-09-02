@@ -1,14 +1,14 @@
 package uk.gov.nationalarchives.tdr.api.service
 
 import com.typesafe.config.Config
-import uk.gov.nationalarchives.Tables.{ConsignmentRow, ConsignmentstatusRow, MetadatareviewlogRow}
+import uk.gov.nationalarchives.Tables.{ConsignmentRow, ConsignmentstatusRow, MetadatareviewlogRow, SeriesRow}
 import uk.gov.nationalarchives.tdr.api.consignmentstatevalidation.ConsignmentStateException
 import uk.gov.nationalarchives.tdr.api.db.repository._
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
-import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields._
-import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{ConsignmentReference => ConsignmentReferenceOrderField}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{ConsignmentReference => ConsignmentReferenceOrderField, _}
+import uk.gov.nationalarchives.tdr.api.model.TransferringBody
 import uk.gov.nationalarchives.tdr.api.model.consignment.ConsignmentReference
-import uk.gov.nationalarchives.tdr.api.model.consignment.ConsignmentType.ConsignmentTypeHelper
+import uk.gov.nationalarchives.tdr.api.model.consignment.ConsignmentType.{ConsignmentTypeHelper, judgment}
 import uk.gov.nationalarchives.tdr.api.service.FileStatusService._
 import uk.gov.nationalarchives.tdr.api.utils.TimeUtils.TimestampUtils
 import uk.gov.nationalarchives.tdr.common.utils.statuses.MetadataReviewLogAction.MetadataReviewLogAction
@@ -73,14 +73,18 @@ class ConsignmentService(
     val yearNow = LocalDate.from(now.atOffset(ZoneOffset.UTC)).getYear
     val timestampNow = Timestamp.from(now)
     val consignmentType: String = addConsignmentInput.consignmentType.validateType
-
-    val userBodyCode = token.transferringBody.getOrElse(throw InputDataException(s"No transferring body in user token for user '${token.userId}'"))
     val seriesId = addConsignmentInput.seriesid
+
+    if (!token.transferringBodies.exists(_.nonEmpty)) {
+      throw InputDataException(s"No transferring bodies are assigned to the user '${token.userId}'")
+    }
 
     for {
       sequence <- consignmentRepository.getNextConsignmentSequence
-      body <- transferringBodyService.getBodyByCode(userBodyCode)
-      seriesName <- getSeriesName(seriesId)
+      (series, body) <- getSeriesAndBody(seriesId, consignmentType, token)
+      _ = if (seriesId.isDefined && series.isEmpty) {
+        throw InputDataException(s"Series ${seriesId.get} not found")
+      }
       consignmentRef = ConsignmentReference.createConsignmentReference(yearNow, sequence)
       consignmentId = uuidSource.uuid
       consignmentRow = ConsignmentRow(
@@ -91,10 +95,10 @@ class ConsignmentService(
         consignmentsequence = sequence,
         consignmentreference = consignmentRef,
         consignmenttype = consignmentType,
-        bodyid = body.bodyId,
-        seriesname = seriesName,
-        transferringbodyname = Some(body.name),
-        transferringbodytdrcode = Some(body.tdrCode)
+        bodyid = body.map(_.bodyId),
+        seriesname = series.map(_.name),
+        transferringbodyname = body.map(_.name),
+        transferringbodytdrcode = body.map(_.tdrCode)
       )
       consignment <- consignmentRepository.addConsignment(consignmentRow).map(row => convertRowToConsignment(row))
     } yield consignment
@@ -146,8 +150,9 @@ class ConsignmentService(
 
   def updateSeriesOfConsignment(updateConsignmentSeriesIdInput: UpdateConsignmentSeriesIdInput): Future[Int] = {
     for {
-      seriesName <- getSeriesName(Some(updateConsignmentSeriesIdInput.seriesId))
-      result <- consignmentRepository.updateSeriesOfConsignment(updateConsignmentSeriesIdInput, seriesName)
+      series <- seriesRepository.getSeries(updateConsignmentSeriesIdInput.seriesId)
+      body <- transferringBodyService.getBody(updateConsignmentSeriesIdInput.seriesId)
+      result <- consignmentRepository.updateSeriesAndBodyOfConsignment(updateConsignmentSeriesIdInput, series.headOption.map(_.name), body.bodyId, body.name, body.tdrCode)
       seriesStatus = if (result == 1) Completed else Failed
       _ <- consignmentStatusRepository.updateConsignmentStatus(updateConsignmentSeriesIdInput.consignmentId, "Series", seriesStatus, Timestamp.from(timeSource.now))
     } yield result
@@ -238,12 +243,20 @@ class ConsignmentService(
       .map(cr => ConsignmentEdge(convertRowToConsignment(cr), consignmentOrderField.cursorFn(cr)))
   }
 
-  private def getSeriesName(seriesId: Option[UUID]): Future[Option[String]] = {
-    if (seriesId.isDefined) {
-      seriesRepository.getSeries(seriesId.get).map(_.headOption.map(_.name))
-    } else {
-      Future(None)
-    }
+  private def getSeriesAndBody(seriesId: Option[UUID], consignmentType: String, token: Token): Future[(Option[SeriesRow], Option[TransferringBody])] = {
+    for {
+      series <- seriesId match {
+        case Some(id) => seriesRepository.getSeries(id).map(_.headOption)
+        case None     => Future.successful(None)
+      }
+      body <- consignmentType match {
+        case `judgment` =>
+          // Return transferring body from token for the judgment consignment.
+          transferringBodyService.getBodyByCode(token.transferringBodies.get.head).map(Some(_))
+        case _ if series.isDefined => transferringBodyService.getBody(series.get.seriesid).map(Some(_)) // Return transferring body from series for all other consignment types.
+        case _                     => Future.successful(None)
+      }
+    } yield (series, body)
   }
 }
 
