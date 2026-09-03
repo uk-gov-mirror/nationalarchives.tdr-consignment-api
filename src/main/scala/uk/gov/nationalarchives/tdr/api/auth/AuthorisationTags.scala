@@ -41,7 +41,7 @@ object ValidateBody extends SyncAuthorisationTag {
     val bodiesFromToken = token.transferringBodies.getOrElse(List())
 
     if (!bodiesArgs.exists(bodiesFromToken.contains)) {
-      val msg = s"Bodies for user ${token.userId} was ${bodiesArgs.mkString(", ")} in the query and ${bodiesFromToken.mkString(", ")} in the token"
+      val msg = s"Bodies for user ${token.userId} were ${bodiesArgs.mkString(", ")} in the query and ${bodiesFromToken.mkString(", ")} in the token"
       throw AuthorisationException(msg)
     }
     continue
@@ -53,7 +53,7 @@ object ValidateUpdateConsignmentSeriesId extends AuthorisationTag {
   override def validateAsync(ctx: Context[ConsignmentApiContext, _])(implicit executionContext: ExecutionContext): Future[BeforeFieldResult[ConsignmentApiContext, Unit]] = {
     val token = ctx.ctx.accessToken
     val userId = token.userId
-    val userBodies = token.transferringBodies.getOrElse(throw AuthorisationException(s"No transferring body in user token for user '$userId'"))
+    val userBodies = token.transferringBodies.getOrElse(throw AuthorisationException(s"No transferring bodies in user token for user '$userId'"))
     val consignmentSeriesInput = ctx.arg[UpdateConsignmentSeriesIdInput]("updateConsignmentSeriesId")
     val seriesId: UUID = consignmentSeriesInput.seriesId
     val consignmentId: UUID = consignmentSeriesInput.consignmentId

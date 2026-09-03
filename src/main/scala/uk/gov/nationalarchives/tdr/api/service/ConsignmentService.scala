@@ -77,14 +77,14 @@ class ConsignmentService(
 
     if (!token.transferringBodies.exists(_.nonEmpty)) {
       throw InputDataException(s"No transferring bodies are assigned to the user '${token.userId}'")
+    } else if (consignmentType == judgment && token.transferringBodies.exists(_.size > 1)) {
+      throw InputDataException(s"Judgment user '${token.userId}' has multiple transferring bodies assigned")
     }
 
     for {
+      series <- getSeries(seriesId)
+      body <- getBody(seriesId, token)
       sequence <- consignmentRepository.getNextConsignmentSequence
-      (series, body) <- getSeriesAndBody(seriesId, consignmentType, token)
-      _ = if (seriesId.isDefined && series.isEmpty) {
-        throw InputDataException(s"Series ${seriesId.get} not found")
-      }
       consignmentRef = ConsignmentReference.createConsignmentReference(yearNow, sequence)
       consignmentId = uuidSource.uuid
       consignmentRow = ConsignmentRow(
@@ -148,11 +148,13 @@ class ConsignmentService(
     consignment.map(rows => rows.map(row => convertRowToConsignment(row)).headOption)
   }
 
-  def updateSeriesOfConsignment(updateConsignmentSeriesIdInput: UpdateConsignmentSeriesIdInput): Future[Int] = {
+  def updateConsignmentSeries(updateConsignmentSeriesIdInput: UpdateConsignmentSeriesIdInput): Future[Int] = {
     for {
       series <- seriesRepository.getSeries(updateConsignmentSeriesIdInput.seriesId)
       body <- transferringBodyService.getBody(updateConsignmentSeriesIdInput.seriesId)
-      result <- consignmentRepository.updateSeriesAndBodyOfConsignment(updateConsignmentSeriesIdInput, series.headOption.map(_.name), body.bodyId, body.name, body.tdrCode)
+      updateBodyInput = UpdateConsignmentBodyInput(body.bodyId, body.name, body.tdrCode)
+      updateSeriesInput = UpdateConsignmentSeriesInput(updateConsignmentSeriesIdInput.seriesId, series.headOption.map(_.name))
+      result <- consignmentRepository.updateConsignment(updateConsignmentSeriesIdInput.consignmentId, updateSeriesInput, updateBodyInput)
       seriesStatus = if (result == 1) Completed else Failed
       _ <- consignmentStatusRepository.updateConsignmentStatus(updateConsignmentSeriesIdInput.consignmentId, "Series", seriesStatus, Timestamp.from(timeSource.now))
     } yield result
@@ -243,21 +245,32 @@ class ConsignmentService(
       .map(cr => ConsignmentEdge(convertRowToConsignment(cr), consignmentOrderField.cursorFn(cr)))
   }
 
-  private def getSeriesAndBody(seriesId: Option[UUID], consignmentType: String, token: Token): Future[(Option[SeriesRow], Option[TransferringBody])] = {
+  private def getSeries(seriesId: Option[UUID]): Future[Option[SeriesRow]] = {
     for {
       series <- seriesId match {
-        case Some(id) => seriesRepository.getSeries(id).map(_.headOption)
-        case None     => Future.successful(None)
+        case Some(id) =>
+          seriesRepository.getSeries(id).map {
+            case Nil    => throw InputDataException(s"Series ${seriesId.get} not found")
+            case series => series.headOption
+          }
+        case None => Future.successful(None)
       }
-      body <- consignmentType match {
-        case `judgment` =>
-          // Return transferring body from token for the judgment consignment.
-          transferringBodyService.getBodyByCode(token.transferringBodies.get.head).map(Some(_))
-        case _ if series.isDefined => transferringBodyService.getBody(series.get.seriesid).map(Some(_)) // Return transferring body from series for all other consignment types.
-        case _                     => Future.successful(None)
+    } yield series
+  }
+
+  private def getBody(seriesId: Option[UUID], token: Token): Future[Option[TransferringBody]] = {
+    for {
+      body <- token.transferringBodies match {
+        case Some(bodies) if bodies.size == 1 =>
+          transferringBodyService.getBodyByCode(bodies.head).map(Some(_))
+        case Some(bodies) if bodies.size > 1 && seriesId.isDefined =>
+          transferringBodyService.getBody(seriesId.get).map(Some(_))
+        case _ => Future.successful(None)
       }
-    } yield (series, body)
+    } yield body
   }
 }
 
 case class PaginatedConsignments(lastCursor: Option[String], consignmentEdges: Seq[ConsignmentEdge])
+case class UpdateConsignmentBodyInput(bodyId: UUID, bodyName: String, bodyTdrCode: String)
+case class UpdateConsignmentSeriesInput(seriesId: UUID, seriesName: Option[String])

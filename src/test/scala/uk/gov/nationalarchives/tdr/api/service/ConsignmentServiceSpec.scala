@@ -92,7 +92,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
     when(seriesRepositoryMock.getSeries(seriesId)).thenReturn(Future.successful(Seq(mockSeries)))
     when(consignmentRepoMock.getNextConsignmentSequence).thenReturn(Future.successful(mockConsignmentSeq))
     when(consignmentRepoMock.addConsignment(any[ConsignmentRow])).thenReturn(mockResponse)
-    when(mockToken.transferringBodies).thenReturn(Some(List(bodyCode)))
+    when(mockToken.transferringBodies).thenReturn(Some(List("TDR-ABC", bodyCode)))
     when(transferringBodyServiceMock.getBody(seriesId)).thenReturn(Future.successful(mockBody))
 
     val result = consignmentService.addConsignment(AddConsignmentInput(Some(seriesId), "standard"), mockToken).futureValue
@@ -116,7 +116,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
     when(consignmentRepoMock.getNextConsignmentSequence).thenReturn(Future.successful(mockConsignmentSeq))
     val consignmentRowCaptor: ArgumentCaptor[ConsignmentRow] = ArgumentCaptor.forClass(classOf[ConsignmentRow])
     when(consignmentRepoMock.addConsignment(consignmentRowCaptor.capture())).thenReturn(mockResponse)
-    when(mockToken.transferringBodies).thenReturn(Some(List(bodyCode)))
+    when(mockToken.transferringBodies).thenReturn(Some(List("TDR-ABC", bodyCode)))
 
     consignmentService.addConsignment(AddConsignmentInput(None, "standard"), mockToken).futureValue
 
@@ -142,7 +142,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
     when(mockToken.transferringBodies).thenReturn(Some(List(bodyCode)))
     when(transferringBodyServiceMock.getBodyByCode(bodyCode)).thenReturn(Future.successful(mockBody))
 
-    val result = consignmentService.addConsignment(AddConsignmentInput(Some(seriesId), "judgment"), mockToken).futureValue
+    consignmentService.addConsignment(AddConsignmentInput(Some(seriesId), "judgment"), mockToken).futureValue
 
     verify(seriesRepositoryMock).getSeries(seriesId)
     verify(transferringBodyServiceMock, times(1)).getBodyByCode(bodyCode)
@@ -188,7 +188,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
     when(consignmentRepoMock.addConsignment(any[ConsignmentRow])).thenReturn(mockResponse)
     when(mockToken.userId).thenReturn(userId)
     when(transferringBodyServiceMock.getBody(seriesId)).thenReturn(Future.successful(mockBody))
-    when(mockToken.transferringBodies).thenReturn(Some(List(bodyCode)))
+    when(mockToken.transferringBodies).thenReturn(Some(List("TDR-ABC", bodyCode)))
 
     consignmentService.addConsignment(AddConsignmentInput(Some(seriesId), "standard"), mockToken).futureValue
 
@@ -227,6 +227,18 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
     }
 
     thrownException.getMessage should equal("No transferring bodies are assigned to the user '8d415358-f68b-403b-a90a-daab3fd60109'")
+  }
+
+  "addConsignment" should "return an error if transferringBodies has more than one body for judgment" in {
+    val mockToken = mock[Token]
+    when(mockToken.userId).thenReturn(userId)
+    when(mockToken.transferringBodies).thenReturn(Some(List("TDR-ABC", "TDR-DEF")))
+
+    val thrownException = intercept[Exception] {
+      consignmentService.addConsignment(AddConsignmentInput(Some(seriesId), "judgment"), mockToken).futureValue
+    }
+
+    thrownException.getMessage should equal("Judgment user '8d415358-f68b-403b-a90a-daab3fd60109' has multiple transferring bodies assigned")
   }
 
   "addConsignment" should "return an error when given series doesn't exist" in {
@@ -384,16 +396,17 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
     val expectedSeriesStatus = Completed
     val expectedResult = 1
 
-    when(consignmentRepoMock.updateSeriesAndBodyOfConsignment(updateConsignmentSeriesIdInput, Some(seriesName), mockBody.bodyId, mockBody.name, mockBody.tdrCode))
-      .thenReturn(Future.successful(1))
+    val seriesInput = UpdateConsignmentSeriesInput(seriesId, seriesName.some)
+    val bodyInput = UpdateConsignmentBodyInput(mockBody.bodyId, mockBody.name, mockBody.tdrCode)
+    when(consignmentRepoMock.updateConsignment(consignmentId, seriesInput, bodyInput)).thenReturn(Future.successful(1))
     when(consignmentStatusRepoMock.updateConsignmentStatus(consignmentId, statusType, Completed, Timestamp.from(fixedTimeSource)))
       .thenReturn(Future.successful(1))
     when(seriesRepositoryMock.getSeries(updateConsignmentSeriesIdInput.seriesId)).thenReturn(Future.successful(Seq(mockSeries)))
     when(transferringBodyServiceMock.getBody(seriesId)).thenReturn(Future.successful(mockBody))
 
-    val result = consignmentService.updateSeriesOfConsignment(updateConsignmentSeriesIdInput).futureValue
+    val result = consignmentService.updateConsignmentSeries(updateConsignmentSeriesIdInput).futureValue
 
-    verify(consignmentRepoMock).updateSeriesAndBodyOfConsignment(updateConsignmentSeriesIdInput, Some(seriesName), mockBody.bodyId, mockBody.name, mockBody.tdrCode)
+    verify(consignmentRepoMock).updateConsignment(consignmentId, seriesInput, bodyInput)
     verify(consignmentStatusRepoMock)
       .updateConsignmentStatus(updateConsignmentSeriesIdInput.consignmentId, statusType, expectedSeriesStatus, Timestamp.from(fixedTimeSource))
 
@@ -405,16 +418,18 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
     val statusType = SeriesType.id
     val expectedSeriesStatus = Failed
     val expectedResult = 0
-    when(consignmentRepoMock.updateSeriesAndBodyOfConsignment(updateConsignmentSeriesIdInput, Some(seriesName), mockBody.bodyId, mockBody.name, mockBody.tdrCode))
-      .thenReturn(Future.successful(0))
+
+    val seriesInput = UpdateConsignmentSeriesInput(seriesId, seriesName.some)
+    val bodyInput = UpdateConsignmentBodyInput(mockBody.bodyId, mockBody.name, mockBody.tdrCode)
+    when(consignmentRepoMock.updateConsignment(consignmentId, seriesInput, bodyInput)).thenReturn(Future.successful(0))
     when(consignmentStatusRepoMock.updateConsignmentStatus(consignmentId, statusType, Failed, Timestamp.from(fixedTimeSource)))
       .thenReturn(Future.successful(1))
     when(seriesRepositoryMock.getSeries(updateConsignmentSeriesIdInput.seriesId)).thenReturn(Future.successful(Seq(mockSeries)))
     when(transferringBodyServiceMock.getBody(seriesId)).thenReturn(Future.successful(mockBody))
 
-    val result = consignmentService.updateSeriesOfConsignment(updateConsignmentSeriesIdInput).futureValue
+    val result = consignmentService.updateConsignmentSeries(updateConsignmentSeriesIdInput).futureValue
 
-    verify(consignmentRepoMock).updateSeriesAndBodyOfConsignment(updateConsignmentSeriesIdInput, Some(seriesName), mockBody.bodyId, mockBody.name, mockBody.tdrCode)
+    verify(consignmentRepoMock).updateConsignment(consignmentId, seriesInput, bodyInput)
     verify(consignmentStatusRepoMock)
       .updateConsignmentStatus(updateConsignmentSeriesIdInput.consignmentId, statusType, expectedSeriesStatus, Timestamp.from(fixedTimeSource))
 

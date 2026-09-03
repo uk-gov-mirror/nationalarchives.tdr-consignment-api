@@ -18,7 +18,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{
   UpdateExportDataInput,
   UpdateMetadataSchemaLibraryVersionInput
 }
-import uk.gov.nationalarchives.tdr.api.service.CurrentTimeSource
+import uk.gov.nationalarchives.tdr.api.service.{CurrentTimeSource, UpdateConsignmentBodyInput, UpdateConsignmentSeriesInput}
 import uk.gov.nationalarchives.tdr.api.service.FileStatusService.{InProgress, Upload}
 import uk.gov.nationalarchives.tdr.api.utils.TestAuthUtils._
 import uk.gov.nationalarchives.tdr.api.utils.TestContainerUtils._
@@ -414,7 +414,9 @@ class ConsignmentRepositorySpec extends TestContainerUtils with ScalaFutures wit
 
     val input = ConsignmentFields.UpdateConsignmentSeriesIdInput(consignmentId = consignmentIdOne, seriesId = seriesId)
 
-    val response = consignmentRepository.updateSeriesAndBodyOfConsignment(input, seriesName.some, bodyId, bodyName, bodyCode).futureValue
+    val seriesInput = UpdateConsignmentSeriesInput(seriesId, seriesName.some)
+    val bodyInput = UpdateConsignmentBodyInput(bodyId, bodyName, bodyCode)
+    val response = consignmentRepository.updateConsignment(consignmentIdOne, seriesInput, bodyInput).futureValue
 
     response should be(1)
     val consignment = consignmentRepository.getConsignment(consignmentIdOne).futureValue.head
