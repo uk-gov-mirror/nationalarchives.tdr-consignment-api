@@ -8,7 +8,7 @@ import slick.jdbc.PostgresProfile.api._
 import uk.gov.nationalarchives.Tables.{Filemetadata, _}
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.{AddFileMetadataInput, tdrDataLoadHeaderToPropertyMapper}
 import uk.gov.nationalarchives.tdr.api.utils.RetryUtils._
-import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema.file_size
+import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema.{closure_type, file_size}
 
 import java.sql.Timestamp
 import java.util.UUID
@@ -277,7 +277,7 @@ class FileMetadataRepository(db: JdbcBackend#Database)(implicit val executionCon
       .join(File)
       .on(_.fileid === _.fileid)
       .filter(_._2.consignmentid === consignmentId)
-      .filter(_._1.propertyname === ClosureType)
+      .filter(_._1.propertyname === tdrDataLoadHeaderToPropertyMapper(closure_type))
       .filter(_._1.value.toLowerCase === closureValue.toLowerCase)
       .length
     db.run(query.result)

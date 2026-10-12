@@ -90,12 +90,14 @@ object FileMetadataService {
   val tdrDataLoadHeaderToPropertyMapper: String => String = metadataConfig.propertyToOutputMapper("tdrDataLoadHeader")
 
   val clientSideProperties: List[String] =
-    List(tdrDataLoadHeaderToPropertyMapper(client_side_checksum),
+    List(
+      tdrDataLoadHeaderToPropertyMapper(client_side_checksum),
       tdrDataLoadHeaderToPropertyMapper(file_path),
       tdrDataLoadHeaderToPropertyMapper(date_last_modified),
       tdrDataLoadHeaderToPropertyMapper(file_size),
       tdrDataLoadHeaderToPropertyMapper(file_name),
-      tdrDataLoadHeaderToPropertyMapper(file_type))
+      tdrDataLoadHeaderToPropertyMapper(file_type)
+    )
 
   def getFileMetadataValues(fileMetadataRow: Seq[FilemetadataRow]): FileMetadataValues = {
     val propertyNameMap: Map[String, String] = fileMetadataRow.groupBy(_.propertyname).transform { (_, value) =>

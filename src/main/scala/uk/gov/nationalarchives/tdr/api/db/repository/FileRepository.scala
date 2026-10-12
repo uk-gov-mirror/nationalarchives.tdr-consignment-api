@@ -8,8 +8,6 @@ import uk.gov.nationalarchives.Tables.{
   AvmetadataRow,
   Consignment,
   ConsignmentRow,
-  Consignmentstatus,
-  ConsignmentstatusRow,
   Ffidmetadata,
   FfidmetadataRow,
   Ffidmetadatamatches,
@@ -98,11 +96,6 @@ class FileRepository(db: JdbcBackend#Database)(implicit val executionContext: Ex
       .filter(_._1.fileid === fileId)
       .map(rows => rows._2)
     db.run(query.result)
-  }
-
-  def addFiles(fileRows: Seq[FileRow], consignmentStatusRow: ConsignmentstatusRow): Future[Seq[Tables.FileRow]] = {
-    val allAdditions = DBIO.seq(insertFileQuery ++= fileRows, Consignmentstatus += consignmentStatusRow).transactionally
-    db.run(allAdditions).map(_ => fileRows)
   }
 
   def addFiles(fileRows: Seq[FileRow], fileMetadataRows: Seq[FilemetadataRow]): Future[Unit] =

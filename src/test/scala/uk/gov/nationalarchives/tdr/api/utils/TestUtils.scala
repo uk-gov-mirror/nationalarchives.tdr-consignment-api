@@ -350,7 +350,7 @@ class TestUtils(db: JdbcBackend#Database) {
         case "ClientSideFileLastModifiedDate" => Timestamp.from(Instant.now()).toString
         case "ClientSideFileSize"             => "1"
         case "SHA256ClientSideChecksum"       => "ddb1584d8cb5f07dc6602f58bd5e0184c87e223787af7b619ce04319727b83bf"
-        case _                              => s"$propertyName Value"
+        case _                                => s"$propertyName Value"
       }
       val ps: PreparedStatement = connection.prepareStatement(sql)
       ps.setObject(1, UUID.randomUUID(), Types.OTHER)

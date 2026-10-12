@@ -59,6 +59,7 @@ trait GraphQLServerBase {
       consignmentStatusRepository,
       seriesRepository,
       fileMetadataRepository,
+      fileRepository,
       transferringBodyService,
       metadataReviewLogRepository,
       timeSource,

@@ -649,7 +649,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
       val count = metadataRows.count(r => r.propertyname == prop)
       prop match {
         case "ClientSideOriginalFilepath" | "Filename" | "FileType" | "FileReference" | "ParentReference" => count should equal(5) // Directories have this set
-        case _                                                                                  => count should equal(2)
+        case _                                                                                            => count should equal(2)
       }
     })
     verify(consignmentStatusRepositoryMock, times(0)).updateConsignmentStatus(any[UUID], any[String], any[String], any[Timestamp])
@@ -684,6 +684,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
 
     val consignmentMetadataRow = ConsignmentmetadataRow(UUID.randomUUID(), consignmentId1, "LegalStatus", "Welsh Public Record(s)", Timestamp.from(Instant.now), userId)
     when(consignmentMetadataRepositoryMock.getConsignmentMetadata(any[UUID], any[Option[ConsignmentMetadataFilter]])).thenReturn(Future.successful(Seq(consignmentMetadataRow)))
+    when(consignmentServiceMock.getConsignment(consignmentId)).thenReturn(Future.successful(mockConsignment.copy(consignmentid = consignmentId).some))
 
     val service = new FileService(
       fileRepositoryMock,
@@ -729,7 +730,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
       val count = metadataRows.count(r => r.propertyname == prop)
       prop match {
         case "ClientSideOriginalFilepath" | "Filename" | "FileType" | "FileReference" | "ParentReference" => count should equal(3) // Directories have this set
-        case _                                                                                  => count should equal(2)
+        case _                                                                                            => count should equal(2)
       }
     })
     verify(consignmentStatusRepositoryMock, times(0)).updateConsignmentStatus(any[UUID], any[String], any[String], any[Timestamp])
@@ -757,6 +758,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     when(referenceGeneratorServiceMock.getReferences(any[Int])).thenReturn(List("ref1", "ref2", "ref3", "ref4", "ref5"))
 
     when(consignmentMetadataRepositoryMock.getConsignmentMetadata(any[UUID], any[Option[ConsignmentMetadataFilter]])).thenReturn(Future.successful(Seq()))
+    when(consignmentServiceMock.getConsignment(consignmentId)).thenReturn(Future.successful(mockConsignment.copy(consignmentid = consignmentId).some))
 
     val service = new FileService(
       fileRepositoryMock,
@@ -803,7 +805,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
       val count = metadataRows.count(r => r.propertyname == prop)
       prop match {
         case "ClientSideOriginalFilepath" | "Filename" | "FileType" | "FileReference" | "ParentReference" => count should equal(5) // Directories have this set
-        case _                                                                                  => count should equal(2)
+        case _                                                                                            => count should equal(2)
       }
     })
     verify(consignmentStatusRepositoryMock, times(0)).updateConsignmentStatus(any[UUID], any[String], any[String], any[Timestamp])
@@ -1270,6 +1272,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
 
     val consignmentMetadataRow = ConsignmentmetadataRow(UUID.randomUUID(), consignmentId1, "LegalStatus", "Public Records(s)", Timestamp.from(Instant.now), userId)
     when(consignmentMetadataRepositoryMock.getConsignmentMetadata(any[UUID], any[Option[ConsignmentMetadataFilter]])).thenReturn(Future.successful(Seq(consignmentMetadataRow)))
+    when(consignmentServiceMock.getConsignment(consignmentId1)).thenReturn(Future.successful(mockConsignment.some))
 
     new FileService(
       fileRepositoryMock,

@@ -9,10 +9,12 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{Consign
 import uk.gov.nationalarchives.tdr.api.model.TransferringBody
 import uk.gov.nationalarchives.tdr.api.model.consignment.ConsignmentReference
 import uk.gov.nationalarchives.tdr.api.model.consignment.ConsignmentType.{ConsignmentTypeHelper, judgment}
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.{AddFileMetadataInput, tdrDataLoadHeaderToPropertyMapper}
 import uk.gov.nationalarchives.tdr.api.service.FileStatusService._
 import uk.gov.nationalarchives.tdr.api.utils.TimeUtils.TimestampUtils
 import uk.gov.nationalarchives.tdr.common.utils.statuses.MetadataReviewLogAction.MetadataReviewLogAction
 import uk.gov.nationalarchives.tdr.keycloak.Token
+import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema.citable_ref_prefix
 
 import java.sql.Timestamp
 import java.time.{LocalDate, ZoneOffset}
@@ -25,6 +27,7 @@ class ConsignmentService(
     consignmentStatusRepository: ConsignmentStatusRepository,
     seriesRepository: SeriesRepository,
     fileMetadataRepository: FileMetadataRepository,
+    fileRepository: FileRepository,
     transferringBodyService: TransferringBodyService,
     metadataReviewLogRepository: MetadataReviewLogRepository,
     timeSource: TimeSource,
@@ -161,7 +164,22 @@ class ConsignmentService(
       result <- consignmentRepository.updateConsignment(updateConsignmentSeriesIdInput.consignmentId, updateSeriesInput, updateBodyInput)
       seriesStatus = if (result == 1) Completed else Failed
       _ <- consignmentStatusRepository.updateConsignmentStatus(updateConsignmentSeriesIdInput.consignmentId, "Series", seriesStatus, Timestamp.from(timeSource.now))
+      _ <- addCitableRefPrefixMetadataToFiles(updateConsignmentSeriesIdInput.consignmentId, series)
     } yield result
+  }
+
+  private def addCitableRefPrefixMetadataToFiles(consignmentId: UUID, series: Seq[SeriesRow]): Future[Unit] = {
+    for {
+      fileIds <- fileRepository.getFileIds(consignmentId)
+      _ <-
+        if (fileIds.nonEmpty) {
+          val seriesName = series.headOption.map(_.name).getOrElse(throw InputDataException(s"Series not found"))
+          val metadataInputs = fileIds.map(fileId => AddFileMetadataInput(fileId, seriesName, uuidSource.uuid, tdrDataLoadHeaderToPropertyMapper(citable_ref_prefix)))
+          fileMetadataRepository.addFileMetadata(metadataInputs)
+        } else {
+          Future.successful(Seq.empty)
+        }
+    } yield ()
   }
 
   def consignmentHasFiles(consignmentId: UUID): Future[Boolean] = {

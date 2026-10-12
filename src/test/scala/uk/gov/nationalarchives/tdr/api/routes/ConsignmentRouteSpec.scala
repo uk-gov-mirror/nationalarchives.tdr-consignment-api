@@ -326,7 +326,7 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
         case "ClientSideFileSize"             => "2"
         case "TitleClosed"                    => "false"
         case "DescriptionClosed"              => "false"
-        case _                              => s"$propertyName value"
+        case _                                => s"$propertyName value"
       }
       utils.addFileMetadata(UUID.randomUUID().toString, fileOneId, propertyName, value)
       utils.addFileMetadata(UUID.randomUUID().toString, fileTwoId, propertyName, value)
@@ -1197,7 +1197,7 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
         clientSideProperty match {
           case "ClientSideFileLastModifiedDate" => s"2021-02-08 16:00:00"
           case "ClientSideFileSize"             => "1"
-          case _                              => s"$clientSideProperty value"
+          case _                                => s"$clientSideProperty value"
         }
       )
     }
