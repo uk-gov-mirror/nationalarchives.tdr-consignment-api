@@ -11,6 +11,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks.forAll
 import org.scalatest.prop.TableFor3
 import org.scalatest.prop.Tables.Table
+import org.scalatest.time.{Millis, Seconds, Span}
 import uk.gov.nationalarchives.Tables.{ConsignmentRow, ConsignmentstatusRow, MetadatareviewlogRow, SeriesRow}
 import uk.gov.nationalarchives.tdr.api.db.repository._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields._
@@ -31,6 +32,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMocksAfterEachTest with Matchers with ScalaFutures {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
+
+  implicit override val patienceConfig: PatienceConfig =
+    PatienceConfig(timeout = Span(1, Seconds), interval = Span(50, Millis))
 
   val fixedTimeSource: Instant = FixedTimeSource.now
   val fixedUuidSource: FixedUUIDSource = new FixedUUIDSource()
