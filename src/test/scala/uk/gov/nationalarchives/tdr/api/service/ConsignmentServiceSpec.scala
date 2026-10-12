@@ -421,6 +421,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
   }
 
   "updateSeriesOfConsignment" should "add citable_ref_prefix metadata to all files when files are present" in {
+    reset(fileMetadataRepositoryMock)
     val updateConsignmentSeriesIdInput = UpdateConsignmentSeriesIdInput(consignmentId, seriesId)
     val statusType = SeriesType.id
     val expectedResult = 1
