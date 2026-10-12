@@ -41,7 +41,7 @@ class FileRepositorySpec extends TestContainerUtils with ScalaFutures with Match
       FilemetadataRow(UUID.randomUUID(), fileTwoId, "checksum-two", Timestamp.from(Instant.now), userId, "SHA256ClientSideChecksum")
     )
 
-    utils.addFileProperty("CitableRefPrefix")
+    utils.addFileProperty("SHA256ClientSideChecksum")
     utils.createConsignment(consignmentId, userId)
 
     fileRepository.addFiles(fileRows, fileMetadataRows).futureValue

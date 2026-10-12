@@ -74,7 +74,7 @@ class FileService(
         val fileId = treeNode.id
         val assetId = Some(uuidSource.uuid)
         val fileRow = createFileRow(userId, now, consignmentId, treeNode, parentId, parentFileReference, fileId, assetId)
-        val legalStatusMetadata = metadata.find(_.propertyname == legal_status).map(metadata => legal_status -> metadata.value).toMap
+        val legalStatusMetadata = metadata.find(_.propertyname == tdrDataLoadHeaderToPropertyMapper(legal_status)).map(metadata => legal_status -> metadata.value).toMap
         val citableRefPrefix = consignment.get.seriesName.map(seriesName => citable_ref_prefix -> seriesName).toMap
         val metadataProperties = defaultPropertyValues ++ citableRefPrefix ++ legalStatusMetadata
         createFileRows(addFileAndMetadataInput, row, metadataProperties, path, treeNode, parentFileReference, fileId, fileRow, assetId)

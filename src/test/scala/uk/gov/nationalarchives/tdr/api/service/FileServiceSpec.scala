@@ -1273,7 +1273,6 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
 
     val consignmentMetadataRow = ConsignmentmetadataRow(UUID.randomUUID(), consignmentId1, "LegalStatus", "Public Records(s)", Timestamp.from(Instant.now), userId)
     when(consignmentMetadataRepositoryMock.getConsignmentMetadata(any[UUID], any[Option[ConsignmentMetadataFilter]])).thenReturn(Future.successful(Seq(consignmentMetadataRow)))
-    when(consignmentServiceMock.getConsignment(consignmentId1)).thenReturn(Future.successful(mockConsignment.some))
 
     new FileService(
       fileRepositoryMock,
