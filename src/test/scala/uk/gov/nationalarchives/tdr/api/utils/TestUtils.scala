@@ -347,9 +347,9 @@ class TestUtils(db: JdbcBackend#Database) {
     clientSideProperties.foreach(propertyName => {
       addFileProperty(propertyName)
       val value = propertyName match {
-        case ClientSideFileLastModifiedDate => Timestamp.from(Instant.now()).toString
-        case ClientSideFileSize             => "1"
-        case SHA256ClientSideChecksum       => "ddb1584d8cb5f07dc6602f58bd5e0184c87e223787af7b619ce04319727b83bf"
+        case "ClientSideFileLastModifiedDate" => Timestamp.from(Instant.now()).toString
+        case "ClientSideFileSize"             => "1"
+        case "SHA256ClientSideChecksum"       => "ddb1584d8cb5f07dc6602f58bd5e0184c87e223787af7b619ce04319727b83bf"
         case _                              => s"$propertyName Value"
       }
       val ps: PreparedStatement = connection.prepareStatement(sql)
@@ -520,13 +520,13 @@ object TestUtils {
 
   def setPropertyDefaultValues(defaultMetadataProperty: String): String = {
     defaultMetadataProperty match {
-      case RightsCopyright   => defaultCopyright
-      case LegalStatus       => defaultLegalStatus
-      case HeldBy            => defaultHeldBy
-      case Language          => defaultLanguage
-      case ClosureType       => defaultClosureType
-      case DescriptionClosed => "false"
-      case TitleClosed       => "false"
+      case "RightsCopyright"   => defaultCopyright
+      case "LegalStatus"       => defaultLegalStatus
+      case "HeldBy"            => defaultHeldBy
+      case "Language"          => defaultLanguage
+      case "ClosureType"       => defaultClosureType
+      case "DescriptionClosed" => "false"
+      case "TitleClosed"       => "false"
     }
   }
 
@@ -543,8 +543,8 @@ object TestUtils {
   case class Locations(column: Int, line: Int)
 
   val defaultFileId: UUID = UUID.fromString("07a3a4bd-0281-4a6d-a4c1-8fa3239e1313")
-  val serverSideProperties: List[String] = List(FileUUID, FileReference, ParentReference, AssetId)
-  val defaultMetadataProperties: List[String] = List(RightsCopyright, LegalStatus, HeldBy, Language, ClosureType, DescriptionClosed, TitleClosed)
+  val serverSideProperties: List[String] = List("UUID", "FileReference", "ParentReference", "AssetId")
+  val defaultMetadataProperties: List[String] = List("RightsCopyright", "LegalStatus", "HeldBy", "Language", "ClosureType", "DescriptionClosed", "TitleClosed")
   val defaultCopyright: String = "Crown Copyright"
   val defaultLegalStatus: String = "Public Record"
   val defaultHeldBy: String = "TNA"

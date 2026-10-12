@@ -6,8 +6,9 @@ import slick.jdbc.H2Profile.ProfileAction
 import slick.jdbc.JdbcBackend
 import slick.jdbc.PostgresProfile.api._
 import uk.gov.nationalarchives.Tables.{Filemetadata, _}
-import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.{AddFileMetadataInput, ClientSideFileSize, ClosureType}
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.{AddFileMetadataInput, tdrDataLoadHeaderToPropertyMapper}
 import uk.gov.nationalarchives.tdr.api.utils.RetryUtils._
+import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema.file_size
 
 import java.sql.Timestamp
 import java.util.UUID
@@ -29,7 +30,7 @@ class FileMetadataRepository(db: JdbcBackend#Database)(implicit val executionCon
       .join(File)
       .on(_.fileid === _.fileid)
       .filter(_._2.consignmentid === consignmentId)
-      .filter(_._1.propertyname === ClientSideFileSize)
+      .filter(_._1.propertyname === tdrDataLoadHeaderToPropertyMapper(file_size))
       .map(_._1.value.asColumnOf[Long])
       .sum
       .getOrElse(0L)

@@ -10,6 +10,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileStatusFields.FileStatus
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
 import uk.gov.nationalarchives.tdr.api.service.ReferenceGeneratorService.Reference
+import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema._
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
 
 import java.sql.Timestamp
@@ -84,53 +85,38 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository)(implic
 
 object FileMetadataService {
 
-  val SHA256ClientSideChecksum = "SHA256ClientSideChecksum"
-  val ClientSideOriginalFilepath = "ClientSideOriginalFilepath"
-  val OriginalFilepath = "OriginalFilepath"
-  val ClientSideFileLastModifiedDate = "ClientSideFileLastModifiedDate"
-  val ClientSideFileSize = "ClientSideFileSize"
-  val ClosurePeriod = "ClosurePeriod"
-  val ClosureStartDate = "ClosureStartDate"
-  val FileUUID = "UUID"
-  val Filename = "Filename"
-  val FileType = "FileType"
-  val FileReference = "FileReference"
-  val ParentReference = "ParentReference"
-  val FoiExemptionAsserted = "FoiExemptionAsserted"
-  val TitleClosed = "TitleClosed"
-  val DescriptionClosed = "DescriptionClosed"
-  val ClosureType = "ClosureType"
-  val Description = "description"
-  val DescriptionAlternate = "DescriptionAlternate"
-  val RightsCopyright = "RightsCopyright"
-  val LegalStatus = "LegalStatus"
-  val HeldBy = "HeldBy"
-  val Language = "Language"
-  val FoiExemptionCode = "FoiExemptionCode"
-  val AssetId = "AssetId"
+  val metadataConfig: ConfigUtils.MetadataConfiguration = ConfigUtils.loadConfiguration
+  private val systemProperties: Seq[Reference] = metadataConfig.getPropertiesByPropertyType("System")
+  val tdrDataLoadHeaderToPropertyMapper: String => String = metadataConfig.propertyToOutputMapper("tdrDataLoadHeader")
+
   val clientSideProperties: List[String] =
-    List(SHA256ClientSideChecksum, ClientSideOriginalFilepath, ClientSideFileLastModifiedDate, ClientSideFileSize, Filename, FileType)
+    List(tdrDataLoadHeaderToPropertyMapper(client_side_checksum),
+      tdrDataLoadHeaderToPropertyMapper(file_path),
+      tdrDataLoadHeaderToPropertyMapper(date_last_modified),
+      tdrDataLoadHeaderToPropertyMapper(file_size),
+      tdrDataLoadHeaderToPropertyMapper(file_name),
+      tdrDataLoadHeaderToPropertyMapper(file_type))
 
   def getFileMetadataValues(fileMetadataRow: Seq[FilemetadataRow]): FileMetadataValues = {
     val propertyNameMap: Map[String, String] = fileMetadataRow.groupBy(_.propertyname).transform { (_, value) =>
       value.head.value
     }
     FileMetadataValues(
-      propertyNameMap.get(SHA256ClientSideChecksum),
-      propertyNameMap.get(ClientSideOriginalFilepath),
-      propertyNameMap.get(ClientSideFileLastModifiedDate).map(d => Timestamp.valueOf(d).toLocalDateTime),
-      propertyNameMap.get(ClientSideFileSize).map(_.toLong),
-      propertyNameMap.get(RightsCopyright),
-      propertyNameMap.get(LegalStatus),
-      propertyNameMap.get(HeldBy),
-      propertyNameMap.get(Language),
-      propertyNameMap.get(FoiExemptionCode),
-      propertyNameMap.get(ClosurePeriod),
-      propertyNameMap.get(ClosureStartDate).map(d => Timestamp.valueOf(d).toLocalDateTime),
-      propertyNameMap.get(FoiExemptionAsserted).map(d => Timestamp.valueOf(d).toLocalDateTime),
-      propertyNameMap.get(TitleClosed).map(_.toBoolean),
-      propertyNameMap.get(DescriptionClosed).map(_.toBoolean),
-      propertyNameMap.get(AssetId).map(UUID.fromString)
+      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(client_side_checksum)),
+      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(file_path)),
+      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(date_last_modified)).map(d => Timestamp.valueOf(d).toLocalDateTime),
+      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(file_size)).map(_.toLong),
+      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(rights_copyright)),
+      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(legal_status)),
+      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(held_by)),
+      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(language)),
+      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(foi_exemption_code)),
+      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(closure_period)),
+      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(closure_start_date)).map(d => Timestamp.valueOf(d).toLocalDateTime),
+      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(foi_exemption_asserted)).map(d => Timestamp.valueOf(d).toLocalDateTime),
+      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(title_closed)).map(_.toBoolean),
+      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(description_closed)).map(_.toBoolean),
+      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(asset_id)).map(UUID.fromString)
     )
   }
 
@@ -174,8 +160,4 @@ object FileMetadataService {
       descriptionClosed: Option[Boolean],
       assetId: Option[UUID]
   )
-
-  val config: ConfigUtils.MetadataConfiguration = ConfigUtils.loadConfiguration
-  private val systemProperties: Seq[Reference] = config.getPropertiesByPropertyType("System")
-  private val tdrDataLoadHeaderToPropertyMapper: String => String = config.propertyToOutputMapper("tdrDataLoadHeader")
 }

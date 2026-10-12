@@ -49,7 +49,7 @@ class FileRouteSpec extends TestContainerUtils with Matchers with TestRequest {
     val res = runTestMutationFileMetadata("mutation_alldata_2", validUserToken())
     val distinctDirectoryCount = 3
     val fileCount = 5
-    val expectedCount = ((FileUUID :: Filename :: FileType :: FileReference :: ParentReference :: AssetId :: defaultMetadataProperties).size * distinctDirectoryCount) +
+    val expectedCount = (("UUID" :: "Filename" :: "FileType" :: "FileReference" :: "ParentReference" :: "AssetId" :: defaultMetadataProperties).size * distinctDirectoryCount) +
       (defaultMetadataProperties.size * fileCount) +
       (clientSideProperties.size * fileCount) +
       (serverSideProperties.size * fileCount) +

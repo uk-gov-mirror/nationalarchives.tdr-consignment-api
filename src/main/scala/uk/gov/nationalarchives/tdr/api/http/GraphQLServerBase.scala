@@ -85,6 +85,7 @@ trait GraphQLServerBase {
       fileMetadataService,
       referenceGeneratorService,
       consignmentMetadataRepository,
+      consignmentService,
       new CurrentTimeSource,
       uuidSource,
       config

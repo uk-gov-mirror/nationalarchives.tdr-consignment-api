@@ -6,7 +6,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Seconds, Span}
 import uk.gov.nationalarchives.Tables.FilemetadataRow
-import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.{AddFileMetadataInput, ClientSideFileSize}
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.AddFileMetadataInput
 import uk.gov.nationalarchives.tdr.api.utils.TestAuthUtils.userId
 import uk.gov.nationalarchives.tdr.api.utils.TestContainerUtils._
 import uk.gov.nationalarchives.tdr.api.utils.{TestContainerUtils, TestUtils}
@@ -288,10 +288,10 @@ class FileMetadataRepositorySpec extends TestContainerUtils with ScalaFutures wi
     val fileIdThree = UUID.randomUUID()
     val utils = TestUtils(container.database)
     utils.createConsignment(consignmentId, userId)
-    utils.addFileProperty(ClientSideFileSize)
+    utils.addFileProperty("ClientSideFileSize")
     List((fileIdOne, "1"), (fileIdTwo, "2"), (fileIdThree, "3")).foreach { case (id, size) =>
       utils.createFile(id, consignmentId)
-      utils.addFileMetadata(UUID.randomUUID().toString, id.toString, ClientSideFileSize, size)
+      utils.addFileMetadata(UUID.randomUUID().toString, id.toString, "ClientSideFileSize", size)
     }
     val repository = new FileMetadataRepository(container.database)
     val sum = repository.getSumOfFileSizes(consignmentId).futureValue
