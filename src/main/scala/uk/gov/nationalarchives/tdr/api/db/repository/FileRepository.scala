@@ -3,24 +3,10 @@ package uk.gov.nationalarchives.tdr.api.db.repository
 import slick.jdbc.PostgresProfile.api._
 import slick.jdbc.{GetResult, JdbcBackend}
 import uk.gov.nationalarchives.Tables
-import uk.gov.nationalarchives.Tables.{
-  Avmetadata,
-  AvmetadataRow,
-  Consignment,
-  ConsignmentRow,
-  Ffidmetadata,
-  FfidmetadataRow,
-  Ffidmetadatamatches,
-  FfidmetadatamatchesRow,
-  File,
-  FileRow,
-  Filemetadata,
-  FilemetadataRow,
-  Filestatus,
-  FilestatusRow
-}
+import uk.gov.nationalarchives.Tables.{Avmetadata, AvmetadataRow, Consignment, ConsignmentRow, Ffidmetadata, FfidmetadataRow, Ffidmetadatamatches, FfidmetadatamatchesRow, File, FileRow, Filemetadata, FilemetadataRow, Filestatus, FilestatusRow}
 import uk.gov.nationalarchives.tdr.api.db.repository.FileRepository.{FileFields, FileRepositoryMetadata}
 import uk.gov.nationalarchives.tdr.api.model.file.NodeType
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataPropertyName
 import uk.gov.nationalarchives.tdr.api.service.FileStatusService.{Antivirus, ChecksumMatch, ClientFilePath, FFID, Redaction, Success => FileCheckSuccess}
 import uk.gov.nationalarchives.tdr.api.utils.TimeUtils.ZonedDateTimeUtils
 
@@ -83,7 +69,7 @@ class FileRepository(db: JdbcBackend#Database)(implicit val executionContext: Ex
       .on(_._1._1._2.fileid === _.fileid)
       .joinLeft(Ffidmetadatamatches)
       .on(_._2.map(_.ffidmetadataid) === _.ffidmetadataid)
-      .joinLeft(Filemetadata.filter(_.propertyname === "SHA256ClientSideChecksum"))
+      .joinLeft(Filemetadata.filter(_.propertyname === FileMetadataPropertyName.clientSideChecksum))
       .on(_._1._1._1._1._1.fileid === _.fileid)
 
     db.run(query.result)
