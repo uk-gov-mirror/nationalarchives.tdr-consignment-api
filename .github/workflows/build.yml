@@ -16,6 +16,13 @@ jobs:
       repo-name: tdr-consignment-api
       image-name: consignment-api
       build-command: |
+        curl -Lo /tmp/wizcli https://downloads.wiz.io/v1/wizcli/1.26.9/wizcli-linux-amd64
+        curl -Lo /tmp/wizcli-sha256 https://downloads.wiz.io/v1/wizcli/1.26.9/wizcli-linux-amd64-sha256
+        curl -Lo /tmp/wizcli-sha256.sig https://downloads.wiz.io/v1/wizcli/1.26.9/wizcli-linux-amd64-sha256.sig
+        gpg --verify /tmp/wizcli-sha256.sig /tmp/wizcli-sha256
+        echo "$(cat /tmp/wizcli-sha256) /tmp/wizcli" | sha256sum --check
+        chmod +x /tmp/wizcli
+        mv /tmp/wizcli ./wizcli
         docker build -f Dockerfile-tests -t tests .
         sbt assembly
     secrets:
