@@ -5,12 +5,14 @@ import uk.gov.nationalarchives.Tables.FilemetadataRow
 import uk.gov.nationalarchives.tdr.api.db.repository.FileMetadataRepository
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
 import uk.gov.nationalarchives.tdr.api.graphql.fields.AntivirusMetadataFields.AntivirusMetadata
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.Consignment
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FFIDMetadataFields.FFIDMetadata
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileStatusFields.FileStatus
-import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataPropertyName.{tdrDataLoadHeaderToPropertyMapper, _}
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.{AddFileMetadataInput, FileMetadataValues, getFileMetadataValues}
 import uk.gov.nationalarchives.tdr.api.service.ReferenceGeneratorService.Reference
-import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema._
+import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
 
 import java.sql.Timestamp
@@ -74,6 +76,14 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository)(implic
     } yield medataPropertiesAdded
   }
 
+  def totalClosedRecords(consignmentId: UUID): Future[Int] = {
+    fileMetadataRepository.totalClosedRecords(consignmentId)
+  }
+
+  def totalRetainedRecords(consignmentId: UUID): Future[Int] = {
+    fileMetadataRepository.totalRetainedRecords(consignmentId)
+  }
+
   def getFileMetadata(consignmentId: Option[UUID], selectedFileIds: Option[Set[UUID]] = None): Future[Map[UUID, FileMetadataValues]] =
     fileMetadataRepository.getFileMetadata(consignmentId, selectedFileIds).map { rows =>
       rows.groupBy(_.fileid).map { case (fileId, fileMetadata) =>
@@ -81,22 +91,26 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository)(implic
       }
     }
 
+  def addDefaultCitableRefPrefix(fileIds: Seq[UUID], seriesName: String, userId: UUID): Future[Seq[FilemetadataRow]] = {
+    val metadataInput = fileIds.map(fileId => AddFileMetadataInput(fileId, seriesName, userId, citableRefPrefix))
+    fileMetadataRepository.addFileMetadata(metadataInput)
+  }
+
+  def defaultCitableRefPrefixProperty(consignment: Option[Consignment]): Map[String, String] = {
+    consignment.get.seriesName.map(seriesName => citableRefPrefix -> seriesName).toMap
+  }
 }
 
 object FileMetadataService {
 
-  val metadataConfig: ConfigUtils.MetadataConfiguration = ConfigUtils.loadConfiguration
-  private val systemProperties: Seq[Reference] = metadataConfig.getPropertiesByPropertyType("System")
-  val tdrDataLoadHeaderToPropertyMapper: String => String = metadataConfig.propertyToOutputMapper("tdrDataLoadHeader")
-
   val clientSideProperties: List[String] =
     List(
-      tdrDataLoadHeaderToPropertyMapper(client_side_checksum),
-      tdrDataLoadHeaderToPropertyMapper(file_path),
-      tdrDataLoadHeaderToPropertyMapper(date_last_modified),
-      tdrDataLoadHeaderToPropertyMapper(file_size),
-      tdrDataLoadHeaderToPropertyMapper(file_name),
-      tdrDataLoadHeaderToPropertyMapper(file_type)
+      clientSideChecksum,
+      filePath,
+      dateLastModified,
+      fileSize,
+      fileName,
+      fileType
     )
 
   def getFileMetadataValues(fileMetadataRow: Seq[FilemetadataRow]): FileMetadataValues = {
@@ -104,21 +118,21 @@ object FileMetadataService {
       value.head.value
     }
     FileMetadataValues(
-      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(client_side_checksum)),
-      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(file_path)),
-      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(date_last_modified)).map(d => Timestamp.valueOf(d).toLocalDateTime),
-      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(file_size)).map(_.toLong),
-      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(rights_copyright)),
-      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(legal_status)),
-      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(held_by)),
-      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(language)),
-      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(foi_exemption_code)),
-      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(closure_period)),
-      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(closure_start_date)).map(d => Timestamp.valueOf(d).toLocalDateTime),
-      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(foi_exemption_asserted)).map(d => Timestamp.valueOf(d).toLocalDateTime),
-      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(title_closed)).map(_.toBoolean),
-      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(description_closed)).map(_.toBoolean),
-      propertyNameMap.get(tdrDataLoadHeaderToPropertyMapper(asset_id)).map(UUID.fromString)
+      propertyNameMap.get(clientSideChecksum),
+      propertyNameMap.get(filePath),
+      propertyNameMap.get(dateLastModified).map(d => Timestamp.valueOf(d).toLocalDateTime),
+      propertyNameMap.get(fileSize).map(_.toLong),
+      propertyNameMap.get(rightsCopyright),
+      propertyNameMap.get(legalStatus),
+      propertyNameMap.get(heldBy),
+      propertyNameMap.get(language),
+      propertyNameMap.get(foiExemptionCode),
+      propertyNameMap.get(closurePeriod),
+      propertyNameMap.get(closureStartDate).map(d => Timestamp.valueOf(d).toLocalDateTime),
+      propertyNameMap.get(foiExemptionAsserted).map(d => Timestamp.valueOf(d).toLocalDateTime),
+      propertyNameMap.get(titleClosed).map(_.toBoolean),
+      propertyNameMap.get(descriptionClosed).map(_.toBoolean),
+      propertyNameMap.get(assetId).map(UUID.fromString)
     )
   }
 
@@ -162,4 +176,34 @@ object FileMetadataService {
       descriptionClosed: Option[Boolean],
       assetId: Option[UUID]
   )
+}
+
+object FileMetadataPropertyName {
+
+  val metadataConfig: ConfigUtils.MetadataConfiguration = ConfigUtils.loadConfiguration
+  val tdrDataLoadHeaderToPropertyMapper: String => String = metadataConfig.propertyToOutputMapper("tdrDataLoadHeader")
+  val systemProperties: Seq[Reference] = metadataConfig.getPropertiesByPropertyType("System")
+
+  val clientSideChecksum: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.client_side_checksum)
+  val filePath: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.file_path)
+  val dateLastModified: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.date_last_modified)
+  val fileSize: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.file_size)
+  val fileName: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.file_name)
+  val fileType: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.file_type)
+  val fileReference: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.file_reference)
+  val parentReference: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.parent_reference)
+  val uuid: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.UUID)
+  val assetId: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.asset_id)
+  val rightsCopyright: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.rights_copyright)
+  val legalStatus: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.legal_status)
+  val heldBy: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.held_by)
+  val language: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.language)
+  val foiExemptionCode: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.foi_exemption_code)
+  val closurePeriod: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.closure_period)
+  val closureStartDate: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.closure_start_date)
+  val closureType: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.closure_type)
+  val foiExemptionAsserted: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.foi_exemption_asserted)
+  val titleClosed: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.title_closed)
+  val descriptionClosed: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.description_closed)
+  val citableRefPrefix: String = tdrDataLoadHeaderToPropertyMapper(BaseSchema.citable_ref_prefix)
 }

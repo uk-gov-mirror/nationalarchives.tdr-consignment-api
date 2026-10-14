@@ -18,6 +18,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.FFIDMetadataFields.{FFIDMe
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields.{AddFileAndMetadataInput, ClientSideMetadataInput}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileStatusFields.{AddMultipleFileStatusesInput, FileStatus}
 import uk.gov.nationalarchives.tdr.api.model.file.NodeType
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataPropertyName.{metadataConfig, tdrDataLoadHeaderToPropertyMapper}
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
 import uk.gov.nationalarchives.tdr.api.service.FileService.TDRConnection
 import uk.gov.nationalarchives.tdr.api.service.FileStatusService._
@@ -810,7 +811,7 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     verify(consignmentStatusRepositoryMock, times(0)).updateConsignmentStatus(any[UUID], any[String], any[String], any[Timestamp])
   }
 
-  "addFile" should "add all files, directories, client and static metadata without citable_ref_prefix when a series doesn't exist in the consignment" in {
+  "addFile" should "add all files, directories, client and static metadata without citable_ref_prefix when a series doesn't exist for the consignment" in {
     reset(fileRepositoryMock)
     uuidSource.reset
     val userId = UUID.randomUUID()

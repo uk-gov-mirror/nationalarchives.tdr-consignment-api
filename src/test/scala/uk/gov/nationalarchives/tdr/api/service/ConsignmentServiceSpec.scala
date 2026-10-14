@@ -16,7 +16,6 @@ import uk.gov.nationalarchives.Tables.{ConsignmentRow, ConsignmentstatusRow, Met
 import uk.gov.nationalarchives.tdr.api.db.repository._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields._
 import uk.gov.nationalarchives.tdr.api.model.TransferringBody
-import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.AddFileMetadataInput
 import uk.gov.nationalarchives.tdr.api.service.FileStatusService._
 import uk.gov.nationalarchives.tdr.api.utils.{FixedTimeSource, FixedUUIDSource}
 import uk.gov.nationalarchives.tdr.common.utils.statuses.MetadataReviewLogAction.{Approval, Submission}
@@ -43,6 +42,9 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
   val bodyName: String = "Mock department"
   val bodyCode: String = "Mock-dept-code-123"
   val bodyDescription: Option[String] = Option("Mock dept description")
+
+  val fileId1: UUID = UUID.fromString("bc609dc4-e153-4620-a7ab-20e7fd5a4005")
+  val fileId2: UUID = UUID.fromString("67178a08-36ea-41c2-83ee-4b343b6429cb")
 
   val seriesId: UUID = UUID.fromString("b6b19341-8c33-4272-8636-aafa1e3d98de")
   val consignmentId: UUID = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
@@ -72,7 +74,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
 
   val consignmentRepoMock: ConsignmentRepository = mock[ConsignmentRepository]
   val consignmentStatusRepoMock: ConsignmentStatusRepository = mock[ConsignmentStatusRepository]
-  val fileMetadataRepositoryMock: FileMetadataRepository = mock[FileMetadataRepository]
+  val fileMetadataServiceMock: FileMetadataService = mock[FileMetadataService]
   val fileRepositoryMock: FileRepository = mock[FileRepository]
   val ffidMetadataRepositoryMock: FFIDMetadataRepository = mock[FFIDMetadataRepository]
   val transferringBodyServiceMock: TransferringBodyService = mock[TransferringBodyService]
@@ -83,8 +85,8 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
     consignmentRepoMock,
     consignmentStatusRepoMock,
     seriesRepositoryMock,
-    fileMetadataRepositoryMock,
     fileRepositoryMock,
+    fileMetadataServiceMock,
     transferringBodyServiceMock,
     metadataReviewLogRepoMock,
     FixedTimeSource,
@@ -342,8 +344,8 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
       consignmentRepoMock,
       consignmentStatusRepoMock,
       seriesRepositoryMock,
-      fileMetadataRepositoryMock,
       fileRepositoryMock,
+      fileMetadataServiceMock,
       transferringBodyServiceMock,
       metadataReviewLogRepoMock,
       FixedTimeSource,
@@ -373,8 +375,8 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
       consignmentRepoMock,
       consignmentStatusRepoMock,
       seriesRepositoryMock,
-      fileMetadataRepositoryMock,
       fileRepositoryMock,
+      fileMetadataServiceMock,
       transferringBodyServiceMock,
       metadataReviewLogRepoMock,
       FixedTimeSource,
@@ -411,50 +413,15 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
       .thenReturn(Future.successful(1))
     when(seriesRepositoryMock.getSeries(updateConsignmentSeriesIdInput.seriesId)).thenReturn(Future.successful(Seq(mockSeries)))
     when(transferringBodyServiceMock.getBody(seriesId)).thenReturn(Future.successful(mockBody))
-    when(fileRepositoryMock.getFileIds(consignmentId)).thenReturn(Future.successful(Seq.empty))
+    when(fileRepositoryMock.getFileIds(consignmentId)).thenReturn(Future.successful(Seq(fileId1, fileId2)))
+    when(fileMetadataServiceMock.addDefaultCitableRefPrefix(Seq(fileId1, fileId2), seriesName, userId)).thenReturn(Future.successful(Seq.empty))
 
-    val result = consignmentService.updateConsignmentSeries(updateConsignmentSeriesIdInput).futureValue
+    val result = consignmentService.updateConsignmentSeries(updateConsignmentSeriesIdInput, userId).futureValue
 
     verify(consignmentRepoMock).updateConsignment(consignmentId, seriesInput, bodyInput)
     verify(consignmentStatusRepoMock)
       .updateConsignmentStatus(updateConsignmentSeriesIdInput.consignmentId, statusType, expectedSeriesStatus, Timestamp.from(fixedTimeSource))
     verify(fileRepositoryMock).getFileIds(consignmentId)
-    verify(fileMetadataRepositoryMock, times(0)).addFileMetadata(any[Seq[AddFileMetadataInput]])
-
-    result should equal(expectedResult)
-  }
-
-  "updateSeriesOfConsignment" should "add citable_ref_prefix metadata to all files when files are present" in {
-    reset(fileMetadataRepositoryMock)
-    val updateConsignmentSeriesIdInput = UpdateConsignmentSeriesIdInput(consignmentId, seriesId)
-    val statusType = SeriesType.id
-    val expectedResult = 1
-    val fileId1 = UUID.randomUUID()
-    val fileId2 = UUID.randomUUID()
-    val fileIds = Seq(fileId1, fileId2)
-
-    val seriesInput = UpdateConsignmentSeriesInput(seriesId, seriesName.some)
-    val bodyInput = UpdateConsignmentBodyInput(mockBody.bodyId, mockBody.name, mockBody.tdrCode)
-    when(consignmentRepoMock.updateConsignment(consignmentId, seriesInput, bodyInput)).thenReturn(Future.successful(1))
-    when(consignmentStatusRepoMock.updateConsignmentStatus(consignmentId, statusType, Completed, Timestamp.from(fixedTimeSource)))
-      .thenReturn(Future.successful(1))
-    when(seriesRepositoryMock.getSeries(updateConsignmentSeriesIdInput.seriesId)).thenReturn(Future.successful(Seq(mockSeries)))
-    when(transferringBodyServiceMock.getBody(seriesId)).thenReturn(Future.successful(mockBody))
-    when(fileRepositoryMock.getFileIds(consignmentId)).thenReturn(Future.successful(fileIds))
-    when(fileMetadataRepositoryMock.addFileMetadata(any[Seq[AddFileMetadataInput]])).thenReturn(Future.successful(Seq.empty))
-
-    val result = consignmentService.updateConsignmentSeries(updateConsignmentSeriesIdInput).futureValue
-
-    val metadataCaptor: ArgumentCaptor[Seq[AddFileMetadataInput]] = ArgumentCaptor.forClass(classOf[Seq[AddFileMetadataInput]])
-    verify(fileMetadataRepositoryMock).addFileMetadata(metadataCaptor.capture())
-
-    val capturedMetadata = metadataCaptor.getValue
-    capturedMetadata should have size 2
-    capturedMetadata.foreach { metadata =>
-      metadata.value should equal(seriesName)
-      metadata.filePropertyName should equal("CitableRefPrefix")
-      fileIds should contain(metadata.fileId)
-    }
 
     result should equal(expectedResult)
   }
@@ -472,15 +439,16 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
       .thenReturn(Future.successful(1))
     when(seriesRepositoryMock.getSeries(updateConsignmentSeriesIdInput.seriesId)).thenReturn(Future.successful(Seq(mockSeries)))
     when(transferringBodyServiceMock.getBody(seriesId)).thenReturn(Future.successful(mockBody))
-    when(fileRepositoryMock.getFileIds(consignmentId)).thenReturn(Future.successful(Seq.empty))
+    when(fileRepositoryMock.getFileIds(consignmentId)).thenReturn(Future.successful(Seq(fileId1, fileId2)))
+    when(fileMetadataServiceMock.addDefaultCitableRefPrefix(Seq(fileId1, fileId2), seriesName, userId)).thenReturn(Future.successful(Seq.empty))
 
-    val result = consignmentService.updateConsignmentSeries(updateConsignmentSeriesIdInput).futureValue
+    val result = consignmentService.updateConsignmentSeries(updateConsignmentSeriesIdInput, userId).futureValue
 
     verify(consignmentRepoMock).updateConsignment(consignmentId, seriesInput, bodyInput)
     verify(consignmentStatusRepoMock)
       .updateConsignmentStatus(updateConsignmentSeriesIdInput.consignmentId, statusType, expectedSeriesStatus, Timestamp.from(fixedTimeSource))
     verify(fileRepositoryMock).getFileIds(consignmentId)
-    verify(fileMetadataRepositoryMock, times(0)).addFileMetadata(any[Seq[AddFileMetadataInput]])
+    verify(fileMetadataServiceMock).addDefaultCitableRefPrefix(Seq(fileId1, fileId2), seriesName, userId)
 
     result should equal(expectedResult)
   }
@@ -1007,7 +975,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
   "totalClosedRecords" should "return total number of closed records" in {
     val consignmentId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
 
-    when(fileMetadataRepositoryMock.totalClosedRecords(consignmentId))
+    when(fileMetadataServiceMock.totalClosedRecords(consignmentId))
       .thenReturn(Future.successful(5))
 
     val closedRecords = consignmentService.totalClosedRecords(consignmentId).futureValue
@@ -1017,7 +985,7 @@ class ConsignmentServiceSpec extends AnyFlatSpec with MockitoSugar with ResetMoc
   "totalRetainedRecords" should "return total number of retained records" in {
     val consignmentId = UUID.fromString("6e3b76c4-1745-4467-8ac5-b4dd736e1b3e")
 
-    when(fileMetadataRepositoryMock.totalRetainedRecords(consignmentId))
+    when(fileMetadataServiceMock.totalRetainedRecords(consignmentId))
       .thenReturn(Future.successful(3))
 
     val retainedRecords = consignmentService.totalRetainedRecords(consignmentId).futureValue

@@ -261,6 +261,54 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     verify(fileMetadataRepository, times(1)).getSumOfFileSizes(consignmentId)
   }
 
+  "addDefaultCitableRefPrefix" should "add the citable reference prefix metadata with the series name for each file" in {
+    val metadataRepositoryMock = mock[FileMetadataRepository]
+    val userId = UUID.randomUUID()
+    val fileId1 = UUID.randomUUID()
+    val fileId2 = UUID.randomUUID()
+    val seriesName = "MOCK1"
+    val timestamp = Timestamp.from(FixedTimeSource.now)
+    val addFileMetadataCaptor: ArgumentCaptor[Seq[AddFileMetadataInput]] = ArgumentCaptor.forClass(classOf[Seq[AddFileMetadataInput]])
+    val expectedRows = Seq(
+      FilemetadataRow(UUID.randomUUID(), fileId1, seriesName, timestamp, userId, FileMetadataPropertyName.citableRefPrefix),
+      FilemetadataRow(UUID.randomUUID(), fileId2, seriesName, timestamp, userId, FileMetadataPropertyName.citableRefPrefix)
+    )
+    when(metadataRepositoryMock.addFileMetadata(addFileMetadataCaptor.capture())).thenReturn(Future.successful(expectedRows))
+
+    val service = new FileMetadataService(metadataRepositoryMock)
+    val result = service.addDefaultCitableRefPrefix(Seq(fileId1, fileId2), seriesName, userId).futureValue
+
+    result should equal(expectedRows)
+    addFileMetadataCaptor.getValue should equal(
+      Seq(
+        AddFileMetadataInput(fileId1, seriesName, userId, FileMetadataPropertyName.citableRefPrefix),
+        AddFileMetadataInput(fileId2, seriesName, userId, FileMetadataPropertyName.citableRefPrefix)
+      )
+    )
+  }
+
+  "addDefaultCitableRefPrefix" should "call the repository with no rows when there are no file ids" in {
+    val metadataRepositoryMock = mock[FileMetadataRepository]
+    val addFileMetadataCaptor: ArgumentCaptor[Seq[AddFileMetadataInput]] = ArgumentCaptor.forClass(classOf[Seq[AddFileMetadataInput]])
+    when(metadataRepositoryMock.addFileMetadata(addFileMetadataCaptor.capture())).thenReturn(Future.successful(Seq.empty))
+
+    val service = new FileMetadataService(metadataRepositoryMock)
+    val result = service.addDefaultCitableRefPrefix(Seq.empty, "MOCK1", UUID.randomUUID()).futureValue
+
+    result shouldBe empty
+    addFileMetadataCaptor.getValue shouldBe empty
+  }
+
+  "addDefaultCitableRefPrefix" should "return a failed future if the repository call fails" in {
+    val metadataRepositoryMock = mock[FileMetadataRepository]
+    when(metadataRepositoryMock.addFileMetadata(any[Seq[AddFileMetadataInput]])).thenReturn(Future.failed(new Exception("Database error")))
+
+    val service = new FileMetadataService(metadataRepositoryMock)
+    val exception = service.addDefaultCitableRefPrefix(Seq(UUID.randomUUID()), "MOCK1", UUID.randomUUID()).failed.futureValue
+
+    exception.getMessage should equal("Database error")
+  }
+
   "file metadata property names" should "have the correct values" in {
     FileMetadataFields.SHA256ServerSideChecksum should equal("SHA256ServerSideChecksum")
   }

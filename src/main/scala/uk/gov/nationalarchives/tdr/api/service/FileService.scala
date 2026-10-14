@@ -14,6 +14,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields.{AddFileAndMetadataInput, FileCheckFailure, FileMatches, GetFileCheckFailuresInput}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileStatusFields.FileStatus
 import uk.gov.nationalarchives.tdr.api.model.file.NodeType.{FileTypeHelper, directoryTypeIdentifier, fileTypeIdentifier}
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataPropertyName.{legalStatus, metadataConfig, tdrDataLoadHeaderToPropertyMapper}
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
 import uk.gov.nationalarchives.tdr.api.service.FileService._
 import uk.gov.nationalarchives.tdr.api.service.FileStatusService.{FFID, allFileStatusTypes}
@@ -22,8 +23,6 @@ import uk.gov.nationalarchives.tdr.api.utils.NaturalSorting.{ArrayOrdering, natu
 import uk.gov.nationalarchives.tdr.api.utils.TimeUtils.{LongUtils, TimestampUtils}
 import uk.gov.nationalarchives.tdr.api.utils.TreeNodesUtils
 import uk.gov.nationalarchives.tdr.api.utils.TreeNodesUtils._
-import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema
-import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema._
 
 import java.sql.Timestamp
 import java.util.UUID
@@ -65,7 +64,7 @@ class FileService(
     val defaultPropertyValues = metadataConfig.getPropertiesWithDefaultValue
 
     for {
-      metadata <- consignmentMetadataRepository.getConsignmentMetadata(consignmentId, Some(ConsignmentMetadataFilter(List(tdrDataLoadHeaderToPropertyMapper(legal_status)))))
+      metadata <- consignmentMetadataRepository.getConsignmentMetadata(consignmentId, Some(ConsignmentMetadataFilter(List(legalStatus))))
       consignment <- consignmentService.getConsignment(consignmentId)
       rows <- Future.successful(((allEmptyDirectoryNodes ++ allFileNodes) map { case (path, treeNode) =>
         val parentNode: Option[TreeNode] = treeNode.parentPath.map(path => allFileNodes.getOrElse(path, allEmptyDirectoryNodes(path)))
@@ -74,8 +73,8 @@ class FileService(
         val fileId = treeNode.id
         val assetId = Some(uuidSource.uuid)
         val fileRow = createFileRow(userId, now, consignmentId, treeNode, parentId, parentFileReference, fileId, assetId)
-        val legalStatusMetadata = metadata.find(_.propertyname == tdrDataLoadHeaderToPropertyMapper(legal_status)).map(metadata => legal_status -> metadata.value).toMap
-        val citableRefPrefix = consignment.get.seriesName.map(seriesName => citable_ref_prefix -> seriesName).toMap
+        val legalStatusMetadata = metadata.find(_.propertyname == legalStatus).map(metadata => legalStatus -> metadata.value).toMap
+        val citableRefPrefix = fileMetadataService.defaultCitableRefPrefixProperty(consignment)
         val metadataProperties = defaultPropertyValues ++ citableRefPrefix ++ legalStatusMetadata
         createFileRows(addFileAndMetadataInput, row, metadataProperties, path, treeNode, parentFileReference, fileId, fileRow, assetId)
       }).toList)
@@ -233,12 +232,12 @@ class FileService(
   ): Rows = {
 
     val commonMetadataRows = List(
-      row(fileId, fileId.toString, tdrDataLoadHeaderToPropertyMapper(BaseSchema.UUID)),
-      row(fileId, path, tdrDataLoadHeaderToPropertyMapper(file_path)),
-      row(fileId, treeNode.treeNodeType, tdrDataLoadHeaderToPropertyMapper(file_type)),
-      row(fileId, treeNode.name, tdrDataLoadHeaderToPropertyMapper(file_name)),
-      row(fileId, treeNode.reference.getOrElse(""), tdrDataLoadHeaderToPropertyMapper(file_reference)),
-      row(fileId, parentFileReference.getOrElse(""), tdrDataLoadHeaderToPropertyMapper(parent_reference))
+      row(fileId, fileId.toString, FileMetadataPropertyName.uuid),
+      row(fileId, path, FileMetadataPropertyName.filePath),
+      row(fileId, treeNode.treeNodeType, FileMetadataPropertyName.fileType),
+      row(fileId, treeNode.name, FileMetadataPropertyName.fileName),
+      row(fileId, treeNode.reference.getOrElse(""), FileMetadataPropertyName.fileReference),
+      row(fileId, parentFileReference.getOrElse(""), FileMetadataPropertyName.parentReference)
     ) ++ defaultPropertyValues
       .map(fileProperty => {
         row(fileId, fileProperty._2, tdrDataLoadHeaderToPropertyMapper(fileProperty._1))
@@ -246,7 +245,7 @@ class FileService(
       .toList
 
     val optionalValues = if (assetId.isDefined) {
-      List(row(fileId, assetId.get.toString, tdrDataLoadHeaderToPropertyMapper(asset_id)))
+      List(row(fileId, assetId.get.toString, FileMetadataPropertyName.assetId))
     } else Nil
 
     if (treeNode.treeNodeType.isFileType) {
@@ -258,9 +257,9 @@ class FileService(
         .head
 
       val fileMetadataRows = List(
-        row(fileId, input.lastModified.toTimestampString, tdrDataLoadHeaderToPropertyMapper(date_last_modified)),
-        row(fileId, input.fileSize.toString, tdrDataLoadHeaderToPropertyMapper(file_size)),
-        row(fileId, input.checksum, tdrDataLoadHeaderToPropertyMapper(client_side_checksum))
+        row(fileId, input.lastModified.toTimestampString, FileMetadataPropertyName.dateLastModified),
+        row(fileId, input.fileSize.toString, FileMetadataPropertyName.fileSize),
+        row(fileId, input.checksum, FileMetadataPropertyName.clientSideChecksum)
       )
       MatchedFileRows(fileRow, fileMetadataRows ++ commonMetadataRows ++ optionalValues, input.matchId)
     } else {
