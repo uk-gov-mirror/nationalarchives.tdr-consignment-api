@@ -162,11 +162,11 @@ class ConsignmentService(
       result <- consignmentRepository.updateConsignment(updateConsignmentSeriesIdInput.consignmentId, updateSeriesInput, updateBodyInput)
       seriesStatus = if (result == 1) Completed else Failed
       _ <- consignmentStatusRepository.updateConsignmentStatus(updateConsignmentSeriesIdInput.consignmentId, "Series", seriesStatus, Timestamp.from(timeSource.now))
-      _ <- addDefaultCitableRefPrefixMetadataToFiles(updateConsignmentSeriesIdInput.consignmentId, series, userId)
+      _ <- addDefaultFileMetadata(updateConsignmentSeriesIdInput.consignmentId, series, userId)
     } yield result
   }
 
-  private def addDefaultCitableRefPrefixMetadataToFiles(consignmentId: UUID, series: Seq[SeriesRow], userId: UUID): Future[Unit] = {
+  private def addDefaultFileMetadata(consignmentId: UUID, series: Seq[SeriesRow], userId: UUID): Future[Unit] = {
     for {
       fileIds <- fileRepository.getFileIds(consignmentId)
       seriesName = series.headOption.map(_.name).getOrElse(throw InputDataException(s"Series not found"))

@@ -23,7 +23,6 @@ import uk.gov.nationalarchives.tdr.api.utils.NaturalSorting.{ArrayOrdering, natu
 import uk.gov.nationalarchives.tdr.api.utils.TimeUtils.{LongUtils, TimestampUtils}
 import uk.gov.nationalarchives.tdr.api.utils.TreeNodesUtils
 import uk.gov.nationalarchives.tdr.api.utils.TreeNodesUtils._
-import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema
 
 import java.sql.Timestamp
 import java.util.UUID
@@ -65,7 +64,7 @@ class FileService(
     val defaultPropertyValues = metadataConfig.getPropertiesWithDefaultValue
 
     for {
-      metadata <- consignmentMetadataRepository.getConsignmentMetadata(consignmentId, Some(ConsignmentMetadataFilter(List(legalStatus))))
+      consignmentMetadata <- consignmentMetadataRepository.getConsignmentMetadata(consignmentId, Some(ConsignmentMetadataFilter(List(legalStatus))))
       consignment <- consignmentService.getConsignment(consignmentId)
       rows <- Future.successful(((allEmptyDirectoryNodes ++ allFileNodes) map { case (path, treeNode) =>
         val parentNode: Option[TreeNode] = treeNode.parentPath.map(path => allFileNodes.getOrElse(path, allEmptyDirectoryNodes(path)))
@@ -74,9 +73,8 @@ class FileService(
         val fileId = treeNode.id
         val assetId = Some(uuidSource.uuid)
         val fileRow = createFileRow(userId, now, consignmentId, treeNode, parentId, parentFileReference, fileId, assetId)
-        val legalStatusMetadata = metadata.find(_.propertyname == legalStatus).map(metadata => BaseSchema.legal_status -> metadata.value).toMap
-        val citableRefPrefix = fileMetadataService.defaultCitableRefPrefixProperty(consignment)
-        val metadataProperties = defaultPropertyValues ++ citableRefPrefix ++ legalStatusMetadata
+        val consignmentLevelMetadata = fileMetadataService.consignmentLevelMetadata(consignment, consignmentMetadata)
+        val metadataProperties = defaultPropertyValues ++ consignmentLevelMetadata
         createFileRows(addFileAndMetadataInput, row, metadataProperties, path, treeNode, parentFileReference, fileId, fileRow, assetId)
       }).toList)
       matchedFileRows <- generateMatchedRows(rows)
