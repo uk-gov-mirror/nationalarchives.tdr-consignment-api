@@ -6,7 +6,6 @@ import io.circe.generic.extras.auto._
 import org.apache.pekko.http.scaladsl.model.headers.OAuth2BearerToken
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentMetadataFields.ConsignmentMetadataWithConsignmentId
-import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.LegalStatus
 import uk.gov.nationalarchives.tdr.api.utils.TestAuthUtils.{userId, validUserToken}
 import uk.gov.nationalarchives.tdr.api.utils.TestContainerUtils._
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils.{GraphqlError, getDataFromFile}
@@ -54,7 +53,7 @@ class ConsignmentMetadataRouteSpec extends TestContainerUtils with Matchers with
       val utils = TestUtils(container.database)
       utils.seedDatabaseWithDefaultEntries()
       consignmentProperties.foreach(utils.addConsignmentProperty)
-      List(LegalStatus).foreach(utils.addFileProperty)
+      List("LegalStatus").foreach(utils.addFileProperty)
 
       val fixedUUIDSource = new FixedUUIDSource()
       val consignmentId: UUID = fixedUUIDSource.uuid

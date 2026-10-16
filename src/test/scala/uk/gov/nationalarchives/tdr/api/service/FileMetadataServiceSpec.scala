@@ -35,7 +35,7 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     val getFileMetadataFileCaptor: ArgumentCaptor[List[UUID]] = ArgumentCaptor.forClass(classOf[List[UUID]])
     val getFileMetadataPropertyNameCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
     val mockFileMetadataResponse =
-      Seq(FilemetadataRow(UUID.randomUUID(), fixedFileUuid, "value", Timestamp.from(FixedTimeSource.now), fixedUserId, SHA256ClientSideChecksum))
+      Seq(FilemetadataRow(UUID.randomUUID(), fixedFileUuid, "value", Timestamp.from(FixedTimeSource.now), fixedUserId, "SHA256ServerSideChecksum"))
 
     when(metadataRepositoryMock.addFileMetadata(addChecksumCaptor.capture()))
       .thenReturn(mockMetadataResponse)
@@ -65,11 +65,11 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     )
     val propertyName = SHA256ServerSideChecksum
     val timestamp = Timestamp.from(FixedTimeSource.now)
-    val mockClientChecksumRow = FilemetadataRow(UUID.randomUUID(), fixedFileUuid, "ChecksumMatch", timestamp, fixedUserId, SHA256ClientSideChecksum)
+    val mockClientChecksumRow = FilemetadataRow(UUID.randomUUID(), fixedFileUuid, "ChecksumMatch", timestamp, fixedUserId, "SHA256ClientSideChecksum")
     val mockClientChecksumResponse = Future(Seq(mockClientChecksumRow))
 
     when(metadataRepositoryMock.addFileMetadata(any[List[AddFileMetadataInput]])).thenReturn(mockMetadataResponse)
-    when(metadataRepositoryMock.getFileMetadataByProperty(fixedFileUuid :: Nil, SHA256ClientSideChecksum)).thenReturn(mockClientChecksumResponse)
+    when(metadataRepositoryMock.getFileMetadataByProperty(fixedFileUuid :: Nil, "SHA256ClientSideChecksum")).thenReturn(mockClientChecksumResponse)
 
     val service = new FileMetadataService(metadataRepositoryMock)
     val result: FileMetadataWithFileId =
@@ -221,12 +221,12 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
       Seq(
         FilemetadataRow(UUID.randomUUID(), fileIdOne, "1", Timestamp.from(FixedTimeSource.now), UUID.randomUUID(), "ClientSideFileSize"),
         FilemetadataRow(UUID.randomUUID(), fileIdTwo, "valueTwo", Timestamp.from(FixedTimeSource.now), UUID.randomUUID(), "FoiExemptionCode"),
-        FilemetadataRow(UUID.randomUUID(), fileIdTwo, closureStartDate.toString, Timestamp.from(FixedTimeSource.now), UUID.randomUUID(), ClosureStartDate),
-        FilemetadataRow(UUID.randomUUID(), fileIdTwo, foiExemptionAsserted.toString, Timestamp.from(FixedTimeSource.now), UUID.randomUUID(), FoiExemptionAsserted),
-        FilemetadataRow(UUID.randomUUID(), fileIdTwo, "true", Timestamp.from(FixedTimeSource.now), UUID.randomUUID(), TitleClosed),
-        FilemetadataRow(UUID.randomUUID(), fileIdTwo, "true", Timestamp.from(FixedTimeSource.now), UUID.randomUUID(), DescriptionClosed),
-        FilemetadataRow(UUID.randomUUID(), fileIdTwo, "1", Timestamp.from(FixedTimeSource.now), UUID.randomUUID(), ClosurePeriod),
-        FilemetadataRow(UUID.randomUUID(), fileIdTwo, fileTwoAssetId.toString, Timestamp.from(FixedTimeSource.now), UUID.randomUUID(), AssetId)
+        FilemetadataRow(UUID.randomUUID(), fileIdTwo, closureStartDate.toString, Timestamp.from(FixedTimeSource.now), UUID.randomUUID(), "ClosureStartDate"),
+        FilemetadataRow(UUID.randomUUID(), fileIdTwo, foiExemptionAsserted.toString, Timestamp.from(FixedTimeSource.now), UUID.randomUUID(), "FoiExemptionAsserted"),
+        FilemetadataRow(UUID.randomUUID(), fileIdTwo, "true", Timestamp.from(FixedTimeSource.now), UUID.randomUUID(), "TitleClosed"),
+        FilemetadataRow(UUID.randomUUID(), fileIdTwo, "true", Timestamp.from(FixedTimeSource.now), UUID.randomUUID(), "DescriptionClosed"),
+        FilemetadataRow(UUID.randomUUID(), fileIdTwo, "1", Timestamp.from(FixedTimeSource.now), UUID.randomUUID(), "ClosurePeriod"),
+        FilemetadataRow(UUID.randomUUID(), fileIdTwo, fileTwoAssetId.toString, Timestamp.from(FixedTimeSource.now), UUID.randomUUID(), "AssetId")
       )
     )
 
@@ -261,35 +261,56 @@ class FileMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matcher
     verify(fileMetadataRepository, times(1)).getSumOfFileSizes(consignmentId)
   }
 
-  "file metadata property names" should "have the correct values" in {
-    FileMetadataFields.SHA256ServerSideChecksum should equal("SHA256ServerSideChecksum")
+  "addDefaultCitableRefPrefix" should "add the citable reference prefix metadata with the series name for each file" in {
+    val metadataRepositoryMock = mock[FileMetadataRepository]
+    val userId = UUID.randomUUID()
+    val fileId1 = UUID.randomUUID()
+    val fileId2 = UUID.randomUUID()
+    val seriesName = "MOCK1"
+    val timestamp = Timestamp.from(FixedTimeSource.now)
+    val addFileMetadataCaptor: ArgumentCaptor[Seq[AddFileMetadataInput]] = ArgumentCaptor.forClass(classOf[Seq[AddFileMetadataInput]])
+    val expectedRows = Seq(
+      FilemetadataRow(UUID.randomUUID(), fileId1, seriesName, timestamp, userId, FileMetadataPropertyName.citableRefPrefix),
+      FilemetadataRow(UUID.randomUUID(), fileId2, seriesName, timestamp, userId, FileMetadataPropertyName.citableRefPrefix)
+    )
+    when(metadataRepositoryMock.addFileMetadata(addFileMetadataCaptor.capture())).thenReturn(Future.successful(expectedRows))
+
+    val service = new FileMetadataService(metadataRepositoryMock)
+    val result = service.addDefaultCitableRefPrefix(Seq(fileId1, fileId2), seriesName, userId).futureValue
+
+    result should equal(expectedRows)
+    addFileMetadataCaptor.getValue should equal(
+      Seq(
+        AddFileMetadataInput(fileId1, seriesName, userId, FileMetadataPropertyName.citableRefPrefix),
+        AddFileMetadataInput(fileId2, seriesName, userId, FileMetadataPropertyName.citableRefPrefix)
+      )
+    )
   }
 
-  "The FileMetadataService property names" should "have the correct values" in {
-    FileMetadataService.SHA256ClientSideChecksum shouldEqual "SHA256ClientSideChecksum"
-    FileMetadataService.ClientSideOriginalFilepath shouldEqual "ClientSideOriginalFilepath"
-    FileMetadataService.OriginalFilepath shouldEqual "OriginalFilepath"
-    FileMetadataService.ClientSideFileLastModifiedDate shouldEqual "ClientSideFileLastModifiedDate"
-    FileMetadataService.ClientSideFileSize shouldEqual "ClientSideFileSize"
-    FileMetadataService.ClosurePeriod shouldEqual "ClosurePeriod"
-    FileMetadataService.ClosureStartDate shouldEqual "ClosureStartDate"
-    FileMetadataService.Filename shouldEqual "Filename"
-    FileMetadataService.FileType shouldEqual "FileType"
-    FileMetadataService.FileReference shouldEqual "FileReference"
-    FileMetadataService.ParentReference shouldEqual "ParentReference"
-    FileMetadataService.FoiExemptionAsserted shouldEqual "FoiExemptionAsserted"
-    FileMetadataService.TitleClosed shouldEqual "TitleClosed"
-    FileMetadataService.DescriptionClosed shouldEqual "DescriptionClosed"
-    FileMetadataService.ClosureType shouldEqual "ClosureType"
-    FileMetadataService.Description shouldEqual "description"
-    FileMetadataService.DescriptionAlternate shouldEqual "DescriptionAlternate"
-    FileMetadataService.RightsCopyright shouldEqual "RightsCopyright"
-    FileMetadataService.LegalStatus shouldEqual "LegalStatus"
-    FileMetadataService.HeldBy shouldEqual "HeldBy"
-    FileMetadataService.Language shouldEqual "Language"
-    FileMetadataService.FoiExemptionCode shouldEqual "FoiExemptionCode"
-    FileMetadataService.FileUUID shouldEqual "UUID"
-    FileMetadataService.AssetId shouldEqual "AssetId"
+  "addDefaultCitableRefPrefix" should "call the repository with no rows when there are no file ids" in {
+    val metadataRepositoryMock = mock[FileMetadataRepository]
+    val addFileMetadataCaptor: ArgumentCaptor[Seq[AddFileMetadataInput]] = ArgumentCaptor.forClass(classOf[Seq[AddFileMetadataInput]])
+    when(metadataRepositoryMock.addFileMetadata(addFileMetadataCaptor.capture())).thenReturn(Future.successful(Seq.empty))
+
+    val service = new FileMetadataService(metadataRepositoryMock)
+    val result = service.addDefaultCitableRefPrefix(Seq.empty, "MOCK1", UUID.randomUUID()).futureValue
+
+    result shouldBe empty
+    addFileMetadataCaptor.getValue shouldBe empty
+  }
+
+  "addDefaultCitableRefPrefix" should "return a failed future if the repository call fails" in {
+    val metadataRepositoryMock = mock[FileMetadataRepository]
+    when(metadataRepositoryMock.addFileMetadata(any[Seq[AddFileMetadataInput]])).thenReturn(Future.failed(new Exception("Database error")))
+
+    val service = new FileMetadataService(metadataRepositoryMock)
+    val exception = service.addDefaultCitableRefPrefix(Seq(UUID.randomUUID()), "MOCK1", UUID.randomUUID()).failed.futureValue
+
+    exception.getMessage should equal("Database error")
+  }
+
+  "file metadata property names" should "have the correct values" in {
+    FileMetadataFields.SHA256ServerSideChecksum should equal("SHA256ServerSideChecksum")
   }
 
   private class AddOrUpdateBulkMetadataTestSetUp() {
