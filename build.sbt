@@ -57,7 +57,7 @@ libraryDependencies ++= Seq(
   "org.apache.pekko" %% "pekko-http-xml" % pekkoHttpVersion,
   "org.apache.pekko" %% "pekko-http-testkit" % pekkoHttpVersion % Test,
   "org.apache.pekko" %% "pekko-stream-testkit" % pekkoVersion % Test,
-  "com.softwaremill.sttp.shared" %% "pekko" % "1.5.3",
+  "com.softwaremill.sttp.shared" %% "pekko" % "1.6.0",
   "io.circe" %% "circe-core" % circeVersion,
   "io.circe" %% "circe-parser" % circeVersion,
   "io.circe" %% "circe-optics" % "0.15.1",
