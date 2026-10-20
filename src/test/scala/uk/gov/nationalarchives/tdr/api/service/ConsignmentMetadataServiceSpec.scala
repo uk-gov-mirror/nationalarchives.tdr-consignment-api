@@ -5,6 +5,7 @@ import org.mockito.{ArgumentCaptor, MockitoSugar}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.{Millis, Seconds, Span}
 import uk.gov.nationalarchives.Tables.ConsignmentmetadataRow
 import uk.gov.nationalarchives.tdr.api.db.repository.ConsignmentMetadataRepository
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{ConsignmentMetadata, ConsignmentMetadataFilter}
@@ -17,6 +18,9 @@ import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 class ConsignmentMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with ScalaFutures {
+
+  implicit override val patienceConfig: PatienceConfig =
+    PatienceConfig(timeout = Span(1, Seconds), interval = Span(50, Millis))
 
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
 

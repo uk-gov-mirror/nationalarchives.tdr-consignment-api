@@ -8,7 +8,6 @@ import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.auto._
 import org.scalatest.matchers.should.Matchers
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields.FileCheckFailure
-import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.SHA256ClientSideChecksum
 import uk.gov.nationalarchives.tdr.api.utils.{TestContainerUtils, TestRequest, TestUtils}
 import uk.gov.nationalarchives.tdr.api.utils.TestContainerUtils._
 import uk.gov.nationalarchives.tdr.api.utils.TestUtils._
@@ -111,8 +110,8 @@ class FileCheckFailuresRouteSpec extends TestContainerUtils with Matchers with T
     utils.createFileStatusValues(UUID.randomUUID(), fileId, "Antivirus", "Failure")
     utils.addAntivirusMetadata(fileId.toString, "virus")
     utils.addFFIDMetadata(fileId.toString)
-    utils.addFileProperty(SHA256ClientSideChecksum)
-    utils.addFileMetadata(UUID.randomUUID().toString, fileId.toString, SHA256ClientSideChecksum, "checksum")
+    utils.addFileProperty("SHA256ClientSideChecksum")
+    utils.addFileMetadata(UUID.randomUUID().toString, fileId.toString, "SHA256ClientSideChecksum", "checksum")
 
     val response: GraphqlQueryData = runTestQuery("query_no_filters", validReportingToken("reporting"))
 

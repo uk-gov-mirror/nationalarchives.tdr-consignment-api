@@ -289,7 +289,7 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     utils.addConsignmentMetadata(UUID.randomUUID(), defaultConsignmentId, "JudgmentType", "press_summary")
     utils.addConsignmentMetadata(UUID.randomUUID(), defaultConsignmentId, "PublicRecordsConfirmed", "true")
 
-    List(SHA256ServerSideChecksum, ClosurePeriod, FoiExemptionAsserted, ClosureStartDate, FoiExemptionCode).foreach(utils.addFileProperty)
+    List(SHA256ServerSideChecksum, "ClosurePeriod", "FoiExemptionAsserted", "ClosureStartDate", "FoiExemptionCode").foreach(utils.addFileProperty)
 
     utils.createFile(UUID.fromString(fileOneId), defaultConsignmentId, fileName = "fileOneName", parentId = parentUUID, fileRef = Some("REF1"), uploadMatchId = Some("1"))
     utils.createFile(UUID.fromString(fileTwoId), defaultConsignmentId, fileName = "fileTwoName", parentId = parentUUID, fileRef = Some("REF2"), uploadMatchId = Some("2"))
@@ -316,25 +316,25 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
 
     utils.addFileMetadata("06209e0d-95d0-4f13-8933-e5b9d00eb435", fileOneId, SHA256ServerSideChecksum)
     utils.addFileMetadata("c4759aae-dc68-45ec-aee1-5a562c7b42cc", fileTwoId, SHA256ServerSideChecksum)
-    utils.addFileMetadata(UUID.randomUUID().toString, fileOneId, FoiExemptionCode, "FoiExemptionCode value")
-    utils.addFileMetadata(UUID.randomUUID().toString, fileTwoId, FoiExemptionCode, "FoiExemptionCode value")
-    utils.addFileMetadata(UUID.randomUUID().toString, fileThreeId, FoiExemptionCode, "FoiExemptionCode value")
+    utils.addFileMetadata(UUID.randomUUID().toString, fileOneId, "FoiExemptionCode", "FoiExemptionCode value")
+    utils.addFileMetadata(UUID.randomUUID().toString, fileTwoId, "FoiExemptionCode", "FoiExemptionCode value")
+    utils.addFileMetadata(UUID.randomUUID().toString, fileThreeId, "FoiExemptionCode", "FoiExemptionCode value")
     (clientSideProperties ++ defaultMetadataProperties).foreach(propertyName => {
       utils.addFileProperty(propertyName)
       val value = propertyName match {
-        case ClientSideFileLastModifiedDate => "2021-03-11 12:30:30.592853"
-        case ClientSideFileSize             => "2"
-        case TitleClosed                    => "false"
-        case DescriptionClosed              => "false"
-        case _                              => s"$propertyName value"
+        case "ClientSideFileLastModifiedDate" => "2021-03-11 12:30:30.592853"
+        case "ClientSideFileSize"             => "2"
+        case "TitleClosed"                    => "false"
+        case "DescriptionClosed"              => "false"
+        case _                                => s"$propertyName value"
       }
       utils.addFileMetadata(UUID.randomUUID().toString, fileOneId, propertyName, value)
       utils.addFileMetadata(UUID.randomUUID().toString, fileTwoId, propertyName, value)
       utils.addFileMetadata(UUID.randomUUID().toString, fileThreeId, propertyName, value)
     })
-    utils.addFileMetadata(UUID.randomUUID().toString, fileThreeId, ClosureStartDate, "2021-04-11 12:30:30.592853")
-    utils.addFileMetadata(UUID.randomUUID().toString, fileThreeId, FoiExemptionAsserted, "2021-03-12 12:30:30.592853")
-    utils.addFileMetadata(UUID.randomUUID().toString, fileThreeId, ClosurePeriod, "1")
+    utils.addFileMetadata(UUID.randomUUID().toString, fileThreeId, "ClosureStartDate", "2021-04-11 12:30:30.592853")
+    utils.addFileMetadata(UUID.randomUUID().toString, fileThreeId, "FoiExemptionAsserted", "2021-03-12 12:30:30.592853")
+    utils.addFileMetadata(UUID.randomUUID().toString, fileThreeId, "ClosurePeriod", "1")
 
     val fileOneFfidMetadataId = utils.addFFIDMetadata(fileOneId)
     utils.addFFIDMetadataMatches(fileOneFfidMetadataId.toString, extensionMatch, identificationBasisMatch, puidMatch)
@@ -530,10 +530,10 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     utils.createFile(subDirectory, consignmentId, NodeType.directoryTypeIdentifier, "subDirectory", parentId = subDirectory.some, fileRef = Some("REF2"), parentRef = Some("REF1"))
 
     addDefaultMetaData(utils, topDirectory, addProperty = false)
-    utils.addFileMetadata(UUID.randomUUID.toString, topDirectory.toString, ClientSideOriginalFilepath, "directory")
+    utils.addFileMetadata(UUID.randomUUID.toString, topDirectory.toString, "ClientSideOriginalFilepath", "directory")
 
     addDefaultMetaData(utils, subDirectory, addProperty = false)
-    utils.addFileMetadata(UUID.randomUUID.toString, subDirectory.toString, ClientSideOriginalFilepath, "directory")
+    utils.addFileMetadata(UUID.randomUUID.toString, subDirectory.toString, "ClientSideOriginalFilepath", "directory")
 
     setUpFileAndStandardMetadata(consignmentId, fileId, utils, subDirectory.some, fileRef = Some("REF3"))
 
@@ -676,14 +676,14 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
     utils.addFileProperty(SHA256ServerSideChecksum)
     defaultMetadataProperties.foreach(utils.addFileProperty)
     clientSideProperties.foreach(utils.addFileProperty)
-    utils.addFileProperty(OriginalFilepath)
+    utils.addFileProperty("OriginalFilepath")
     val originalFilePath = "/an/original/file/path"
     val topDirectory = UUID.fromString("ce0a51a5-a224-474f-b3a4-df75effd5b34")
     val redactedFileId = UUID.randomUUID()
     createDirectoryAndMetadata(consignmentId, topDirectory, utils, "directory", fileRef = Some("REF1"))
 
     utils.createFile(redactedFileId, consignmentId, fileName = "original_R.txt", parentId = topDirectory.some, fileRef = Some("REF2"))
-    utils.addFileMetadata(UUID.randomUUID.toString, redactedFileId.toString, OriginalFilepath, originalFilePath)
+    utils.addFileMetadata(UUID.randomUUID.toString, redactedFileId.toString, "OriginalFilepath", originalFilePath)
 
     val response: GraphqlQueryData = runTestQuery("query_redacted_original", validUserToken())
     val originalFile = for {
@@ -746,11 +746,11 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
       ConsignmentParams(consignmentId3, "consignment-ref3", List(file3Id), statusParams = List(StatusParams(statusId3, UploadType.id, CompletedValue.value)))
     )
     utils.addFileProperty(SHA256ServerSideChecksum)
-    utils.addFileProperty(FoiExemptionCode)
+    utils.addFileProperty("FoiExemptionCode")
     setUpConsignments(consignmentParams, utils, fileRef = "REF1")
-    utils.addFileMetadata(UUID.randomUUID().toString, file1Id.toString, FoiExemptionCode, "open")
-    utils.addFileMetadata(UUID.randomUUID().toString, file2Id.toString, FoiExemptionCode, "open")
-    utils.addFileMetadata(UUID.randomUUID().toString, file3Id.toString, FoiExemptionCode, "open")
+    utils.addFileMetadata(UUID.randomUUID().toString, file1Id.toString, "FoiExemptionCode", "open")
+    utils.addFileMetadata(UUID.randomUUID().toString, file2Id.toString, "FoiExemptionCode", "open")
+    utils.addFileMetadata(UUID.randomUUID().toString, file3Id.toString, "FoiExemptionCode", "open")
 
     utils.createFileStatusValues(UUID.randomUUID(), file2Id, UploadType.id, "Success")
     utils.createFileStatusValues(UUID.randomUUID(), file3Id, UploadType.id, "Success")
@@ -1167,7 +1167,7 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
   ): UUID = {
     utils.createFile(fileId, consignmentId, NodeType.directoryTypeIdentifier, fileName, parentId = parentId, fileRef = fileRef, parentRef = parentRef)
     addDefaultMetaData(utils, fileId, addProperty = false)
-    utils.addFileMetadata(UUID.randomUUID.toString, fileId.toString, ClientSideOriginalFilepath, fileName)
+    utils.addFileMetadata(UUID.randomUUID.toString, fileId.toString, "ClientSideOriginalFilepath", fileName)
     fileId
   }
 
@@ -1195,9 +1195,9 @@ class ConsignmentRouteSpec extends TestContainerUtils with Matchers with TestReq
         parentId.toString,
         clientSideProperty,
         clientSideProperty match {
-          case ClientSideFileLastModifiedDate => s"2021-02-08 16:00:00"
-          case ClientSideFileSize             => "1"
-          case _                              => s"$clientSideProperty value"
+          case "ClientSideFileLastModifiedDate" => s"2021-02-08 16:00:00"
+          case "ClientSideFileSize"             => "1"
+          case _                                => s"$clientSideProperty value"
         }
       )
     }

@@ -54,11 +54,13 @@ trait GraphQLServerBase {
     val fileStatusRepository = new FileStatusRepository(db)
     val metadataReviewLogRepository = new MetadataReviewLogRepository(db)
     val transferringBodyService = new TransferringBodyService(new TransferringBodyRepository(db))
+    val fileMetadataService = new FileMetadataService(fileMetadataRepository)
     val consignmentService = new ConsignmentService(
       consignmentRepository,
       consignmentStatusRepository,
       seriesRepository,
-      fileMetadataRepository,
+      fileRepository,
+      fileMetadataService,
       transferringBodyService,
       metadataReviewLogRepository,
       timeSource,
@@ -73,8 +75,6 @@ trait GraphQLServerBase {
     val antivirusMetadataService = new AntivirusMetadataService(antivirusMetadataRepository, uuidSource, timeSource)
     val consignmentStatusService = new ConsignmentStatusService(consignmentStatusRepository, metadataReviewLogRepository, uuidSource, timeSource)
     val fileStatusService = new FileStatusService(fileStatusRepository)
-    val fileMetadataService =
-      new FileMetadataService(fileMetadataRepository)
     val ffidMetadataService = new FFIDMetadataService(ffidMetadataRepository, ffidMetadataMatchesRepository, timeSource, uuidSource)
     val referenceGeneratorService = new ReferenceGeneratorService(config, SimpleHttpClient())
     val fileService = new FileService(
@@ -85,6 +85,7 @@ trait GraphQLServerBase {
       fileMetadataService,
       referenceGeneratorService,
       consignmentMetadataRepository,
+      consignmentService,
       new CurrentTimeSource,
       uuidSource,
       config

@@ -6,7 +6,8 @@ import slick.jdbc.H2Profile.ProfileAction
 import slick.jdbc.{JdbcBackend, SQLActionBuilder, SetParameter}
 import slick.jdbc.PostgresProfile.api._
 import uk.gov.nationalarchives.Tables.{Filemetadata, _}
-import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.{AddFileMetadataInput, ClientSideFileSize, ClosureType}
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataPropertyName.{closureType, fileSize}
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.AddFileMetadataInput
 import uk.gov.nationalarchives.tdr.api.utils.RetryUtils._
 
 import java.sql.{Timestamp, Types}
@@ -29,7 +30,7 @@ class FileMetadataRepository(db: JdbcBackend#Database)(implicit val executionCon
       .join(File)
       .on(_.fileid === _.fileid)
       .filter(_._2.consignmentid === consignmentId)
-      .filter(_._1.propertyname === ClientSideFileSize)
+      .filter(_._1.propertyname === fileSize)
       .map(_._1.value.asColumnOf[Long])
       .sum
       .getOrElse(0L)
@@ -270,7 +271,7 @@ class FileMetadataRepository(db: JdbcBackend#Database)(implicit val executionCon
       .join(File)
       .on(_.fileid === _.fileid)
       .filter(_._2.consignmentid === consignmentId)
-      .filter(_._1.propertyname === ClosureType)
+      .filter(_._1.propertyname === closureType)
       .filter(_._1.value.toLowerCase === closureValue.toLowerCase)
       .length
     db.run(query.result)

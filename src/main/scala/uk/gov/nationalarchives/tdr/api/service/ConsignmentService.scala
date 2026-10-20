@@ -24,7 +24,8 @@ class ConsignmentService(
     consignmentRepository: ConsignmentRepository,
     consignmentStatusRepository: ConsignmentStatusRepository,
     seriesRepository: SeriesRepository,
-    fileMetadataRepository: FileMetadataRepository,
+    fileRepository: FileRepository,
+    fileMetadataService: FileMetadataService,
     transferringBodyService: TransferringBodyService,
     metadataReviewLogRepository: MetadataReviewLogRepository,
     timeSource: TimeSource,
@@ -53,11 +54,11 @@ class ConsignmentService(
   }
 
   def totalClosedRecords(consignmentId: UUID): Future[Int] = {
-    fileMetadataRepository.totalClosedRecords(consignmentId)
+    fileMetadataService.totalClosedRecords(consignmentId)
   }
 
   def totalRetainedRecords(consignmentId: UUID): Future[Int] = {
-    fileMetadataRepository.totalRetainedRecords(consignmentId)
+    fileMetadataService.totalRetainedRecords(consignmentId)
   }
 
   def updateTransferInitiated(consignmentId: UUID, userId: UUID): Future[Int] = {
@@ -152,7 +153,7 @@ class ConsignmentService(
     consignment.map(rows => rows.map(row => convertRowToConsignment(row)).headOption)
   }
 
-  def updateConsignmentSeries(updateConsignmentSeriesIdInput: UpdateConsignmentSeriesIdInput): Future[Int] = {
+  def updateConsignmentSeries(updateConsignmentSeriesIdInput: UpdateConsignmentSeriesIdInput, userId: UUID): Future[Int] = {
     for {
       series <- seriesRepository.getSeries(updateConsignmentSeriesIdInput.seriesId)
       body <- transferringBodyService.getBody(updateConsignmentSeriesIdInput.seriesId)
@@ -161,7 +162,16 @@ class ConsignmentService(
       result <- consignmentRepository.updateConsignment(updateConsignmentSeriesIdInput.consignmentId, updateSeriesInput, updateBodyInput)
       seriesStatus = if (result == 1) Completed else Failed
       _ <- consignmentStatusRepository.updateConsignmentStatus(updateConsignmentSeriesIdInput.consignmentId, "Series", seriesStatus, Timestamp.from(timeSource.now))
+      _ <- addDefaultFileMetadata(updateConsignmentSeriesIdInput.consignmentId, series, userId)
     } yield result
+  }
+
+  private def addDefaultFileMetadata(consignmentId: UUID, series: Seq[SeriesRow], userId: UUID): Future[Unit] = {
+    for {
+      fileIds <- fileRepository.getFileIds(consignmentId)
+      seriesName = series.headOption.map(_.name).getOrElse(throw InputDataException(s"Series not found"))
+      _ <- fileMetadataService.addDefaultCitableRefPrefix(fileIds, seriesName, userId)
+    } yield ()
   }
 
   def consignmentHasFiles(consignmentId: UUID): Future[Boolean] = {
