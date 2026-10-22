@@ -180,13 +180,6 @@ class ConsignmentRepository(db: JdbcBackend#Database, timeSource: TimeSource) {
     db.run(query.result)
   }
 
-  def getConsignmentsOfFiles(fileIds: Seq[UUID])(implicit executionContext: ExecutionContext): Future[Seq[(UUID, ConsignmentRow)]] = {
-    val query = for {
-      (file, consignment) <- File.join(Consignment).on(_.consignmentid === _.consignmentid).filter(_._1.fileid.inSet(fileIds))
-    } yield (file.fileid, consignment)
-    db.run(query.result)
-  }
-
   def addUploadDetails(uploadInput: StartUploadInput, consignmentStatusRows: List[ConsignmentstatusRow])(implicit executionContext: ExecutionContext): Future[String] = {
     val updateAction =
       Consignment

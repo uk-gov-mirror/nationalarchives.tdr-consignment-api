@@ -245,6 +245,11 @@ object ConsignmentFields {
         resolve = context => DeferClosedRecords(context.value.consignmentid)
       ),
       Field(
+        "totalRetainedRecords",
+        IntType,
+        resolve = context => DeferRetainedRecords(context.value.consignmentid)
+      ),
+      Field(
         "totalFiles",
         IntType,
         resolve = context => DeferTotalFiles(context.value.consignmentid)
@@ -444,7 +449,7 @@ object ConsignmentFields {
       "updateConsignmentSeriesId",
       OptionType(IntType),
       arguments = UpdateConsignmentSeriesIdArg :: Nil,
-      resolve = ctx => ctx.ctx.consignmentService.updateConsignmentSeries(ctx.arg(UpdateConsignmentSeriesIdArg)),
+      resolve = ctx => ctx.ctx.consignmentService.updateConsignmentSeries(ctx.arg(UpdateConsignmentSeriesIdArg), ctx.ctx.accessToken.userId),
       tags = List(ValidateUserHasAccessToConsignment(UpdateConsignmentSeriesIdArg), ValidateUpdateConsignmentSeriesId)
     ),
     Field(

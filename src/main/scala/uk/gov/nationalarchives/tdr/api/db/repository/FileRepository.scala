@@ -8,8 +8,6 @@ import uk.gov.nationalarchives.Tables.{
   AvmetadataRow,
   Consignment,
   ConsignmentRow,
-  Consignmentstatus,
-  ConsignmentstatusRow,
   Ffidmetadata,
   FfidmetadataRow,
   Ffidmetadatamatches,
@@ -23,7 +21,7 @@ import uk.gov.nationalarchives.Tables.{
 }
 import uk.gov.nationalarchives.tdr.api.db.repository.FileRepository.{FileFields, FileRepositoryMetadata}
 import uk.gov.nationalarchives.tdr.api.model.file.NodeType
-import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.SHA256ClientSideChecksum
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataPropertyName
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusTypes._
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.SuccessValue
 import uk.gov.nationalarchives.tdr.api.utils.TimeUtils.ZonedDateTimeUtils
@@ -87,7 +85,7 @@ class FileRepository(db: JdbcBackend#Database)(implicit val executionContext: Ex
       .on(_._1._1._2.fileid === _.fileid)
       .joinLeft(Ffidmetadatamatches)
       .on(_._2.map(_.ffidmetadataid) === _.ffidmetadataid)
-      .joinLeft(Filemetadata.filter(_.propertyname === SHA256ClientSideChecksum))
+      .joinLeft(Filemetadata.filter(_.propertyname === FileMetadataPropertyName.clientSideChecksum))
       .on(_._1._1._1._1._1.fileid === _.fileid)
 
     db.run(query.result)
@@ -100,11 +98,6 @@ class FileRepository(db: JdbcBackend#Database)(implicit val executionContext: Ex
       .filter(_._1.fileid === fileId)
       .map(rows => rows._2)
     db.run(query.result)
-  }
-
-  def addFiles(fileRows: Seq[FileRow], consignmentStatusRow: ConsignmentstatusRow): Future[Seq[Tables.FileRow]] = {
-    val allAdditions = DBIO.seq(insertFileQuery ++= fileRows, Consignmentstatus += consignmentStatusRow).transactionally
-    db.run(allAdditions).map(_ => fileRows)
   }
 
   def addFiles(fileRows: Seq[FileRow], fileMetadataRows: Seq[FilemetadataRow]): Future[Unit] =

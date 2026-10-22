@@ -6,7 +6,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Seconds, Span}
 import uk.gov.nationalarchives.Tables.FilemetadataRow
-import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.{AddFileMetadataInput, ClientSideFileSize}
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.AddFileMetadataInput
 import uk.gov.nationalarchives.tdr.api.utils.TestAuthUtils.userId
 import uk.gov.nationalarchives.tdr.api.utils.TestContainerUtils._
 import uk.gov.nationalarchives.tdr.api.utils.{TestContainerUtils, TestUtils}
@@ -288,10 +288,10 @@ class FileMetadataRepositorySpec extends TestContainerUtils with ScalaFutures wi
     val fileIdThree = UUID.randomUUID()
     val utils = TestUtils(container.database)
     utils.createConsignment(consignmentId, userId)
-    utils.addFileProperty(ClientSideFileSize)
+    utils.addFileProperty("ClientSideFileSize")
     List((fileIdOne, "1"), (fileIdTwo, "2"), (fileIdThree, "3")).foreach { case (id, size) =>
       utils.createFile(id, consignmentId)
-      utils.addFileMetadata(UUID.randomUUID().toString, id.toString, ClientSideFileSize, size)
+      utils.addFileMetadata(UUID.randomUUID().toString, id.toString, "ClientSideFileSize", size)
     }
     val repository = new FileMetadataRepository(container.database)
     val sum = repository.getSumOfFileSizes(consignmentId).futureValue
@@ -348,6 +348,44 @@ class FileMetadataRepositorySpec extends TestContainerUtils with ScalaFutures wi
     sum should equal(0)
   }
 
+  "totalRetainedRecords" should "return total number of retained records" in withContainers { case container: PostgreSQLContainer =>
+    val consignmentId = UUID.randomUUID()
+    val utils = TestUtils(container.database)
+    utils.createConsignment(consignmentId, userId)
+    val fileIdOne = UUID.randomUUID()
+    val fileIdTwo = UUID.randomUUID()
+    val fileIdThree = UUID.randomUUID()
+    utils.createFile(fileIdOne, consignmentId)
+    utils.createFile(fileIdTwo, consignmentId)
+    utils.createFile(fileIdThree, consignmentId)
+    utils.addFileProperty("ClosureType")
+    utils.addFileMetadata(UUID.randomUUID().toString, fileIdOne.toString, "ClosureType", "Retained for security")
+    utils.addFileMetadata(UUID.randomUUID().toString, fileIdTwo.toString, "ClosureType", "retained for security")
+    utils.addFileMetadata(UUID.randomUUID().toString, fileIdThree.toString, "ClosureType", "Open")
+    val repository = new FileMetadataRepository(container.database)
+    val sum = repository.totalRetainedRecords(consignmentId).futureValue
+    sum should equal(2)
+  }
+
+  "totalRetainedRecords" should "return zero when there are no retained records" in withContainers { case container: PostgreSQLContainer =>
+    val consignmentId = UUID.randomUUID()
+    val utils = TestUtils(container.database)
+    utils.createConsignment(consignmentId, userId)
+    val fileIdOne = UUID.randomUUID()
+    val fileIdTwo = UUID.randomUUID()
+    val fileIdThree = UUID.randomUUID()
+    utils.createFile(fileIdOne, consignmentId)
+    utils.createFile(fileIdTwo, consignmentId)
+    utils.createFile(fileIdThree, consignmentId)
+    utils.addFileProperty("ClosureType")
+    utils.addFileMetadata(UUID.randomUUID().toString, fileIdOne.toString, "ClosureType", "Closed")
+    utils.addFileMetadata(UUID.randomUUID().toString, fileIdTwo.toString, "ClosureType", "Open")
+    utils.addFileMetadata(UUID.randomUUID().toString, fileIdThree.toString, "ClosureType", "Open")
+    val repository = new FileMetadataRepository(container.database)
+    val sum = repository.totalRetainedRecords(consignmentId).futureValue
+    sum should equal(0)
+  }
+
   "addOrUpdateFileMetadata" should "handle multiple files and properties using upsert to update existing values" in withContainers { case container: PostgreSQLContainer =>
     val db = container.database
     val utils = TestUtils(db)
@@ -396,7 +434,28 @@ class FileMetadataRepositorySpec extends TestContainerUtils with ScalaFutures wi
     result.head.value should equal("new_value")
     result.head.fileid should equal(fileId)
     result.head.propertyname should equal("FileProperty")
-    checkFileMetadataExists(fileId, utils, 1)
+    checkFileMetadataExists(fileId, utils)
+  }
+
+  "addOrUpdateFileMetadata" should "store property names and values containing SQL metacharacters literally" in withContainers { case container: PostgreSQLContainer =>
+    val db = container.database
+    val utils = TestUtils(db)
+    val fileMetadataRepository = new FileMetadataRepository(db)
+    val consignmentId = UUID.randomUUID()
+    val fileId = UUID.randomUUID()
+    val maliciousProperty = """Prop'), ('00000000-0000-0000-0000-000000000000', 'x', 'y', 'z'); DROP TABLE "FileMetadata"; --"""
+    val maliciousValue = """value'); DELETE FROM "FileMetadata"; --"""
+    utils.addFileProperty(maliciousProperty)
+    utils.createConsignment(consignmentId, userId)
+    utils.createFile(fileId, consignmentId)
+
+    val input = Seq(AddFileMetadataInput(fileId, maliciousValue, userId, maliciousProperty))
+    val result = fileMetadataRepository.addOrUpdateFileMetadata(input).futureValue
+
+    result.length should equal(1)
+    result.head.value should equal(maliciousValue)
+    result.head.propertyname should equal(maliciousProperty)
+    checkFileMetadataExists(fileId, utils, 1, maliciousProperty)
   }
 
   "addOrUpdateFileMetadata" should "do nothing if input is empty" in withContainers { case container: PostgreSQLContainer =>

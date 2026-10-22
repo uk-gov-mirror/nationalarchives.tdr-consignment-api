@@ -1,16 +1,18 @@
 package uk.gov.nationalarchives.tdr.api.service
 
 import sangria.macros.derive.GraphQLDeprecated
-import uk.gov.nationalarchives.Tables.FilemetadataRow
+import uk.gov.nationalarchives.Tables.{ConsignmentmetadataRow, FilemetadataRow}
 import uk.gov.nationalarchives.tdr.api.db.repository.FileMetadataRepository
 import uk.gov.nationalarchives.tdr.api.graphql.DataExceptions.InputDataException
 import uk.gov.nationalarchives.tdr.api.graphql.fields.AntivirusMetadataFields.AntivirusMetadata
+import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.Consignment
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FFIDMetadataFields.FFIDMetadata
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields._
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileStatusFields.FileStatus
-import uk.gov.nationalarchives.tdr.api.service.FileMetadataService._
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataPropertyName.{tdrDataLoadHeaderToPropertyMapper, _}
+import uk.gov.nationalarchives.tdr.api.service.FileMetadataService.{AddFileMetadataInput, FileMetadataValues, getFileMetadataValues}
 import uk.gov.nationalarchives.tdr.api.service.ReferenceGeneratorService.Reference
-import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
+import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema
 
 import java.sql.Timestamp
 import java.time.LocalDateTime
@@ -73,6 +75,14 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository)(implic
     } yield medataPropertiesAdded
   }
 
+  def totalClosedRecords(consignmentId: UUID): Future[Int] = {
+    fileMetadataRepository.totalClosedRecords(consignmentId)
+  }
+
+  def totalRetainedRecords(consignmentId: UUID): Future[Int] = {
+    fileMetadataRepository.totalRetainedRecords(consignmentId)
+  }
+
   def getFileMetadata(consignmentId: Option[UUID], selectedFileIds: Option[Set[UUID]] = None): Future[Map[UUID, FileMetadataValues]] =
     fileMetadataRepository.getFileMetadata(consignmentId, selectedFileIds).map { rows =>
       rows.groupBy(_.fileid).map { case (fileId, fileMetadata) =>
@@ -80,57 +90,50 @@ class FileMetadataService(fileMetadataRepository: FileMetadataRepository)(implic
       }
     }
 
+  def addDefaultCitableRefPrefix(fileIds: Seq[UUID], seriesName: String, userId: UUID): Future[Seq[FilemetadataRow]] = {
+    val metadataInput = fileIds.map(fileId => AddFileMetadataInput(fileId, seriesName, userId, citableRefPrefix))
+    fileMetadataRepository.addFileMetadata(metadataInput)
+  }
+
+  def consignmentLevelMetadata(consignment: Option[Consignment], consignmentMetadata: Seq[ConsignmentmetadataRow]): Map[String, String] = {
+    val legalStatusMetadata = consignmentMetadata.find(_.propertyname == legalStatus).map(metadata => BaseSchema.legal_status -> metadata.value).toMap
+    val citableRefPrefixMetadata = consignment.get.seriesName.map(seriesName => BaseSchema.citable_ref_prefix -> seriesName).toMap
+    legalStatusMetadata ++ citableRefPrefixMetadata
+  }
 }
 
 object FileMetadataService {
 
-  val SHA256ClientSideChecksum = "SHA256ClientSideChecksum"
-  val ClientSideOriginalFilepath = "ClientSideOriginalFilepath"
-  val OriginalFilepath = "OriginalFilepath"
-  val ClientSideFileLastModifiedDate = "ClientSideFileLastModifiedDate"
-  val ClientSideFileSize = "ClientSideFileSize"
-  val ClosurePeriod = "ClosurePeriod"
-  val ClosureStartDate = "ClosureStartDate"
-  val FileUUID = "UUID"
-  val Filename = "Filename"
-  val FileType = "FileType"
-  val FileReference = "FileReference"
-  val ParentReference = "ParentReference"
-  val FoiExemptionAsserted = "FoiExemptionAsserted"
-  val TitleClosed = "TitleClosed"
-  val DescriptionClosed = "DescriptionClosed"
-  val ClosureType = "ClosureType"
-  val Description = "description"
-  val DescriptionAlternate = "DescriptionAlternate"
-  val RightsCopyright = "RightsCopyright"
-  val LegalStatus = "LegalStatus"
-  val HeldBy = "HeldBy"
-  val Language = "Language"
-  val FoiExemptionCode = "FoiExemptionCode"
-  val AssetId = "AssetId"
   val clientSideProperties: List[String] =
-    List(SHA256ClientSideChecksum, ClientSideOriginalFilepath, ClientSideFileLastModifiedDate, ClientSideFileSize, Filename, FileType)
+    List(
+      clientSideChecksum,
+      filePath,
+      dateLastModified,
+      fileSize,
+      fileName,
+      fileType
+    )
 
   def getFileMetadataValues(fileMetadataRow: Seq[FilemetadataRow]): FileMetadataValues = {
     val propertyNameMap: Map[String, String] = fileMetadataRow.groupBy(_.propertyname).transform { (_, value) =>
       value.head.value
     }
     FileMetadataValues(
-      propertyNameMap.get(SHA256ClientSideChecksum),
-      propertyNameMap.get(ClientSideOriginalFilepath),
-      propertyNameMap.get(ClientSideFileLastModifiedDate).map(d => Timestamp.valueOf(d).toLocalDateTime),
-      propertyNameMap.get(ClientSideFileSize).map(_.toLong),
-      propertyNameMap.get(RightsCopyright),
-      propertyNameMap.get(LegalStatus),
-      propertyNameMap.get(HeldBy),
-      propertyNameMap.get(Language),
-      propertyNameMap.get(FoiExemptionCode),
-      propertyNameMap.get(ClosurePeriod),
-      propertyNameMap.get(ClosureStartDate).map(d => Timestamp.valueOf(d).toLocalDateTime),
-      propertyNameMap.get(FoiExemptionAsserted).map(d => Timestamp.valueOf(d).toLocalDateTime),
-      propertyNameMap.get(TitleClosed).map(_.toBoolean),
-      propertyNameMap.get(DescriptionClosed).map(_.toBoolean),
-      propertyNameMap.get(AssetId).map(UUID.fromString)
+      propertyNameMap.get(clientSideChecksum),
+      propertyNameMap.get(filePath),
+      propertyNameMap.get(dateLastModified).map(d => Timestamp.valueOf(d).toLocalDateTime),
+      propertyNameMap.get(fileSize).map(_.toLong),
+      propertyNameMap.get(rightsCopyright),
+      propertyNameMap.get(legalStatus),
+      propertyNameMap.get(heldBy),
+      propertyNameMap.get(language),
+      propertyNameMap.get(foiExemptionCode),
+      propertyNameMap.get(closurePeriod),
+      propertyNameMap.get(closureStartDate).map(d => Timestamp.valueOf(d).toLocalDateTime),
+      propertyNameMap.get(foiExemptionAsserted).map(d => Timestamp.valueOf(d).toLocalDateTime),
+      propertyNameMap.get(titleClosed).map(_.toBoolean),
+      propertyNameMap.get(descriptionClosed).map(_.toBoolean),
+      propertyNameMap.get(assetId).map(UUID.fromString)
     )
   }
 
@@ -174,8 +177,4 @@ object FileMetadataService {
       descriptionClosed: Option[Boolean],
       assetId: Option[UUID]
   )
-
-  val config: ConfigUtils.MetadataConfiguration = ConfigUtils.loadConfiguration
-  private val systemProperties: Seq[Reference] = config.getPropertiesByPropertyType("System")
-  private val tdrDataLoadHeaderToPropertyMapper: String => String = config.propertyToOutputMapper("tdrDataLoadHeader")
 }

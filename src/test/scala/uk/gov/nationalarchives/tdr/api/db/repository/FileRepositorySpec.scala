@@ -4,19 +4,18 @@ import com.dimafeng.testcontainers.PostgreSQLContainer
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks
-import uk.gov.nationalarchives
 import uk.gov.nationalarchives.Tables._
 import uk.gov.nationalarchives.tdr.api.model.file.NodeType
-import uk.gov.nationalarchives.tdr.api.utils.TestContainerUtils._
 import uk.gov.nationalarchives.tdr.api.utils.TestAuthUtils.userId
+import uk.gov.nationalarchives.tdr.api.utils.TestContainerUtils._
 import uk.gov.nationalarchives.tdr.api.utils.{TestContainerUtils, TestUtils}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusTypes._
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues._
 
 import java.sql.Timestamp
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.util.UUID
 import scala.concurrent.ExecutionContext
-import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusTypes._
-import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues._
 
 class FileRepositorySpec extends TestContainerUtils with ScalaFutures with Matchers with TableDrivenPropertyChecks {
   implicit val executionContext: ExecutionContext = ExecutionContext.Implicits.global
@@ -27,36 +26,32 @@ class FileRepositorySpec extends TestContainerUtils with ScalaFutures with Match
   val fileOneId: UUID = UUID.fromString("20e0676a-f0a1-4051-9540-e7df1344ac11")
   val fileTwoId: UUID = UUID.fromString("b5111f11-4dca-4f92-8239-505da567b9d0")
 
-  "addFiles" should "create files and update ConsignmentStatus table for a consignment" in withContainers { case container: PostgreSQLContainer =>
+  "addFiles" should "create files and metadata rows for a consignment" in withContainers { case container: PostgreSQLContainer =>
     val db = container.database
     val utils = TestUtils(db)
     val fileRepository = new FileRepository(db)
-    val consignmentId = UUID.fromString("94abafc4-165e-469b-ba93-eace3f224de5")
-    val fileOneId = UUID.fromString("7499a278-2fec-4c47-92fb-dd9024c65d0d")
-    val fileOneAssetId = UUID.fromString("bedcab5f-1bd3-4188-877f-0d5cddbb78e1")
-    val fileTwoId = UUID.fromString("e7d21444-0c62-4115-a4ad-320fd3d3dae3")
-    val fileTwoAssetId = UUID.fromString("14b957a3-c6d9-4250-9137-e6375f34ddf3")
+    val consignmentId = UUID.fromString("90d763f8-7d8c-4f52-a2d9-2cfe8c9ba4bf")
+    val fileOneId = UUID.fromString("d8e8d53d-8070-4b40-81ef-7f3d9a3db0a5")
+    val fileTwoId = UUID.fromString("7d2d3415-3dce-4700-b34d-7f2a03553baf")
     val fileRows = Seq(
-      FileRow(fileOneId, consignmentId, userId, Timestamp.from(Instant.now), assetid = Some(fileOneAssetId)),
-      FileRow(fileTwoId, consignmentId, userId, Timestamp.from(Instant.now), assetid = Some(fileTwoAssetId))
+      FileRow(fileOneId, consignmentId, userId, Timestamp.from(Instant.now), assetid = Some(UUID.randomUUID())),
+      FileRow(fileTwoId, consignmentId, userId, Timestamp.from(Instant.now), assetid = Some(UUID.randomUUID()))
     )
-    val consignmentStatusRow = ConsignmentstatusRow(
-      UUID.fromString("ad5ac54c-6a67-4892-b8ac-120362df7917"),
-      consignmentId,
-      UploadType.id,
-      InProgressValue.value,
-      Timestamp.from(Instant.now)
+    val fileMetadataRows = Seq(
+      FilemetadataRow(UUID.randomUUID(), fileOneId, "checksum-one", Timestamp.from(Instant.now), userId, "SHA256ClientSideChecksum"),
+      FilemetadataRow(UUID.randomUUID(), fileTwoId, "checksum-two", Timestamp.from(Instant.now), userId, "SHA256ClientSideChecksum")
     )
 
+    utils.addFileProperty("SHA256ClientSideChecksum")
     utils.createConsignment(consignmentId, userId)
 
-    val addFiles: Seq[nationalarchives.Tables.FileRow] = fileRepository.addFiles(fileRows, consignmentStatusRow).futureValue
+    fileRepository.addFiles(fileRows, fileMetadataRows).futureValue
 
-    addFiles.foreach { file =>
-      file.consignmentid shouldBe consignmentId
-      file.userid shouldBe userId
-    }
-    checkConsignmentStatusExists(consignmentId, utils)
+    val savedFiles = fileRepository.getFiles(consignmentId, FileFilters()).futureValue
+    savedFiles.size shouldBe 2
+    savedFiles.map(_._1.fileid).toSet shouldBe Set(fileOneId, fileTwoId)
+    savedFiles.flatMap(_._2).map(_.fileid).toSet shouldBe Set(fileOneId, fileTwoId)
+    savedFiles.flatMap(_._2).map(_.value).toSet shouldBe Set("checksum-one", "checksum-two")
   }
 
   "countFilesInConsignment" should "return 0 if a consignment has no files" in withContainers { case container: PostgreSQLContainer =>

@@ -9,8 +9,6 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentMetadataFields.
   ConsignmentMetadataWithConsignmentId
 }
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileMetadataFields.{AddOrUpdateBulkFileMetadataInput, AddOrUpdateFileMetadata, AddOrUpdateMetadata}
-import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema.legal_status
-import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
 
 import java.sql.Timestamp
 import java.util.UUID
@@ -24,13 +22,11 @@ class ConsignmentMetadataService(
     timeSource: TimeSource
 )(implicit val executionContext: ExecutionContext) {
 
-  private val tdrDataLoadHeaderToPropertyMapper = ConfigUtils.loadConfiguration.propertyToOutputMapper("tdrDataLoadHeader")
-
   def addOrUpdateConsignmentMetadata(input: AddOrUpdateConsignmentMetadataInput, userId: UUID): Future[List[ConsignmentMetadataWithConsignmentId]] = {
     for {
       _ <- consignmentMetadataRepository.deleteConsignmentMetadata(input.consignmentId, input.consignmentMetadata.map(_.propertyName).toSet)
       rows <- consignmentMetadataRepository.addConsignmentMetadata(convertToConsignmentMetadataRows(input, userId))
-      _ <- addLegalStatusFileMetadata(input.consignmentId, input.consignmentMetadata.find(_.propertyName == tdrDataLoadHeaderToPropertyMapper(legal_status)), userId)
+      _ <- addLegalStatusFileMetadata(input.consignmentId, input.consignmentMetadata.find(_.propertyName == FileMetadataPropertyName.legalStatus), userId)
     } yield {
       rows.map(row => ConsignmentMetadataWithConsignmentId(row.consignmentid, row.propertyname, row.value)).toList
     }
