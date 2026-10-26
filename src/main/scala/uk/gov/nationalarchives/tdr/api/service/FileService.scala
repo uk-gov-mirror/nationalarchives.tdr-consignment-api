@@ -11,7 +11,7 @@ import uk.gov.nationalarchives.tdr.api.graphql.fields.AntivirusMetadataFields.An
 import uk.gov.nationalarchives.tdr.api.graphql.fields.ConsignmentFields.{ConsignmentMetadataFilter, FileEdge, PaginationInput}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FFIDMetadataFields.FFIDMetadata
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields
-import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields.{AddFileAndMetadataInput, FileCheckFailure, FileMatches, GetFileCheckFailuresInput}
+import uk.gov.nationalarchives.tdr.api.graphql.fields.FileFields.{AddFileAndMetadataInput, ClientSideMetadataInput, FileCheckFailure, FileMatches, GetFileCheckFailuresInput}
 import uk.gov.nationalarchives.tdr.api.graphql.fields.FileStatusFields.FileStatus
 import uk.gov.nationalarchives.tdr.api.model.file.NodeType.{FileTypeHelper, directoryTypeIdentifier, fileTypeIdentifier}
 import uk.gov.nationalarchives.tdr.api.service.FileMetadataPropertyName.{legalStatus, metadataConfig, tdrDataLoadHeaderToPropertyMapper}
@@ -55,6 +55,10 @@ class FileService(
     }
     val now = Timestamp.from(timeSource.now)
     val consignmentId = addFileAndMetadataInput.consignmentId
+    // Reverse traversal preserves the first match when normalised paths are duplicated.
+    val metadataByPath = addFileAndMetadataInput.metadataInput.reverseIterator
+      .map(input => input.originalPath.stripPrefix("/") -> input)
+      .toMap
     val filePathInputs = addFileAndMetadataInput.metadataInput.map(i => TreeNodeInput(i.originalPath, Some(i.matchId))).toSet
     val emptyDirectoriesInputs = addFileAndMetadataInput.emptyDirectories.map(i => TreeNodeInput(i)).toSet
     val allFileNodes: Map[String, TreeNode] = treeNodesUtils.generateNodes(filePathInputs, fileTypeIdentifier)
@@ -75,7 +79,7 @@ class FileService(
         val fileRow = createFileRow(userId, now, consignmentId, treeNode, parentId, parentFileReference, fileId, assetId)
         val consignmentLevelMetadata = fileMetadataService.consignmentLevelMetadata(consignment, consignmentMetadata)
         val metadataProperties = defaultPropertyValues ++ consignmentLevelMetadata
-        createFileRows(addFileAndMetadataInput, row, metadataProperties, path, treeNode, parentFileReference, fileId, fileRow, assetId)
+        createFileRows(metadataByPath, row, metadataProperties, path, treeNode, parentFileReference, fileId, fileRow, assetId)
       }).toList)
       matchedFileRows <- generateMatchedRows(rows)
     } yield matchedFileRows
@@ -219,7 +223,7 @@ class FileService(
   }
 
   private def createFileRows(
-      addFileAndMetadataInput: AddFileAndMetadataInput,
+      metadataByPath: Map[String, ClientSideMetadataInput],
       row: (UUID, Reference, Reference) => FilemetadataRow,
       defaultPropertyValues: Map[String, String],
       path: Reference,
@@ -248,12 +252,7 @@ class FileService(
     } else Nil
 
     if (treeNode.treeNodeType.isFileType) {
-      val input = addFileAndMetadataInput.metadataInput
-        .filter(m => {
-          val pathWithoutSlash = if (m.originalPath.startsWith("/")) m.originalPath.tail else m.originalPath
-          pathWithoutSlash == path
-        })
-        .head
+      val input = metadataByPath(path)
 
       val fileMetadataRows = List(
         row(fileId, input.lastModified.toTimestampString, FileMetadataPropertyName.dateLastModified),

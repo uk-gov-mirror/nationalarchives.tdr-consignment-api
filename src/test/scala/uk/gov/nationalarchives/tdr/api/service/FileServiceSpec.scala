@@ -631,6 +631,35 @@ class FileServiceSpec extends AnyFlatSpec with MockitoSugar with Matchers with S
     verify(consignmentStatusRepositoryMock, times(0)).updateConsignmentStatus(any[UUID], any[String], any[String], any[Timestamp])
   }
 
+  "addFile" should "match metadata by normalised path and preserve the first duplicate's metadata" in {
+    val fileRowCaptor: ArgumentCaptor[List[FileRow]] = ArgumentCaptor.forClass(classOf[List[FileRow]])
+    val metadataRowCaptor: ArgumentCaptor[List[FilemetadataRow]] = ArgumentCaptor.forClass(classOf[List[FilemetadataRow]])
+    when(fileRepositoryMock.addFiles(fileRowCaptor.capture(), metadataRowCaptor.capture())).thenReturn(Future.successful(()))
+    when(consignmentServiceMock.getConsignment(consignmentId1)).thenReturn(Future.successful(mockConsignment.some))
+    when(referenceGeneratorServiceMock.getReferences(any[Int])).thenReturn(List("ref1", "ref2", "ref3"))
+
+    val first = ClientSideMetadataInput("/folder/one", "checksum-one", 1000L, 10L, "first")
+    val second = ClientSideMetadataInput("folder/two", "checksum-two", 2000L, 20L, "second")
+    val duplicate = ClientSideMetadataInput("folder/one", "ignored-checksum", 3000L, 30L, "duplicate")
+    val service = setupFileService()
+
+    val response = service.addFile(AddFileAndMetadataInput(consignmentId1, List(first, second, duplicate)), userId).futureValue
+    response.map(_.matchId) should contain theSameElementsAs List("first", "second")
+
+    val metadataByFileId = metadataRowCaptor.getAllValues.asScala.flatten.groupBy(_.fileid)
+    val fileRows = fileRowCaptor.getAllValues.asScala.flatten
+    List(first, second).foreach { input =>
+      val fileId = response.find(_.matchId == input.matchId).get.fileId
+      val metadata = metadataByFileId(fileId).map(row => row.propertyname -> row.value).toMap
+      metadata("ClientSideOriginalFilepath") should equal(input.originalPath.stripPrefix("/"))
+      metadata("SHA256ClientSideChecksum") should equal(input.checksum)
+      metadata("ClientSideFileSize") should equal(input.fileSize.toString)
+      metadata("ClientSideFileLastModifiedDate") should equal(Timestamp.from(Instant.ofEpochMilli(input.lastModified)).toString)
+    }
+    val folder = fileRows.find(_.filetype.contains(NodeType.directoryTypeIdentifier)).get
+    metadataByFileId(folder.fileid).map(_.propertyname) should not contain "SHA256ClientSideChecksum"
+  }
+
   "addFile" should "assign file references to all files, directories and add all files, directories, client and static metadata when total number of files and folders are greater than batch size" in {
     val ffidMetadataService = mock[FFIDMetadataService]
     val antivirusMetadataService = mock[AntivirusMetadataService]
