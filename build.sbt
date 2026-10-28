@@ -45,7 +45,7 @@ lazy val testContainersVersion = "0.44.1"
 lazy val awsSdkVersion = "2.57.3"
 
 libraryDependencies ++= Seq(
-  "org.sangria-graphql" %% "sangria" % "4.2.19",
+  "org.sangria-graphql" %% "sangria" % "4.2.20",
   "org.sangria-graphql" %% "sangria-slowlog" % "3.0.1",
   "org.sangria-graphql" %% "sangria-circe" % "1.3.2",
   "org.sangria-graphql" %% "sangria-spray-json" % "1.0.4",
@@ -91,7 +91,7 @@ libraryDependencies ++= Seq(
 dependencyOverrides ++= Seq(
   "com.typesafe.slick" %% "slick" % "3.6.1",
   "com.typesafe.slick" %% "slick-hikaricp" % "3.6.1",
-  "org.sangria-graphql" %% "sangria" % "4.2.19"
+  "org.sangria-graphql" %% "sangria" % "4.2.20"
 )
 
 (Test / javaOptions) += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf"
