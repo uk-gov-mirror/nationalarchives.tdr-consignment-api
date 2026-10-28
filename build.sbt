@@ -69,7 +69,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.slick" %% "slick" % "3.6.1",
   "com.typesafe.slick" %% "slick-hikaricp" % "3.6.1",
   "org.typelevel" %% "cats-effect" % "3.7.1",
-  "ch.qos.logback" % "logback-classic" % "1.6.5",
+  "ch.qos.logback" % "logback-classic" % "1.6.6",
   "net.logstash.logback" % "logstash-logback-encoder" % "9.0",
   "software.amazon.awssdk" % "rds" % awsSdkVersion,
   "software.amazon.awssdk" % "sts" % awsSdkVersion,
